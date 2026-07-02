@@ -47,7 +47,7 @@ window.NAFOSTED_PROGRESS = {
 
   /* ---- Nhân sự (theo đề cương M2 ký 26/8/2024; moi:true = bổ sung) ---- */
   nhanSu: [
-    { ten: "TS. Phạm Hà Thanh Tùng", vaiTro: "Chủ nhiệm đề tài (CNDT)", phuTrach: "Điều phối · thực vật dân tộc học · hóa TN · công bố · nghiệm thu — ND1, ND3, ND6", moi: false },
+    { ten: "TS. Phạm Hà Thanh Tùng", email: "thtungdl@gmail.com", vaiTro: "Chủ nhiệm đề tài (CNDT)", phuTrach: "Điều phối · thực vật dân tộc học · hóa TN · công bố · nghiệm thu — ND1, ND3, ND6", moi: false },
     { ten: "TS. Nguyễn Ngọc Hiếu", vaiTro: "Thư ký khoa học (TKKH) · TVC", phuTrach: "Hóa thực vật, dược liệu — ND3, ND5, ND6", moi: false },
     { ten: "TS. Nguyễn Thu Hằng", vaiTro: "Thành viên chính (TVC)", phuTrach: "Đánh giá tác dụng sinh học — ND2, ND4 (AChE, HT-22, in vivo)", moi: false },
     { ten: "TS. Vũ Văn Tuấn", vaiTro: "Thành viên nghiên cứu (TVNC)", phuTrach: "Hóa thực vật, định tính/định lượng — ND1, ND5, ND6", moi: false },
@@ -58,8 +58,8 @@ window.NAFOSTED_PROGRESS = {
     { ten: "PGS.TS. Trần Văn Ơn", vaiTro: "Cố vấn dân tộc học", phuTrach: "Tư vấn ND1 · chuyên gia cây thuốc người Dao", moi: false },
     { ten: "HV Phạm Thị Xuân Quỳnh", vaiTro: "Học viên cao học (đào tạo)", phuTrach: "Luận văn Củ dòm — ND5 (metabolomics + phân lập)", moi: false },
     { ten: "HV Bùi Trà My", vaiTro: "Học viên cao học ĐH Phenikaa (MHV 24800103) — đào tạo thứ 2", phuTrach: "Luận văn: cao chuẩn hóa Củ dòm giàu oxostephanin + ức chế AChE in vitro (ND5/ND6/ND2) · GVHD: TS. Phạm Hà Thanh Tùng · đề cương chốt 08/01/2025", moi: true },
-    { ten: "Khánh Mai", vaiTro: "NCV hóa thực vật — FULLTIME bổ sung", phuTrach: "Hỗ trợ ND5: phân lập, chạy cột, xử lý phổ NMR/MS · ngân hàng cao chiết", moi: true },
-    { ten: "Khánh Linh", vaiTro: "NCV dược lý + điều phối — FULLTIME bổ sung", phuTrach: "Hỗ trợ ND4: in vivo, AChE, HT-22 · quản trị dashboard · hỗ trợ bản thảo", moi: true }
+    { ten: "Khánh Mai", email: "khanhmai@phenikaa-uni.edu.vn", vaiTro: "NCV hóa thực vật — FULLTIME bổ sung", phuTrach: "Hỗ trợ ND5: phân lập, chạy cột, xử lý phổ NMR/MS · ngân hàng cao chiết", moi: true },
+    { ten: "Khánh Linh", email: "khanhlinh@phenikaa-uni.edu.vn", vaiTro: "NCV dược lý + điều phối — FULLTIME bổ sung", phuTrach: "Hỗ trợ ND4: in vivo, AChE, HT-22 · quản trị dashboard · hỗ trợ bản thảo", moi: true }
   ],
 
   /* ---- Sản phẩm đăng ký (YCCS) — bảng tóm tắt mục tiêu sản phẩm ---- */

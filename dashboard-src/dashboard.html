@@ -450,13 +450,13 @@
   <div class="tabnav group-nav">
     <button class="tabbtn groupbtn active" data-group="chuyenmon">🔬 Chuyên môn<span class="grp-badge" id="badge-cm" title="Việc chậm tiến độ cần thúc đẩy"></span></button>
     <button class="tabbtn groupbtn" data-group="hanhchinh">🗂 Hành chính<span class="grp-badge" id="badge-hc" title="Việc chậm tiến độ cần thúc đẩy"></span></button>
+    <button class="tabbtn groupbtn" data-group="tinhcong" id="groupbtn-tinhcong">💰 Tính công</button>
   </div>
   <div class="tabnav sub-tabnav" id="subnav-chuyenmon">
     <button class="tabbtn subbtn active" data-tab="tongquan">📌 Tổng quan</button>
     <button class="tabbtn subbtn" data-tab="trienkhai">📊 Triển khai</button>
     <button class="tabbtn subbtn" data-tab="giaoviec">📋 Giao việc</button>
     <button class="tabbtn subbtn" data-tab="tiendoCN">👤 Tiến độ cá nhân</button>
-    <button class="tabbtn subbtn" data-tab="tinhcong">💰 Tính công</button>
     <button class="tabbtn subbtn" data-tab="sopdata">🧪 SOP & Thực nghiệm</button>
   </div>
   <div class="tabnav sub-tabnav hide" id="subnav-hanhchinh">
@@ -1110,6 +1110,19 @@
   var D = window.NAFOSTED_PROGRESS;
   if(!D){ document.getElementById("foot").textContent = "⚠ Không nạp được nafosted-progress-data.js — đặt file cùng thư mục."; return; }
 
+  /* ---------- Danh tính người xem (hosted Vercel: app/dashboard/route.js nhúng window.NAFOSTED_VIEWER
+     theo session đăng nhập; offline file:// KHÔNG có session → coi như CNĐT/admin, vì chỉ người có
+     quyền truy cập Drive mới mở được file này). LƯU Ý: đây là giới hạn hiển thị PHÍA CLIENT trong nội bộ
+     nhóm đã đăng nhập hợp lệ (ALLOWED_EMAILS) — dữ liệu vẫn nằm trong mã nguồn trang, không phải cách ly
+     server-side tuyệt đối. ---------- */
+  var VIEWER = window.NAFOSTED_VIEWER || {email:null, isAdmin:true};
+  var VIEWER_IS_ADMIN = !!VIEWER.isAdmin;
+  var VIEWER_NAME = (function(){
+    if(!VIEWER.email) return null;
+    var p=(D.nhanSu||[]).find(function(n){return n.email && n.email.toLowerCase()===VIEWER.email.toLowerCase();});
+    return p ? p.ten : null;
+  })();
+
   /* ---------- DERIVE noiDung + congViec từ cây WBS (nguồn duy nhất) ---------- */
   if(D.wbs){
     D.noiDung = D.wbs.filter(function(m){return m.loai==="nc";}).map(function(m){
@@ -1502,8 +1515,11 @@
   var subNavCM=document.getElementById("subnav-chuyenmon");
   var subNavHC=document.getElementById("subnav-hanhchinh");
   var activeGroup="chuyenmon";
-  var activeSub={chuyenmon:"tongquan",hanhchinh:"giaoviecHC"};
+  var activeSub={chuyenmon:"tongquan",hanhchinh:"giaoviecHC",tinhcong:"tinhcong"};
   function showPane(id){ALL_PANES.forEach(function(p){var e=document.getElementById("tab-"+p);if(e)e.classList.toggle("hide",p!==id);});}
+  // Tính công: nhóm riêng ngang hàng Chuyên môn/Hành chính, CHỈ admin (thtungdl@gmail.com) thấy nút
+  var btnTinhCong=document.getElementById("groupbtn-tinhcong");
+  if(btnTinhCong && !VIEWER_IS_ADMIN) btnTinhCong.style.display="none";
   document.querySelectorAll(".groupbtn").forEach(function(b){
     b.addEventListener("click",function(){
       document.querySelectorAll(".groupbtn").forEach(function(x){x.classList.remove("active");});
@@ -1696,7 +1712,9 @@
     var wEnd=new Date(wStart); wEnd.setDate(wStart.getDate()+6);
     function fmtD(d){return d.getDate()+"/"+(d.getMonth()+1)+"/"+d.getFullYear();}
     // Trạng thái bộ lọc theo phạm vi: "" = chuyên môn · "H" = hành chính
-    var ST={ "":{view:"nguoi",chip:"all",who:""}, "H":{view:"nguoi",chip:"all",who:""} };
+    // Không phải admin → mặc định + KHÓA lọc theo đúng người đăng nhập (không xem được người khác)
+    var LOCK_WHO = !VIEWER_IS_ADMIN && VIEWER_NAME;
+    var ST={ "":{view:"nguoi",chip:"all",who:LOCK_WHO||""}, "H":{view:"nguoi",chip:"all",who:LOCK_WHO||""} };
     var weekLblTxt="(Tuần "+wNum+" · "+fmtD(wStart)+" – "+fmtD(wEnd)+")";
 
     // Danh sách người (dùng chung cho cả 2 phạm vi)
@@ -1717,10 +1735,15 @@
       var G=function(x){return document.getElementById(x+sfx);};
       var lbl=G("gv2-week-label"); if(lbl) lbl.textContent=weekLblTxt;
       var selNhan=G("gv2-nguoinhan"), selWho=G("gv2-filter-who");
-      nguoiList.forEach(function(p){
-        selNhan.insertAdjacentHTML("beforeend","<option>"+esc(p)+"</option>");
-        selWho.insertAdjacentHTML("beforeend","<option>"+esc(p)+"</option>");
-      });
+      // gv2-nguoinhan (chọn người NHẬN khi giao việc) luôn đủ danh sách — không giới hạn theo người xem
+      nguoiList.forEach(function(p){ selNhan.insertAdjacentHTML("beforeend","<option>"+esc(p)+"</option>"); });
+      if(LOCK_WHO && selWho){
+        // Không phải admin: khóa cứng bộ lọc "theo người" về đúng người đăng nhập — không xem được người khác
+        selWho.innerHTML='<option value="'+esc(LOCK_WHO)+'">👤 '+esc(LOCK_WHO)+' (chỉ xem việc của bạn)</option>';
+        selWho.value=LOCK_WHO; selWho.disabled=true;
+      } else if(selWho){
+        nguoiList.forEach(function(p){ selWho.insertAdjacentHTML("beforeend","<option>"+esc(p)+"</option>"); });
+      }
       var selCV=G("gv2-cv-select");
       D.wbs.filter(function(nd){ var hc=(nd.loai==="tc"||nd.loai==="ql"); return isHC?hc:!hc; }).forEach(function(nd){
         var grp=document.createElement("optgroup");
@@ -1985,6 +2008,8 @@
     function render(){
       var all=buildAll(), st=loadState();
       var items=all.map(function(g){return applyState(g,st);});
+      // Không phải admin → CHỈ thấy việc của chính mình (không lộ tiến độ cá nhân người khác)
+      if(LOCK_WHO) items=items.filter(function(g){return g.nguoiNhan===LOCK_WHO;});
       renderInto("", items.filter(function(g){return scopeOf(g)==="cm";}));
       renderInto("H", items.filter(function(g){return scopeOf(g)==="hc";}));
       bindEvents(st);
@@ -1997,12 +2022,14 @@
       var stt=ST[sfx];
       if(!G("gv2-active")) return;
 
-      // 0) Gợi ý từ WBS — CHƯA giao chính thức → tách riêng, không lẫn vào danh sách chính thức
+      // Bảng "Tiến độ cá nhân" CHỈ liệt kê việc CHÍNH THỨC đã giao — gợi ý từ WBS chưa xác nhận
+      // không tính. Khối "🔲 Gợi ý từ kế hoạch" (công cụ lập kế hoạch, không phải tiến độ cá nhân
+      // thật) CHỈ hiện với admin — thành viên thường không cần thấy việc org-wide chưa ai nhận.
       var draftAll=itemsAll.filter(isDraftGV);
       var items=itemsAll.filter(function(g){return !isDraftGV(g);});
       var draftSec=G("gv2-draft-section");
       if(draftSec){
-        if(draftAll.length){
+        if(VIEWER_IS_ADMIN && draftAll.length){
           draftSec.style.display="block";
           G("gv2-draft").innerHTML=draftAll
             .sort(function(a,b){return String(a.deadline||"z")<String(b.deadline||"z")?-1:1;})
