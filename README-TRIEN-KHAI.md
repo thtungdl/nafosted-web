@@ -101,19 +101,13 @@ git remote add origin <repo-url> && git push -u origin main
 
 ---
 
-## Luồng dữ liệu & HITL
+## Luồng dữ liệu (đã đơn giản hóa — không còn trang "Nộp báo cáo" riêng)
 
-1. Thành viên đăng nhập → nộp (chọn ND/công việc, %, ghi chú, đính kèm).
-2. `/api/submit` tạo `4. Nafosted/00 RAW-NAFOSTED/_submissions/<ngày>_<tên>/` gồm file đính kèm + `submission.json`.
-3. Drive sync → xuất hiện trong `J:\`. Dashboard đọc qua `/api/data`.
-4. **Duyệt (HITL):** anh Tùng xem các bài nộp → gộp % đã duyệt vào `nafosted-progress.json` (thủ công, hoặc script gộp ở bước sau). Giữ đúng nguyên tắc NAFOSTED.OS: inbox → duyệt → dữ liệu gốc.
+Toàn bộ quản lý (giao việc, theo dõi tiến độ, tính công, SOP thực nghiệm) nằm gọn trong **một Dashboard** duy nhất (`/dashboard`, phục vụ từ `dashboard-src/dashboard.html`), không còn luồng "nộp báo cáo" tách rời:
 
----
+1. Thành viên đăng nhập → vào thẳng Dashboard.
+2. Mọi thao tác (tạo/nhận/nộp kết quả giao việc, nhập số liệu SOP, ghi công) **tự động lưu lên Google Drive** qua `/api/store` (loại `cong`/`giaoviec`/`sop`, xem `lib/drive.js`) — không cần bấm nút riêng, không cần trang nộp báo cáo.
+3. Drive sync → các file `nafosted-<type>.json` + sidecar `.js` xuất hiện trong `J:\My Drive\4. Nafosted\`.
+4. **Duyệt (HITL) trong tab Giao việc:** người nhận nộp kết quả + minh chứng → vào hàng "chờ CNĐT duyệt" → anh Tùng bấm Đạt/Chưa đạt ngay trên Dashboard.
 
-## Bước còn lại (sẽ làm khi chạy được dev server)
-
-- **Port dashboard đầy đủ**: thay `app/dashboard/page.js` (bản tóm tắt) bằng giao diện đầy đủ của `NAFOSTED-PROGRESS.html` (Gantt, bộ lọc, công bố, tài chính) đọc `/api/data`. Đây là việc cơ học, verify nhanh khi `npm run dev` chạy.
-- **Nút "Duyệt & gộp"** cho admin (tự cập nhật % vào dữ liệu gốc).
-- **Thông báo** (email/Slack) khi có bài nộp mới (tùy chọn).
-
-> Sau khi anh tạo xong credentials (mục 1–3), gửi tôi domain + xác nhận, tôi sẽ hoàn thiện 3 việc trên và chạy thử cùng anh.
+(Lịch sử: từng có trang `/submit` + `/api/submit` ghi vào `_submissions/` riêng — đã gỡ bỏ 2026-07-02 vì trùng lặp với tab Giao việc trên Dashboard.)
