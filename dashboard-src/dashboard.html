@@ -175,6 +175,17 @@
   /* thẻ MỜ — gợi ý từ WBS chưa giao chính thức: giảm độ nổi bật rõ rệt so với việc đã chính thức */
   .gv2-draftcard{opacity:.62;border-left-color:var(--muted)!important;border-style:dashed;box-shadow:none;background:var(--bg)}
   .gv2-draftcard:hover{opacity:.85;transform:none;box-shadow:none}
+  /* --- Editor phiếu (tab Giao việc) + số tiểu mục n.n.n.n + drop zone báo cáo --- */
+  .gv2-tmnum{flex:0 0 auto;font-size:.72rem;font-weight:700;color:var(--navy);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .gv2-tmedit{flex:1;padding:3px 7px;border:1px solid var(--line);border-radius:6px;font-size:.83rem;background:var(--card);color:var(--ink);box-sizing:border-box}
+  .gv2-pcard{border:1px solid var(--line);border-left:4px solid var(--navy);border-radius:9px;background:var(--card);padding:10px 12px;margin:0 0 10px}
+  .gv2-pcard h4{margin:0 0 6px;font-size:.9rem}
+  .gv2-drop{border:2px dashed var(--line-2);border-radius:9px;background:var(--bg);padding:12px;text-align:center;font-size:.82rem;color:var(--muted);cursor:pointer;transition:border-color .15s,background .15s}
+  .gv2-drop:hover{border-color:var(--navy);color:var(--navy)}
+  .gv2-drop.drag{border-color:var(--orange);background:var(--hit);color:var(--orange-d)}
+  .gv2-bclist{list-style:none;margin:6px 0 0;padding:0;font-size:.8rem}
+  .gv2-bclist li{display:flex;gap:6px;align-items:center;padding:3px 0;border-top:1px dotted var(--line)}
+  .gv2-bclist li:first-child{border-top:0}
   /* nhóm người: header nổi bật hơn */
   .tcwork > .wh{font-weight:700}
   @media (prefers-color-scheme: dark){
@@ -604,10 +615,19 @@
               <input id="gv2-deadline" type="date" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;box-sizing:border-box">
             </div>
           </div>
+          <div>
+            <label class="gv2-lbl">🧩 Tiểu mục công việc <span style="font-weight:400;color:var(--muted)">(mỗi dòng 1 tiểu mục — hệ thống tự đánh số n.n.n.n; để trống nếu không chia)</span></label>
+            <textarea id="gv2-tieumuc" rows="3" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;resize:vertical;box-sizing:border-box" placeholder="VD:&#10;Thu thập & xử lý mẫu&#10;Đo phổ NMR&#10;Viết báo cáo chuyên đề"></textarea>
+          </div>
           <button id="gv2-create-btn" class="btn-print" style="width:100%;padding:9px">📋 Giao việc</button>
           <div id="gv2-create-status" class="tcunit"></div>
         </div>
       </details>
+    </section>
+
+    <section class="block" id="gv2-phieu-section">
+      <h2>🗂 Phiếu đã giao — sửa tiểu mục <span class="note">(đánh số n.n.n.n · đồng bộ sang tab 👤 Tiến độ cá nhân)</span></h2>
+      <div id="gv2-phieu-list"></div>
     </section>
 
   </div><!-- /tab-giaoviec -->
@@ -1031,10 +1051,19 @@
               <input id="gv2-deadlineH" type="date" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;box-sizing:border-box">
             </div>
           </div>
+          <div>
+            <label class="gv2-lbl">🧩 Tiểu mục công việc <span style="font-weight:400;color:var(--muted)">(mỗi dòng 1 tiểu mục — hệ thống tự đánh số n.n.n.n; để trống nếu không chia)</span></label>
+            <textarea id="gv2-tieumucH" rows="3" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;resize:vertical;box-sizing:border-box" placeholder="VD:&#10;Lập chứng từ tạm ứng&#10;Đối chiếu quyết toán&#10;Nộp hồ sơ Quỹ"></textarea>
+          </div>
           <button id="gv2-create-btnH" class="btn-print" style="width:100%;padding:9px">📋 Giao việc</button>
           <div id="gv2-create-statusH" class="tcunit"></div>
         </div>
       </details>
+    </section>
+
+    <section class="block" id="gv2-phieu-sectionH">
+      <h2>🗂 Phiếu đã giao — sửa tiểu mục <span class="note">(đánh số n.n.n.n · đồng bộ sang tab 👤 Tiến độ cá nhân)</span></h2>
+      <div id="gv2-phieu-listH"></div>
     </section>
   </div><!-- /tab-giaoviecHC -->
 
@@ -1715,8 +1744,8 @@
         // tiểu mục công việc (anh Tùng tự nhập) — {ten, xong(🟡), duyet(🟢)}
         tieuMuc: tieuMuc,
         khongTieuMuc: khongTieuMuc,
-        // báo cáo đã thả lên thư mục Raw: {tenChuan, ngay, link}
-        baoCao: s.baoCao || null
+        // báo cáo đã thả lên thư mục Raw: MẢNG [{tenChuan, ngay, link}] (tương thích bản cũ dạng object đơn)
+        baoCao: Array.isArray(s.baoCao) ? s.baoCao : (s.baoCao ? [s.baoCao] : [])
       });
     }
     // GV gợi ý từ WBS (_src:"data", chưa qua form "Tạo phiếu giao việc mới") không tính là việc
@@ -1833,16 +1862,24 @@
         var dl=G("gv2-deadline").value, ng=G("gv2-ngaygiao").value;
         var stat=G("gv2-create-status");
         if(!nguoiNhan){stat.textContent="⚠ Chọn người nhận trước.";setTimeout(function(){stat.textContent="";},2500);return;}
+        var tmLines=((G("gv2-tieumuc")||{value:""}).value||"").split("\n").map(function(s){return s.trim();}).filter(Boolean);
         var custom=loadCustom();
         var ma="GVC-"+Date.now().toString().slice(-6);
         custom.push({ma:ma,ten:o&&o.value?o.dataset.ten:"(Việc tự do)",
           nguoiGiao:nguoiGiao,nguoiNhan:nguoiNhan,ketQuaCanDat:kq,
-          ngayGiao:ng||nowD(), deadline:dl,tienDo:0,nd:o&&o.dataset.nd||"",cvMa:o&&o.value||"",cvTen:"",
+          ngayGiao:ng||nowD(), deadline:dl,tienDo:0,nd:o&&o.dataset.nd||"",cvMa:o&&o.value||"",cvTen:(o&&o.value?o.dataset.ten:""),
           scope:(isHC?"hc":"cm"), ngayTao:nowD()});
         saveCustom(custom);
-        stat.innerHTML="✅ Đã giao cho <b>"+esc(nguoiNhan)+"</b> — theo dõi ở tab 👤 Tiến độ cá nhân"+(isHC?" (Hành chính)":"")+".";
-        setTimeout(function(){stat.textContent="";},3000);
+        // Tiểu mục nhập lúc giao → lưu vào state (đồng bộ sang Tiến độ cá nhân), tự đánh số n.n.n.n khi hiển thị
+        if(tmLines.length){
+          var s0=loadState();
+          s0[ma]=Object.assign(s0[ma]||{},{tieuMuc:tmLines.map(function(t){return {ten:t,xong:false};}),khongTieuMuc:false});
+          saveState(s0);
+        }
+        stat.innerHTML="✅ Đã giao cho <b>"+esc(nguoiNhan)+"</b>"+(tmLines.length?(" · "+tmLines.length+" tiểu mục"):"")+" — theo dõi ở tab 👤 Tiến độ cá nhân"+(isHC?" (Hành chính)":"")+".";
+        setTimeout(function(){stat.textContent="";},3500);
         selCV.value=""; G("gv2-ketqua").value=""; G("gv2-deadline").value="";
+        var tmt=G("gv2-tieumuc"); if(tmt) tmt.value="";
         var cp=G("gv2-create-panel"); if(cp) cp.removeAttribute("open");
         render();
       });
@@ -1900,11 +1937,24 @@
       if(tm.length&&!g.khongTieuMuc) return Math.round(tmStats(g).duyet/tm.length*100);
       return g.tienDo||0;
     }
+    // Số thứ tự công việc (n.n.n) làm gốc; tiểu mục = cấp 4 n.n.n.n
+    function cvSo(g){ return String(g.cvMa||g.ma||"").trim(); }
+    function tmNo(g,i){ var b=cvSo(g); return b?(b+"."+(i+1)):String(i+1); }
+    // Danh sách báo cáo đã nộp (mảng); small=true → gọn 1 dòng
+    function baoCaoHTML(g){
+      var bc=g.baoCao||[]; if(!bc.length) return '';
+      return '<div style="font-size:.8rem;margin:6px 0"><b>📤 Báo cáo đã nộp ('+bc.length+'):</b><ul class="gv2-bclist">'
+        + bc.map(function(b){
+            return '<li>📄 '+(b.link?('<a href="'+esc(b.link)+'" target="_blank" rel="noopener" style="color:var(--orange)">'+esc(b.tenChuan||b.link)+'</a>'):esc(b.tenChuan||'—'))
+              + (b.ngay?' <span style="color:var(--muted);font-size:.74rem">· '+esc(b.ngay)+'</span>':'')+'</li>';
+          }).join("")+'</ul></div>';
+    }
     // Một dòng tiểu mục. canApprove → nút ✓ Duyệt của CNĐT · canEdit → nút ✕ xóa
     function tmRowHTML(g,t,i,canApprove,canEdit){
       var bg=t.duyet?'background:var(--green-bg);':(t.xong?'background:var(--amber-bg);':'');
       var h='<div style="display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:6px;'+bg+'">';
       h+='<input type="checkbox" class="gv2-tmck" data-ma="'+esc(g.ma)+'" data-i="'+i+'"'+(t.xong?' checked':'')+(t.duyet?' disabled':'')+'>';
+      h+='<span class="gv2-tmnum">'+esc(tmNo(g,i))+'</span>';
       h+='<span style="font-size:.83rem;flex:1'+(t.duyet?';color:var(--green);text-decoration:line-through':(t.xong?';color:var(--amber)':''))+'">'+esc(t.ten)+'</span>';
       if(t.duyet) h+='<span class="badge s-xong">🟢 Đã duyệt</span>';
       else if(t.xong) h+='<span class="badge s-dangLam">🟡 Chờ duyệt</span>';
@@ -1917,7 +1967,37 @@
       return h;
     }
 
-    // Thẻ việc trong danh sách theo dõi (chưa nộp / bị trả lại)
+    // Thẻ SỬA phiếu (tab Giao việc): thêm/sửa/xóa tiểu mục + đánh số n.n.n.n. Ghi vào state → đồng bộ.
+    function pEditCard(g){
+      var tm=g.tieuMuc||[];
+      var h='<div class="gv2-pcard">';
+      h+='<h4><span style="font-size:.75rem;color:var(--muted)">['+esc(g.cvMa||g.nd||g.ma)+'] </span>'+esc(g.ten)+' <span style="font-weight:400;font-size:.78rem;color:var(--muted)">— '+esc(g.nguoiNhan||"?")+'</span></h4>';
+      h+='<label style="font-size:.76rem;color:var(--muted);display:inline-flex;align-items:center;gap:5px;cursor:pointer;margin-bottom:6px"><input type="checkbox" class="gv2-notm" data-ma="'+esc(g.ma)+'"'+(g.khongTieuMuc?' checked':'')+'> Không cần chia tiểu mục</label>';
+      if(g.khongTieuMuc){
+        h+='<div style="font-size:.78rem;color:var(--muted)">▶ Việc này không chia tiểu mục.</div>';
+      } else {
+        if(tm.length){
+          tm.forEach(function(t,i){
+            h+='<div style="display:flex;align-items:center;gap:6px;margin:3px 0">';
+            h+='<span class="gv2-tmnum">'+esc(tmNo(g,i))+'</span>';
+            h+='<input type="text" class="gv2-tmrename gv2-tmedit" data-ma="'+esc(g.ma)+'" data-i="'+i+'" value="'+esc(t.ten)+'"'+(t.duyet?' disabled title="Đã duyệt — không sửa"':'')+'>';
+            h+=(t.duyet?'<span class="badge s-xong" style="font-size:.66rem">🟢</span>':(t.xong?'<span class="badge s-dangLam" style="font-size:.66rem">🟡</span>':''));
+            h+='<button class="gv2-tmdel" data-ma="'+esc(g.ma)+'" data-i="'+i+'" title="Xóa tiểu mục" style="border:0;background:none;color:var(--muted);cursor:pointer;font-size:.95rem;line-height:1">✕</button>';
+            h+='</div>';
+          });
+        } else {
+          h+='<div style="font-size:.78rem;color:var(--muted);margin-bottom:4px">Chưa có tiểu mục.</div>';
+        }
+        h+='<div style="display:flex;gap:6px;margin-top:6px">';
+        h+='<input type="text" class="gv2-tmadd" data-ma="'+esc(g.ma)+'" placeholder="Thêm tiểu mục '+esc(tmNo(g,tm.length))+'… (Enter)" style="flex:1;padding:4px 8px;border:1px solid var(--line);border-radius:6px;font-size:.82rem;background:var(--card);color:var(--ink);box-sizing:border-box">';
+        h+='<button class="gv2-tmaddbtn btn-print" data-ma="'+esc(g.ma)+'" style="font-size:.82rem;padding:4px 12px">＋ Thêm</button>';
+        h+='</div>';
+      }
+      h+='</div>';
+      return h;
+    }
+
+    // Thẻ việc trong Tiến độ cá nhân: CHỈ tích ✓ tiểu mục + nộp báo cáo (sửa cấu trúc ở tab Giao việc)
     function card(g){
       var tmList=g.tieuMuc||[], useTM=tmList.length>0 && !g.khongTieuMuc;
       var stt=tmStats(g);
@@ -1941,25 +2021,19 @@
       if(g.duyet==="chuaDat"&&g.gopY) h+='<div style="font-size:.82rem;background:rgba(220,80,60,.12);border-radius:6px;padding:6px 8px;margin:5px 0">↩ <b>CNĐT trả lại:</b> '+esc(g.gopY)+'</div>';
       // Nhận xét tự động (digest từ thư mục Raw)
       h+=digestBadge(g);
-      // Tiểu mục công việc — hoàn thành hết = đủ điều kiện nộp
+      // Tiểu mục công việc — Tiến độ cá nhân CHỈ tích ✓ (báo đã làm). Sửa cấu trúc ở tab Giao việc.
       h+='<div class="gv2-tm" style="margin:8px 0;padding:8px 10px;border:1px dashed var(--line);border-radius:8px;background:var(--bg)">';
       h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">';
       h+='<span class="gv2-lbl" style="margin:0">🧩 Tiểu mục công việc</span>';
-      h+='<label style="font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="gv2-notm" data-ma="'+esc(g.ma)+'"'+(g.khongTieuMuc?' checked':'')+'> Không cần chia tiểu mục</label>';
+      h+='<span style="font-size:.72rem;color:var(--muted)">✏️ sửa ở tab 📋 Giao việc</span>';
       h+='</div>';
       if(g.khongTieuMuc){
         h+='<div style="font-size:.78rem;color:var(--muted)">▶ Việc này không chia tiểu mục — hoàn thành việc là đủ.</div>';
+      } else if(tmList.length){
+        h+='<div style="font-size:.76rem;color:var(--muted);margin-bottom:4px">🟢 Đã duyệt <b>'+stt.duyet+'/'+stt.n+'</b>'+(stt.xong>stt.duyet?' · 🟡 '+(stt.xong-stt.duyet)+' chờ duyệt':'')+(stt.duyet===stt.n?' · <b style="color:var(--green)">hoàn thành ✓</b>':'')+' · tích ✓ ô đã làm xong</div>';
+        tmList.forEach(function(t,i){ h+=tmRowHTML(g,t,i,false,false); });
       } else {
-        if(tmList.length){
-          h+='<div style="font-size:.76rem;color:var(--muted);margin-bottom:4px">🟢 Đã duyệt <b>'+stt.duyet+'/'+stt.n+'</b>'+(stt.xong>stt.duyet?' · 🟡 '+(stt.xong-stt.duyet)+' chờ duyệt':'')+(stt.duyet===stt.n?' · <b style="color:var(--green)">hoàn thành ✓</b>':'')+'</div>';
-          tmList.forEach(function(t,i){ h+=tmRowHTML(g,t,i,true,true); });
-        } else {
-          h+='<div style="font-size:.78rem;color:var(--muted);margin-bottom:4px">Chưa có tiểu mục — thêm bên dưới, hoặc tích "Không cần chia tiểu mục".</div>';
-        }
-        h+='<div style="display:flex;gap:6px;margin-top:6px">';
-        h+='<input type="text" class="gv2-tmadd" data-ma="'+esc(g.ma)+'" placeholder="Thêm tiểu mục… (Enter)" style="flex:1;padding:4px 8px;border:1px solid var(--line);border-radius:6px;font-size:.82rem;background:var(--card);color:var(--ink);box-sizing:border-box">';
-        h+='<button class="gv2-tmaddbtn btn-print" data-ma="'+esc(g.ma)+'" style="font-size:.82rem;padding:4px 12px">＋ Thêm</button>';
-        h+='</div>';
+        h+='<div style="font-size:.78rem;color:var(--muted)">Chưa có tiểu mục — thêm ở tab 📋 Giao việc (hoặc đánh dấu "Không cần chia" ở đó).</div>';
       }
       h+='</div>';
       // Cập nhật % tiến độ
@@ -1971,21 +2045,19 @@
         h+='<input type="number" min="0" max="100" value="'+pct+'" class="gv2-pct" data-ma="'+esc(g.ma)+'" style="width:54px;padding:3px 5px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);font-size:.82rem">';
       }
       h+='<span class="kh">%</span></div>';
-      // Form nộp kết quả + minh chứng
-      h+='<div id="gv2f-'+esc(g.ma)+'" style="display:none;margin:8px 0;padding:10px;background:var(--grey-bg);border-radius:8px">';
-      h+='<label class="gv2-lbl">Kết quả thực hiện</label>';
-      h+='<textarea id="gv2t-'+esc(g.ma)+'" rows="2" style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:.83rem;background:var(--card);color:var(--ink);resize:vertical;box-sizing:border-box;margin-bottom:6px" placeholder="Mô tả kết quả đạt được…">'+esc(g.ketQuaNop||"")+'</textarea>';
-      h+='<label class="gv2-lbl">Minh chứng <span style="font-weight:400;color:var(--muted)">(mỗi dòng 1 mục: tên hoặc link Drive — bắt buộc ≥1)</span></label>';
-      h+='<textarea id="gv2m-'+esc(g.ma)+'" rows="2" style="width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:.83rem;background:var(--card);color:var(--ink);resize:vertical;box-sizing:border-box" placeholder="VD: Báo cáo phổ NMR R96 | https://drive.google.com/...">'+esc((g.minhChung||[]).map(function(m){return m.ten&&m.link?(m.ten+" | "+m.link):(m.link||m.ten);}).join("\n"))+'</textarea>';
-      h+='<button class="gv2-nopxn-btn btn-print" data-ma="'+esc(g.ma)+'" style="margin-top:6px;font-size:.82rem;padding:5px 14px">📤 Gửi nộp (chờ CNĐT duyệt)</button>';
+      // Nộp minh chứng báo cáo — kéo-thả NHIỀU file (tự đổi tên: mã công việc + tên chung + số thứ tự)
+      h+='<div style="margin:8px 0">';
+      h+='<label class="gv2-lbl" style="margin-bottom:4px">📤 Nộp minh chứng báo cáo <span style="font-weight:400;color:var(--muted)">(kéo-thả nhiều file — tự đổi tên bắt đầu bằng mã <b>'+esc(cvSo(g)||g.ma)+'</b>)</span></label>';
+      h+='<div class="gv2-drop" data-ma="'+esc(g.ma)+'">📎 Kéo &amp; thả file vào đây, hoặc <b>bấm để chọn</b> (chọn được nhiều file)</div>';
+      h+='<input type="file" multiple class="gv2-fileinput" data-ma="'+esc(g.ma)+'" style="display:none">';
+      h+='<div class="gv2-upstatus" data-ma="'+esc(g.ma)+'" style="font-size:.76rem;color:var(--muted);margin-top:4px"></div>';
+      h+=baoCaoHTML(g);
       h+='</div>';
-      // Trạng thái báo cáo đã thả lên Raw
-      if(g.baoCao&&g.baoCao.tenChuan){
-        h+='<div style="font-size:.78rem;color:var(--muted);margin-top:6px">📤 Đã nộp báo cáo: <b>'+esc(g.baoCao.tenChuan)+'</b>'+(g.baoCao.ngay?' · '+esc(g.baoCao.ngay):'')+(g.baoCao.link?' · <a href="'+esc(g.baoCao.link)+'" target="_blank" rel="noopener" style="color:var(--orange)">mở</a>':'')+'</div>';
-      }
+      // Hành động
       h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
-      h+='<button class="gv2-baocao-btn btn-print" data-ma="'+esc(g.ma)+'" style="font-size:.82rem;padding:5px 12px">📤 Nộp báo cáo</button>';
-      h+='<button class="gv2-nop-btn btn-print" data-ma="'+esc(g.ma)+'" style="font-size:.82rem;padding:5px 12px;background:var(--grey)">📎 Nộp kết quả + minh chứng</button>';
+      if(g.duyet!=="cho" && !useTM){
+        h+='<button class="gv2-sendduyet-btn btn-print gv2-btn-dat" data-ma="'+esc(g.ma)+'" style="font-size:.82rem;padding:5px 14px" title="Chuyển việc sang hàng chờ CNĐT duyệt">📩 Gửi CNĐT duyệt</button>';
+      }
       h+='<button class="gv2-print-btn btn-print" data-ma="'+esc(g.ma)+'" style="font-size:.82rem;padding:5px 12px;background:var(--grey)">🖨 In phiếu</button>';
       h+='</div></div>';
       return h;
@@ -2003,7 +2075,7 @@
       if(g.ketQuaNop) h+='<div style="font-size:.84rem;margin:6px 0;line-height:1.45"><b>Kết quả nộp:</b> '+esc(g.ketQuaNop)+'</div>';
       h+=mcHTML(g);
       h+=digestBadge(g);
-      if(g.baoCao&&g.baoCao.tenChuan) h+='<div style="font-size:.78rem;color:var(--muted);margin:4px 0">📤 Báo cáo: <b>'+esc(g.baoCao.tenChuan)+'</b>'+(g.baoCao.link?' · <a href="'+esc(g.baoCao.link)+'" target="_blank" rel="noopener" style="color:var(--orange)">mở</a>':'')+'</div>';
+      h+=baoCaoHTML(g);
       // Chốt cuối cấp tiểu mục: CNĐT duyệt từng tiểu mục → 🟢
       var tm=g.tieuMuc||[], hasTM=tm.length&&!g.khongTieuMuc, allGreen=hasTM&&tm.every(function(t){return t.duyet;});
       if(hasTM){
@@ -2072,6 +2144,15 @@
       // thật) không tính vào đây. Xem gợi ý cho 1 công việc cụ thể ở tab Giao việc khi chọn công
       // việc từ dropdown "Tạo phiếu giao việc mới".
       var items=itemsAll.filter(function(g){return !isDraftGV(g);});
+
+      // 0) Editor phiếu (tab Giao việc) — sửa tiểu mục (số n.n.n.n), đồng bộ sang Tiến độ cá nhân
+      var pl=G("gv2-phieu-list");
+      if(pl){
+        var editable=items.filter(function(g){return g.duyet!=="dat";}); // việc đã Đạt thì khóa sửa
+        pl.innerHTML = editable.length
+          ? editable.sort(function(a,b){return String(a.cvMa||a.ma)<String(b.cvMa||b.ma)?-1:1;}).map(pEditCard).join("")
+          : '<div class="empty">Chưa có phiếu nào — tạo ở khung trên.</div>';
+      }
 
       // 1) Hàng đợi chờ CNĐT duyệt
       var pending=items.filter(function(g){return g.duyet==="cho";});
@@ -2190,62 +2271,73 @@
           s[ma]=Object.assign(s[ma]||{},{tieuMuc:tm,tienDo:tmPct(tm)}); saveState(s); render();
         });
       });
-      // 📤 Nộp báo cáo lên thư mục Raw (offline: copy tên chuẩn + mở folder · hosted: upload thật)
-      function copyText(t){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t); return true; } }catch(e){}
-        try{ var ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); return true; }catch(e){ return false; } }
-      document.querySelectorAll(".gv2-baocao-btn").forEach(function(btn){
-        btn.addEventListener("click",function(){
-          var ma=btn.dataset.ma;
-          var g=buildAll().map(function(x){return applyState(x,loadState());}).filter(function(x){return x.ma===ma;})[0];
-          if(!g) return;
-          var tc=tenChuan(g);
-          if(HOSTED_GV){   // Vercel: upload thật → /api/upload (đổi tên + xếp vào Raw phân tầng ND/Công việc)
-            var inp=document.createElement("input"); inp.type="file";
-            inp.onchange=function(){ var f=inp.files[0]; if(!f) return;
-              var ext=(f.name.match(/\.[^.]+$/)||[""])[0];
-              var fd=new FormData();
-              fd.append("file",f); fd.append("ma",ma); fd.append("tenChuan",tc+ext);
-              fd.append("nd",g.nd||""); fd.append("cvMa",g.cvMa||""); fd.append("cvTen",g.cvTen||"");
-              btn.textContent="⏳ Đang tải lên…";
-              fetch("/api/upload",{method:"POST",credentials:"same-origin",body:fd})
-                .then(function(r){return r.json();})
-                .then(function(j){
-                  if(!j||!j.ok){ btn.textContent="📤 Nộp báo cáo"; alert("Lỗi tải lên: "+((j&&j.error)||"không rõ nguyên nhân")); return; }
-                  var s=loadState(); s[ma]=Object.assign(s[ma]||{},{baoCao:{tenChuan:tc+ext,ngay:nowD(),link:j.link||""}}); saveState(s); render();
-                })
-                .catch(function(){ btn.textContent="📤 Nộp báo cáo"; alert("Lỗi tải lên — kiểm tra đăng nhập."); });
-            };
-            inp.click(); return;
-          }
-          // Offline: copy tên chuẩn + mở thư mục Raw để anh thả file (đặt đúng tên đã copy)
-          copyText(tc);
-          var ru=rawUrl();
-          var s=loadState(); s[ma]=Object.assign(s[ma]||{},{baoCao:{tenChuan:tc,ngay:nowD(),link:ru||""}}); saveState(s);
-          if(ru){ window.open(ru,"_blank","noopener"); }
-          else { alert("Đã copy tên chuẩn:\n\n"+tc+"\n\n→ Chưa cấu hình link thư mục Raw. Mở '⚙ Cấu hình nộp báo cáo' để dán link folder Drive."); }
-          render();
+      // ✏️ Đổi tên tiểu mục (tab Giao việc) — ghi vào state, đồng bộ sang Tiến độ cá nhân
+      document.querySelectorAll(".gv2-tmrename").forEach(function(inp){
+        inp.addEventListener("change",function(){
+          var s=loadState(), ma=inp.dataset.ma, i=+inp.dataset.i;
+          var tm=(s[ma]&&s[ma].tieuMuc)?s[ma].tieuMuc.slice():[];
+          if(tm[i]) tm[i]=Object.assign({},tm[i],{ten:(inp.value||"").trim()});
+          s[ma]=Object.assign(s[ma]||{},{tieuMuc:tm}); saveState(s);
         });
       });
-      // mở form nộp
-      document.querySelectorAll(".gv2-nop-btn").forEach(function(btn){
-        btn.addEventListener("click",function(){var f=document.getElementById("gv2f-"+btn.dataset.ma);if(f)f.style.display=f.style.display==="none"?"block":"none";});
-      });
-      // gửi nộp (→ chờ duyệt)
-      document.querySelectorAll(".gv2-nopxn-btn").forEach(function(btn){
-        btn.addEventListener("click",function(){
-          var ma=btn.dataset.ma;
-          var sm=loadState()[ma]||{}; var tmg=sm.tieuMuc||[];
-          if(tmg.length && !sm.khongTieuMuc && tmg.some(function(t){return !t.xong;})){
-            alert("Phải hoàn thành tất cả tiểu mục công việc trước khi nộp (hoặc tích \"Không cần chia tiểu mục\").");return;
+      // 📤 Nộp minh chứng báo cáo — kéo-thả NHIỀU file; tự đổi tên: <mã công việc> <tên chung> (k).ext
+      function copyText(t){ try{ if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(t); return true; } }catch(e){}
+        try{ var ta=document.createElement("textarea"); ta.value=t; ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); return true; }catch(e){ return false; } }
+      function baoCaoPrefix(g){ return String(cvSo(g)||g.ma||"").trim(); }
+      function uploadReports(g, fileList){
+        var files=[].slice.call(fileList||[]); if(!files.length) return;
+        var ma=g.ma, prefix=baoCaoPrefix(g);
+        var nm=prompt("Tên chung cho "+files.length+" báo cáo (BẮT BUỘC bắt đầu bằng mã công việc "+prefix+"):", prefix+" Báo cáo");
+        if(nm===null) return; nm=(nm||"").trim();
+        if(prefix && nm.indexOf(prefix)!==0) nm=(prefix+" "+nm).trim();   // ép tiền tố mã công việc
+        nm=nm.replace(/[\\\/:*?"<>|]/g,"").replace(/\s+/g," ").trim();     // bỏ ký tự Windows cấm
+        var multi=files.length>1;
+        var stEl=document.querySelector('.gv2-upstatus[data-ma="'+ma+'"]');
+        function setUp(t){ if(stEl) stEl.textContent=t; }
+        if(!HOSTED_GV){
+          copyText(nm); var ru=rawUrl();
+          var s0=loadState(); var arr0=(s0[ma]&&Array.isArray(s0[ma].baoCao))?s0[ma].baoCao.slice():[];
+          files.forEach(function(f,k){ var ext=(f.name.match(/\.[^.]+$/)||[""])[0]; arr0.push({tenChuan:nm+(multi?" ("+(k+1)+")":"")+ext,ngay:nowD(),link:ru||""}); });
+          s0[ma]=Object.assign(s0[ma]||{},{baoCao:arr0}); saveState(s0);
+          if(ru) window.open(ru,"_blank","noopener");
+          else alert("Đã copy tên chung:\n\n"+nm+"\n\nChưa cấu hình link Raw — mở '⚙ Cấu hình nộp báo cáo' để dán link, hoặc dùng bản web (Vercel) để tải trực tiếp.");
+          render(); return;
+        }
+        var results=[];
+        setUp("⏳ Đang tải lên 0/"+files.length+"…");
+        (function next(k){
+          if(k>=files.length){
+            var s=loadState(); var arr=(s[ma]&&Array.isArray(s[ma].baoCao))?s[ma].baoCao.slice():[];
+            s[ma]=Object.assign(s[ma]||{},{baoCao:arr.concat(results)}); saveState(s);
+            setUp("✅ Đã nộp "+results.length+"/"+files.length+" báo cáo."); render(); return;
           }
-          var kq=(document.getElementById("gv2t-"+ma)||{value:""}).value.trim();
-          var mcRaw=(document.getElementById("gv2m-"+ma)||{value:""}).value.trim();
-          if(!mcRaw){alert("Phải có ít nhất 1 minh chứng trước khi nộp.");return;}
-          var minhChung=mcRaw.split("\n").map(function(l){l=l.trim();if(!l)return null;var p=l.split("|");if(p.length>1)return{ten:p[0].trim(),link:p[1].trim()};return /^https?:\/\//.test(l)?{ten:l,link:l}:{ten:l,link:""};}).filter(Boolean);
-          var s=loadState();
-          s[ma]=Object.assign(s[ma]||{},{ketQuaNop:kq,minhChung:minhChung,duyet:"cho",ngayNop:nowD(),gopY:""});
-          saveState(s); render();
-          document.querySelector('button[data-tab="giaoviec"]'); window.scrollTo(0,0);
+          var f=files[k], ext=(f.name.match(/\.[^.]+$/)||[""])[0];
+          var tenChuan=nm+(multi?" ("+(k+1)+")":"")+ext;
+          var fd=new FormData(); fd.append("file",f); fd.append("ma",ma); fd.append("tenChuan",tenChuan);
+          fd.append("nd",g.nd||""); fd.append("cvMa",g.cvMa||""); fd.append("cvTen",g.cvTen||"");
+          setUp("⏳ Đang tải lên "+(k+1)+"/"+files.length+": "+tenChuan);
+          fetch("/api/upload",{method:"POST",credentials:"same-origin",body:fd})
+            .then(function(r){return r.json();})
+            .then(function(j){ if(j&&j.ok){ results.push({tenChuan:tenChuan,ngay:nowD(),link:j.link||""}); } else { setUp("⚠ Lỗi ở "+tenChuan+": "+((j&&j.error)||"?")); } next(k+1); })
+            .catch(function(){ setUp("⚠ Lỗi mạng khi tải "+tenChuan); next(k+1); });
+        })(0);
+      }
+      function gByMa(ma){ return buildAll().map(function(x){return applyState(x,loadState());}).filter(function(x){return x.ma===ma;})[0]; }
+      document.querySelectorAll(".gv2-drop").forEach(function(dz){
+        var ma=dz.dataset.ma;
+        dz.addEventListener("click",function(){ var fi=document.querySelector('.gv2-fileinput[data-ma="'+ma+'"]'); if(fi) fi.click(); });
+        dz.addEventListener("dragover",function(e){ e.preventDefault(); dz.classList.add("drag"); });
+        dz.addEventListener("dragleave",function(){ dz.classList.remove("drag"); });
+        dz.addEventListener("drop",function(e){ e.preventDefault(); dz.classList.remove("drag"); var g=gByMa(ma); if(g&&e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files.length) uploadReports(g,e.dataTransfer.files); });
+      });
+      document.querySelectorAll(".gv2-fileinput").forEach(function(fi){
+        fi.addEventListener("change",function(){ var g=gByMa(fi.dataset.ma); if(g&&fi.files.length) uploadReports(g,fi.files); fi.value=""; });
+      });
+      // 📩 Gửi CNĐT duyệt (việc không chia tiểu mục) → chuyển sang hàng chờ duyệt
+      document.querySelectorAll(".gv2-sendduyet-btn").forEach(function(btn){
+        btn.addEventListener("click",function(){
+          var s=loadState(), ma=btn.dataset.ma;
+          s[ma]=Object.assign(s[ma]||{},{duyet:"cho",ngayNop:nowD(),gopY:""}); saveState(s); render(); window.scrollTo(0,0);
         });
       });
       // in phiếu
@@ -2283,7 +2375,7 @@
           var sfx=exp.dataset.sfx||"", s=loadState();
           var rec=buildAll().map(function(g){return applyState(g,s);})
             .filter(function(g){return g.duyet==="dat" && scopeOf(g)===(sfx==="H"?"hc":"cm");})
-            .map(function(g){return {ma:g.ma,ten:g.ten,cvMa:g.cvMa,nd:g.nd,nguoiNhan:g.nguoiNhan,ngayGiao:g.ngayGiao||"",deadline:g.deadline||"",tieuMuc:g.tieuMuc||[],khongTieuMuc:!!g.khongTieuMuc,ketQuaNop:g.ketQuaNop,minhChung:g.minhChung,ngayDuyet:g.ngayDuyet};});
+            .map(function(g){return {ma:g.ma,ten:g.ten,cvMa:g.cvMa,nd:g.nd,nguoiNhan:g.nguoiNhan,ngayGiao:g.ngayGiao||"",deadline:g.deadline||"",tieuMuc:g.tieuMuc||[],khongTieuMuc:!!g.khongTieuMuc,ketQuaNop:g.ketQuaNop,minhChung:g.minhChung,baoCao:g.baoCao||[],ngayDuyet:g.ngayDuyet};});
           var blob=new Blob([JSON.stringify({deTai:"108.05-2023.20",phamVi:(sfx==="H"?"hanh-chinh":"chuyen-mon"),xuat:new Date().toISOString(),hoanThanhChinhThuc:rec},null,2)],{type:"application/json"});
           var a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="nafosted-giaoviec-"+(sfx==="H"?"hanhchinh":"chuyenmon")+"-chinhthuc.json"; a.click();
         });
@@ -2309,7 +2401,8 @@
        +'<tr><td class="k">Gắn với (ND/công việc)</td><td>'+esc(g.nd||"—")+(g.cvMa?' · '+esc(g.cvMa):'')+(g.cvTen?' — '+esc(g.cvTen):'')+'</td></tr>'
        +'<tr><td class="k">Nội dung công việc</td><td><b>'+esc(g.ten)+'</b></td></tr>'
        +'<tr><td class="k">Kết quả cần đạt</td><td>'+esc(g.ketQuaCanDat||"—")+'</td></tr>'
-       +((g.tieuMuc&&g.tieuMuc.length&&!g.khongTieuMuc)?'<tr><td class="k">Tiểu mục công việc</td><td>'+g.tieuMuc.map(function(t){return (t.duyet?"☑":(t.xong?"◐":"☐"))+" "+esc(t.ten)+(t.duyet?" (đã duyệt)":(t.xong?" (chờ duyệt)":""));}).join("<br>")+'</td></tr>':'')
+       +((g.tieuMuc&&g.tieuMuc.length&&!g.khongTieuMuc)?'<tr><td class="k">Tiểu mục công việc</td><td>'+g.tieuMuc.map(function(t,i){return (t.duyet?"☑":(t.xong?"◐":"☐"))+" <b>"+esc(tmNo(g,i))+"</b> "+esc(t.ten)+(t.duyet?" (đã duyệt)":(t.xong?" (chờ duyệt)":""));}).join("<br>")+'</td></tr>':'')
+       +((g.baoCao&&g.baoCao.length)?'<tr><td class="k">Báo cáo đã nộp</td><td>'+g.baoCao.map(function(b){return "• "+esc(b.tenChuan||"")+(b.ngay?" ("+esc(b.ngay)+")":"");}).join("<br>")+'</td></tr>':'')
        +'<tr><td class="k">Ngày giao việc</td><td>'+esc(g.ngayGiao||g.ngayTao||"—")+'</td></tr>'
        +'<tr><td class="k">Thời hạn hoàn thành</td><td><b>'+esc(g.deadline||"—")+'</b></td></tr>'
        +'<tr><td class="k">Kết quả đã nộp</td><td>'+esc(g.ketQuaNop||"—")+'</td></tr>'
