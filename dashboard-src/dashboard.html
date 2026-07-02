@@ -572,6 +572,7 @@
             <div>
               <label class="gv2-lbl">🗓 Ngày giao việc</label>
               <input id="gv2-ngaygiao" type="date" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;box-sizing:border-box">
+              <div class="note" style="font-size:.72rem;margin-top:2px">Có thể chọn ngày quá khứ để hồi tố hồ sơ việc đã làm.</div>
             </div>
             <div>
               <label class="gv2-lbl">📅 Deadline</label>
@@ -2317,8 +2318,15 @@
     }
     cvs.forEach(function(c){ c._r=risk(c); });
     function cvScope(c){ return (c.loai==="tc"||c.loai==="ql")?"hc":"cm"; }
-    // 1 công việc "thuộc về" 1 người nếu họ là chủ trì/hỗ trợ, hoặc nhận 1 giao việc trong đó
-    function involves(c,who){ if(!who) return true; if(nguoiAll(c).indexOf(who)>=0) return true; return (c.giaoViec||[]).some(function(g){return g.nguoiNhan===who;}); }
+    // Phiếu giao việc CHÍNH THỨC (custom — tạo qua tab Giao việc), khác vai trò kế hoạch WBS (chuTri/hoTro)
+    function phieuChinhThuc(){ try{ return JSON.parse(localStorage.getItem('nafosted_gv_custom')||'[]'); }catch(e){ return []; } }
+    // Khi LỌC THEO 1 CÁ NHÂN: chỉ tính công việc mà người đó ĐƯỢC GIAO CHÍNH THỨC (có phiếu custom gắn
+    // công việc này) — KHÔNG dựa vào chuTri/hoTro trong kế hoạch WBS (đó chỉ là dự kiến, chưa giao thật).
+    // Khi who="" (toàn cảnh, chỉ admin): hiện mọi công việc chậm của phạm vi.
+    function involves(c,who){
+      if(!who) return true;
+      return phieuChinhThuc().some(function(g){ return g.nguoiNhan===who && g.cvMa===c.ma; });
+    }
 
     // Render giám sát tuần cho 1 phạm vi (sfx "" chuyên môn · "H" hành chính), lọc theo người
     function renderGS(who, sfx){
@@ -2373,7 +2381,9 @@
       }).join("") || '<div class="empty">Không có công việc đang mở.</div>';
     }
 
-    renderGS("", ""); renderGS("", "H");
+    // Non-admin: khóa giám sát theo đúng người đăng nhập (không thấy toàn cảnh). Admin: "" = toàn cảnh.
+    var initWho = (!VIEWER_IS_ADMIN && VIEWER_NAME) ? VIEWER_NAME : "";
+    renderGS(initWho, ""); renderGS(initWho, "H");
     // Đồng bộ với bộ lọc người ở mỗi nhóm: chọn cá nhân → giám sát chỉ hiện việc của họ
     var cmWho=document.getElementById("gv2-filter-who");
     if(cmWho) cmWho.addEventListener("change",function(){ renderGS(cmWho.value,""); });
