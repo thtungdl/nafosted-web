@@ -616,8 +616,9 @@
             </div>
           </div>
           <div>
-            <label class="gv2-lbl">🧩 Tiểu mục công việc <span style="font-weight:400;color:var(--muted)">(mỗi dòng 1 tiểu mục — hệ thống tự đánh số n.n.n.n; để trống nếu không chia)</span></label>
-            <textarea id="gv2-tieumuc" rows="3" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;resize:vertical;box-sizing:border-box" placeholder="VD:&#10;Thu thập & xử lý mẫu&#10;Đo phổ NMR&#10;Viết báo cáo chuyên đề"></textarea>
+            <label class="gv2-lbl">🧩 Tiểu mục công việc <span style="font-weight:400;color:var(--muted)">(mỗi tiểu mục 1 ô — tự đánh số n.n.n.n; để trống nếu không chia)</span></label>
+            <div id="gv2-tm-rows"></div>
+            <button type="button" id="gv2-tm-addrow" class="btn-print" style="font-size:.82rem;padding:4px 12px;background:var(--grey)">＋ Thêm tiểu mục</button>
           </div>
           <button id="gv2-create-btn" class="btn-print" style="width:100%;padding:9px">📋 Giao việc</button>
           <div id="gv2-create-status" class="tcunit"></div>
@@ -626,8 +627,9 @@
     </section>
 
     <section class="block" id="gv2-phieu-section">
-      <h2>🗂 Phiếu đã giao — sửa tiểu mục <span class="note">(đánh số n.n.n.n · đồng bộ sang tab 👤 Tiến độ cá nhân)</span></h2>
-      <div id="gv2-phieu-list"></div>
+      <h2>🗂 Phiếu đã giao — sửa tiểu mục <span class="note">(chọn công việc n.n.n để hiện tiểu mục · đồng bộ sang tab 👤 Tiến độ cá nhân)</span></h2>
+      <select id="gv2-phieu-select" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;margin-bottom:10px"><option value="">— Chọn công việc để sửa tiểu mục —</option></select>
+      <div id="gv2-phieu-editor"></div>
     </section>
 
   </div><!-- /tab-giaoviec -->
@@ -660,15 +662,9 @@
       <div id="gst-urgent"></div>
     </section>
 
-    <!-- Việc chờ chủ nhiệm duyệt -->
-    <section class="block" id="gv2-approve-section" style="display:none;border-left:4px solid var(--orange)">
-      <h2>⏳ Chờ chủ nhiệm duyệt <span class="note">(đã nộp kèm minh chứng — bấm Đạt / Chưa đạt)</span></h2>
-      <div id="gv2-approve"></div>
-    </section>
-
-    <!-- Công việc đang trong tiến độ -->
+    <!-- Công việc đang triển khai (gộp: đang tiến độ + đã nộp chờ duyệt) -->
     <section class="block">
-      <h2>📋 Công việc đang trong tiến độ <span class="note">(theo bộ lọc cá nhân ở trên)</span></h2>
+      <h2>📋 Công việc đang triển khai <span class="note">(đang làm + đã nộp chờ duyệt — theo bộ lọc cá nhân ở trên)</span></h2>
       <div id="gv2-active"></div>
     </section>
 
@@ -688,27 +684,6 @@
       </details>
     </section>
 
-    <!-- Cấu hình nộp báo cáo lên thư mục Raw + vòng lặp digest tự động -->
-    <section class="block">
-      <details id="gv2-raw-panel">
-        <summary style="cursor:pointer;font-size:.95rem;font-weight:700;padding:4px 0;user-select:none">
-          ⚙ Cấu hình nộp báo cáo <span class="note" style="font-size:.8rem;font-weight:400;margin-left:6px">thư mục Raw + vòng lặp chấm tự động</span>
-        </summary>
-        <div style="margin-top:12px;display:grid;gap:8px">
-          <div>
-            <label class="gv2-lbl">📂 Link thư mục Raw trên Google Drive</label>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-              <input id="gv2-raw-url" type="url" placeholder="Dán link folder Drive (vd …/Báo cáo giao việc)…" style="flex:1;min-width:240px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.86rem">
-              <button id="gv2-raw-save" class="btn-print" style="font-size:.82rem;padding:6px 14px">Lưu</button>
-            </div>
-            <div id="gv2-raw-status" class="tcunit" style="margin-top:4px"></div>
-          </div>
-          <div class="tcunit" style="line-height:1.5">
-            <b>Vòng lặp khép kín cho từng việc:</b> bấm <b>📤 Nộp báo cáo</b> trên mỗi thẻ việc → dashboard copy sẵn <b>tên chuẩn</b> <code>mã - tên việc</code> + mở thư mục Raw để anh thả file (đặt theo tên đã copy). Hệ thống tự động (pipeline ingest <code>_NAFOSTED.OS</code>) định kỳ quét thư mục Raw, khớp file theo mã việc, đối chiếu <i>kết quả cần đạt</i> rồi ghi nhận xét vào <code>nafosted-digest.js</code>. Khi chấm <b>đủ</b> (hoặc đánh dấu xong hết tiểu mục) → việc tự chuyển <b>🟡 chờ duyệt</b>; CNĐT là <b>chốt cuối</b> duyệt từng <b>tiểu mục</b> + <b>công việc</b> → <b>🟢 hoàn thành</b>.
-          </div>
-        </div>
-      </details>
-    </section>
   </div><!-- /tab-tiendoCN -->
 
 
@@ -1058,8 +1033,9 @@
             </div>
           </div>
           <div>
-            <label class="gv2-lbl">🧩 Tiểu mục công việc <span style="font-weight:400;color:var(--muted)">(mỗi dòng 1 tiểu mục — hệ thống tự đánh số n.n.n.n; để trống nếu không chia)</span></label>
-            <textarea id="gv2-tieumucH" rows="3" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;resize:vertical;box-sizing:border-box" placeholder="VD:&#10;Lập chứng từ tạm ứng&#10;Đối chiếu quyết toán&#10;Nộp hồ sơ Quỹ"></textarea>
+            <label class="gv2-lbl">🧩 Tiểu mục công việc <span style="font-weight:400;color:var(--muted)">(mỗi tiểu mục 1 ô — tự đánh số n.n.n.n; để trống nếu không chia)</span></label>
+            <div id="gv2-tm-rowsH"></div>
+            <button type="button" id="gv2-tm-addrowH" class="btn-print" style="font-size:.82rem;padding:4px 12px;background:var(--grey)">＋ Thêm tiểu mục</button>
           </div>
           <button id="gv2-create-btnH" class="btn-print" style="width:100%;padding:9px">📋 Giao việc</button>
           <div id="gv2-create-statusH" class="tcunit"></div>
@@ -1068,8 +1044,9 @@
     </section>
 
     <section class="block" id="gv2-phieu-sectionH">
-      <h2>🗂 Phiếu đã giao — sửa tiểu mục <span class="note">(đánh số n.n.n.n · đồng bộ sang tab 👤 Tiến độ cá nhân)</span></h2>
-      <div id="gv2-phieu-listH"></div>
+      <h2>🗂 Phiếu đã giao — sửa tiểu mục <span class="note">(chọn công việc n.n.n để hiện tiểu mục · đồng bộ sang tab 👤 Tiến độ cá nhân)</span></h2>
+      <select id="gv2-phieu-selectH" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;margin-bottom:10px"><option value="">— Chọn công việc để sửa tiểu mục —</option></select>
+      <div id="gv2-phieu-editorH"></div>
     </section>
   </div><!-- /tab-giaoviecHC -->
 
@@ -1099,13 +1076,8 @@
       <div id="gst-urgentH"></div>
     </section>
 
-    <section class="block" id="gv2-approve-sectionH" style="display:none;border-left:4px solid var(--orange)">
-      <h2>⏳ Chờ chủ nhiệm duyệt <span class="note">(đã nộp kèm minh chứng — bấm Đạt / Chưa đạt)</span></h2>
-      <div id="gv2-approveH"></div>
-    </section>
-
     <section class="block">
-      <h2>📋 Công việc đang trong tiến độ <span class="note">(theo bộ lọc cá nhân ở trên)</span></h2>
+      <h2>📋 Công việc đang triển khai <span class="note">(đang làm + đã nộp chờ duyệt — theo bộ lọc cá nhân ở trên)</span></h2>
       <div id="gv2-activeH"></div>
     </section>
 
@@ -1756,7 +1728,9 @@
     }
     // GV gợi ý từ WBS (_src:"data", chưa qua form "Tạo phiếu giao việc mới") không tính là việc
     // chính thức — không hiện trong bảng Tiến độ cá nhân, chỉ tham khảo khi tạo phiếu ở tab Giao việc.
-    function isDraftGV(g){ return g._src==="data" && g.duyet!=="dat"; }
+    // GV gợi ý từ WBS (_src="data") KHÔNG hiển thị ở Tiến độ cá nhân — chỉ là gợi ý khi tạo phiếu.
+    // Việc chỉ chính thức vào danh sách khi được TẠO PHIẾU (custom) ở tab Giao việc.
+    function isDraftGV(g){ return g._src==="data"; }
 
     // Giai đoạn vòng đời (4 bước): Giao → Đang làm → Nộp → Đạt
     var STAGES=["Giao","Đang làm","Nộp","Đạt"];
@@ -1868,7 +1842,8 @@
         var dl=G("gv2-deadline").value, ng=G("gv2-ngaygiao").value;
         var stat=G("gv2-create-status");
         if(!nguoiNhan){stat.textContent="⚠ Chọn người nhận trước.";setTimeout(function(){stat.textContent="";},2500);return;}
-        var tmLines=((G("gv2-tieumuc")||{value:""}).value||"").split("\n").map(function(s){return s.trim();}).filter(Boolean);
+        var rowsBox=document.getElementById("gv2-tm-rows"+sfx);
+        var tmLines=rowsBox ? [].slice.call(rowsBox.querySelectorAll(".gv2-tm-rowinput")).map(function(i){return (i.value||"").trim();}).filter(Boolean) : [];
         var custom=loadCustom();
         var ma="GVC-"+Date.now().toString().slice(-6);
         custom.push({ma:ma,ten:o&&o.value?o.dataset.ten:"(Việc tự do)",
@@ -1885,7 +1860,7 @@
         stat.innerHTML="✅ Đã giao cho <b>"+esc(nguoiNhan)+"</b>"+(tmLines.length?(" · "+tmLines.length+" tiểu mục"):"")+" — theo dõi ở tab 👤 Tiến độ cá nhân"+(isHC?" (Hành chính)":"")+".";
         setTimeout(function(){stat.textContent="";},3500);
         selCV.value=""; G("gv2-ketqua").value=""; G("gv2-deadline").value="";
-        var tmt=G("gv2-tieumuc"); if(tmt) tmt.value="";
+        if(rowsBox){ rowsBox.innerHTML=""; sop_gvAddTmRow(sfx); }
         var cp=G("gv2-create-panel"); if(cp) cp.removeAttribute("open");
         render();
       });
@@ -1904,9 +1879,29 @@
         });
       });
       selWho.addEventListener("change",function(){ ST[sfx].who=selWho.value; render(); });
+      // Phiếu đã giao: đổi dropdown công việc → hiện tiểu mục của việc được chọn
+      var selPhieu=G("gv2-phieu-select"); if(selPhieu) selPhieu.addEventListener("change",render);
+      // "+ Thêm tiểu mục" trong form tạo phiếu → thêm 1 dòng ô nhập
+      var addRow=G("gv2-tm-addrow"); if(addRow) addRow.addEventListener("click",function(){ sop_gvAddTmRow(sfx); });
+    }
+    // Thêm 1 ô nhập tiểu mục vào form tạo phiếu (scope "" hoặc "H")
+    function sop_gvAddTmRow(sfx, val){
+      var box=document.getElementById("gv2-tm-rows"+sfx); if(!box) return;
+      var row=document.createElement("div");
+      row.style.cssText="display:flex;gap:6px;align-items:center;margin-bottom:5px";
+      row.innerHTML='<span class="gv2-tmnum" style="opacity:.6">•</span>'
+        +'<input type="text" class="gv2-tm-rowinput" placeholder="Tên tiểu mục…" style="flex:1;padding:6px 9px;border:1px solid var(--line);border-radius:6px;font-size:.86rem;background:var(--card);color:var(--ink);box-sizing:border-box">'
+        +'<button type="button" class="gv2-tm-rowdel" title="Bỏ dòng" style="border:0;background:none;color:var(--muted);cursor:pointer;font-size:.95rem">✕</button>';
+      box.appendChild(row);
+      var inp=row.querySelector(".gv2-tm-rowinput"); if(val!=null) inp.value=val;
+      row.querySelector(".gv2-tm-rowdel").addEventListener("click",function(){ row.remove(); });
+      inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); sop_gvAddTmRow(sfx); var rows=box.querySelectorAll(".gv2-tm-rowinput"); if(rows.length) rows[rows.length-1].focus(); } });
+      return inp;
     }
     setupScope("", false);
     setupScope("H", true);
+    // Khởi tạo sẵn 1 ô tiểu mục trống ở mỗi form tạo phiếu
+    sop_gvAddTmRow(""); sop_gvAddTmRow("H");
 
     // Cấu hình link thư mục Raw (lưu localStorage)
     (function(){
@@ -2082,20 +2077,26 @@
       h+=mcHTML(g);
       h+=digestBadge(g);
       h+=baoCaoHTML(g);
-      // Chốt cuối cấp tiểu mục: CNĐT duyệt từng tiểu mục → 🟢
-      var tm=g.tieuMuc||[], hasTM=tm.length&&!g.khongTieuMuc, allGreen=hasTM&&tm.every(function(t){return t.duyet;});
+      // Duyệt từng tiểu mục: CLICK Ô = duyệt luôn (🟢), bỏ tích = bỏ duyệt. Không bắt buộc duyệt hết mới Đạt.
+      var tm=g.tieuMuc||[], hasTM=tm.length&&!g.khongTieuMuc;
       if(hasTM){
         var st2=tmStats(g);
         h+='<div style="margin:8px 0;padding:8px 10px;border:1px dashed var(--line);border-radius:8px;background:var(--bg)">';
-        h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px"><span class="gv2-lbl" style="margin:0">🧩 Duyệt từng tiểu mục</span>';
+        h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px"><span class="gv2-lbl" style="margin:0">🧩 Duyệt tiểu mục <span style="font-weight:400;color:var(--muted)">(click ô = duyệt)</span></span>';
         h+='<span style="font-size:.76rem;color:var(--muted)">🟢 '+st2.duyet+'/'+st2.n+(st2.duyet<st2.n?' · <button class="gv2-tmduyetall btn-print gv2-btn-dat" data-ma="'+esc(g.ma)+'" style="font-size:.72rem;padding:2px 8px;margin-left:4px">✓ Duyệt tất cả</button>':' <b style="color:var(--green)">✓ đủ</b>')+'</span></div>';
-        tm.forEach(function(t,i){ h+=tmRowHTML(g,t,i,true,false); });
+        tm.forEach(function(t,i){
+          h+='<div style="display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:6px;'+(t.duyet?'background:var(--green-bg);':(t.xong?'background:var(--amber-bg);':''))+'">';
+          h+='<input type="checkbox" class="gv2-tmapprove" data-ma="'+esc(g.ma)+'" data-i="'+i+'"'+(t.duyet?' checked':'')+' title="Click để duyệt tiểu mục">';
+          h+='<span class="gv2-tmnum">'+esc(tmNo(g,i))+'</span>';
+          h+='<span style="font-size:.83rem;flex:1'+(t.duyet?';color:var(--green)':'')+'">'+esc(t.ten)+'</span>';
+          h+=(t.duyet?'<span class="badge s-xong">🟢 Đã duyệt</span>':(t.xong?'<span class="badge s-dangLam">🟡 Đã làm</span>':''));
+          h+='</div>';
+        });
         h+='</div>';
       }
       h+='<div style="margin-top:8px"><textarea id="gv2gy-'+esc(g.ma)+'" rows="1" placeholder="Góp ý (nếu trả lại)…" style="width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:6px;font-size:.82rem;background:var(--card);color:var(--ink);box-sizing:border-box">'+esc(g.gopY||"")+'</textarea></div>';
       h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
-      var datDisabled=(hasTM&&!allGreen);
-      h+='<button class="gv2-dat-btn btn-print gv2-btn-dat" data-ma="'+esc(g.ma)+'"'+(datDisabled?' data-gate="tm"':'')+' style="font-size:.83rem;padding:6px 16px'+(datDisabled?';opacity:.55':'')+'" title="'+(datDisabled?'Duyệt hết tiểu mục trước':'Duyệt hoàn thành công việc')+'">✅ Đạt — hoàn thành chính thức</button>';
+      h+='<button class="gv2-dat-btn btn-print gv2-btn-dat" data-ma="'+esc(g.ma)+'" style="font-size:.83rem;padding:6px 16px" title="Duyệt hoàn thành công việc">✅ Đạt — hoàn thành chính thức</button>';
       h+='<button class="gv2-reject-btn btn-print gv2-btn-reject" data-ma="'+esc(g.ma)+'" style="font-size:.83rem;padding:6px 14px">↩ Chưa đạt — trả lại</button>';
       h+='</div></div>';
       return h;
@@ -2151,49 +2152,47 @@
       // việc từ dropdown "Tạo phiếu giao việc mới".
       var items=itemsAll.filter(function(g){return !isDraftGV(g);});
 
-      // 0) Editor phiếu (tab Giao việc) — sửa tiểu mục (số n.n.n.n), đồng bộ sang Tiến độ cá nhân
-      var pl=G("gv2-phieu-list");
-      if(pl){
-        var editable=items.filter(function(g){return g.duyet!=="dat";}); // việc đã Đạt thì khóa sửa
-        pl.innerHTML = editable.length
-          ? editable.sort(function(a,b){return String(a.cvMa||a.ma)<String(b.cvMa||b.ma)?-1:1;}).map(pEditCard).join("")
-          : '<div class="empty">Chưa có phiếu nào — tạo ở khung trên.</div>';
+      // 0) Editor phiếu (tab Giao việc): DROPDOWN chọn công việc n.n.n → tiểu mục hiện khi chọn
+      var sel=G("gv2-phieu-select"), ed=G("gv2-phieu-editor");
+      if(sel && ed){
+        var editable=items.filter(function(g){return g.duyet!=="dat";})
+          .sort(function(a,b){return String(a.cvMa||a.ma)<String(b.cvMa||b.ma)?-1:1;});
+        var prev=sel.value;
+        sel.innerHTML='<option value="">— Chọn công việc để sửa tiểu mục —</option>'
+          + editable.map(function(g){ return '<option value="'+esc(g.ma)+'">['+esc(g.cvMa||g.nd||g.ma)+'] '+esc(g.ten)+' — '+esc(g.nguoiNhan||"?")+'</option>'; }).join("");
+        if(editable.some(function(g){return g.ma===prev;})) sel.value=prev;
+        var curG=editable.filter(function(g){return g.ma===sel.value;})[0];
+        ed.innerHTML = curG ? pEditCard(curG)
+          : (editable.length ? '<div class="empty">Chọn 1 công việc ở trên để xem/sửa tiểu mục.</div>'
+                             : '<div class="empty">Chưa có phiếu nào — tạo ở khung trên.</div>');
       }
 
-      // 1) Hàng đợi chờ CNĐT duyệt
-      var pending=items.filter(function(g){return g.duyet==="cho";});
-      var apSec=G("gv2-approve-section");
-      if(pending.length){
-        apSec.style.display="block";
-        G("gv2-approve").innerHTML=pending
-          .sort(function(a,b){return String(a.ngayNop)<String(b.ngayNop)?-1:1;})
-          .map(approveCard).join("");
-      } else { apSec.style.display="none"; G("gv2-approve").innerHTML=""; }
-
-      // 2) Danh sách theo dõi (chưa đạt & chưa chờ duyệt)
-      var active=items.filter(function(g){
-        if(g.duyet==="dat"||g.duyet==="cho") return false;
-        var l=dleft(g);
-        if(stt.view==="nguoi"){
-          if(stt.who&&g.nguoiNhan!==stt.who) return false;
-          if(stt.chip==="week"){var dl=pd(g.deadline);return dl&&dl>=today&&dl<=wEnd;}
-          if(stt.chip==="soon") return l!==null&&l>=0&&l<=14;
-          if(stt.chip==="late") return (l!==null&&l<0)||g.duyet==="chuaDat";
-        }
-        return true;
-      });
-
+      // 1+2) GỘP: Công việc đang triển khai = đang làm + đã nộp chờ duyệt (không gồm Đạt)
       var actEl=G("gv2-active");
       if(stt.view==="hoatdong"){
         actEl.innerHTML=activityRender(items.filter(function(g){return g.duyet!=="dat";}));
       } else {
+        var live=items.filter(function(g){
+          if(g.duyet==="dat") return false;
+          if(stt.who&&g.nguoiNhan!==stt.who) return false;
+          if(g.duyet==="cho") return true;   // đã nộp chờ duyệt: luôn hiện
+          var l=dleft(g);
+          if(stt.chip==="week"){var dl=pd(g.deadline);return dl&&dl>=today&&dl<=wEnd;}
+          if(stt.chip==="soon") return l!==null&&l>=0&&l<=14;
+          if(stt.chip==="late") return (l!==null&&l<0)||g.duyet==="chuaDat";
+          return true;
+        });
         var byP={};
-        active.forEach(function(g){var p=g.nguoiNhan||"(chưa phân công)";(byP[p]=byP[p]||[]).push(g);});
+        live.forEach(function(g){var p=g.nguoiNhan||"(chưa phân công)";(byP[p]=byP[p]||[]).push(g);});
         var html="";
-        if(!active.length) html='<div class="empty">Không có việc nào'+(stt.chip!=="all"?" với bộ lọc này":"")+'.</div>';
+        if(!live.length) html='<div class="empty">Không có việc nào'+(stt.chip!=="all"?" với bộ lọc này":"")+'.</div>';
         Object.keys(byP).sort().forEach(function(p){
           html+='<div class="tcwork"><div class="wh"><span class="num">👤 '+esc(p)+'</span></div>';
-          byP[p].sort(function(a,b){return String(a.deadline||"z")<String(b.deadline||"z")?-1:1;}).forEach(function(g){html+=card(g);});
+          byP[p].sort(function(a,b){
+            var ra=a.duyet==="cho"?0:1, rb=b.duyet==="cho"?0:1;   // việc chờ duyệt lên trước
+            if(ra!==rb) return ra-rb;
+            return String(a.deadline||"z")<String(b.deadline||"z")?-1:1;
+          }).forEach(function(g){ html += (g.duyet==="cho") ? approveCard(g) : card(g); });
           html+='</div>';
         });
         actEl.innerHTML=html;
@@ -2277,6 +2276,15 @@
           s[ma]=Object.assign(s[ma]||{},{tieuMuc:tm,tienDo:tmPct(tm)}); saveState(s); render();
         });
       });
+      // ☑ CLICK Ô = duyệt/bỏ duyệt 1 tiểu mục (phần duyệt) — không cần thao tác 2 bước
+      document.querySelectorAll(".gv2-tmapprove").forEach(function(cb){
+        cb.addEventListener("change",function(){
+          var s=loadState(), ma=cb.dataset.ma, i=+cb.dataset.i, on=cb.checked;
+          var tm=(s[ma]&&s[ma].tieuMuc)?s[ma].tieuMuc.slice():[];
+          if(tm[i]) tm[i]=Object.assign({},tm[i],{duyet:on, xong:on?true:tm[i].xong});
+          s[ma]=Object.assign(s[ma]||{},{tieuMuc:tm,tienDo:tmPct(tm)}); saveState(s); render();
+        });
+      });
       // ✏️ Đổi tên tiểu mục (tab Giao việc) — ghi vào state, đồng bộ sang Tiến độ cá nhân
       document.querySelectorAll(".gv2-tmrename").forEach(function(inp){
         inp.addEventListener("change",function(){
@@ -2306,7 +2314,7 @@
           files.forEach(function(f,k){ var ext=(f.name.match(/\.[^.]+$/)||[""])[0]; arr0.push({tenChuan:nm+(multi?" ("+(k+1)+")":"")+ext,ngay:nowD(),link:ru||""}); });
           s0[ma]=Object.assign(s0[ma]||{},{baoCao:arr0}); saveState(s0);
           if(ru) window.open(ru,"_blank","noopener");
-          else alert("Đã copy tên chung:\n\n"+nm+"\n\nChưa cấu hình link Raw — mở '⚙ Cấu hình nộp báo cáo' để dán link, hoặc dùng bản web (Vercel) để tải trực tiếp.");
+          else alert("Đã copy tên chung:\n\n"+nm+"\n\nĐang mở bản offline — hãy dùng bản web (Vercel) để tải báo cáo trực tiếp vào thư mục Raw.");
           render(); return;
         }
         var results=[];
@@ -2357,7 +2365,6 @@
       document.querySelectorAll(".gv2-dat-btn").forEach(function(btn){
         btn.addEventListener("click",function(){
           var ma=btn.dataset.ma;
-          if(btn.dataset.gate==="tm"){ alert("Hãy duyệt hoàn thành TẤT CẢ tiểu mục trước (nút ✓ Duyệt từng cái hoặc ✓ Duyệt tất cả)."); return; }
           var s=loadState();
           var st0=s[ma]||{}, tm=(st0.tieuMuc||[]);
           // đảm bảo mọi tiểu mục (nếu có) đều xanh khi hoàn thành công việc
