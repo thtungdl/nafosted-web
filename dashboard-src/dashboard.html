@@ -281,6 +281,100 @@
   @media(max-width:560px){ .grow{grid-template-columns:130px 1fr} .gtable{min-width:560px} th.opt,td.opt{display:none} }
   /* responsive đa thiết bị */
   .fld2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  /* ===== SOP & Dữ liệu thực nghiệm ===== */
+  .sop-pane{--sop-imp:#0f7b6c;--sop-imp-bg:var(--green-bg,#e3f5ea)}
+  .sop-tabbar{background:var(--navy-d);border-radius:8px 8px 0 0;display:flex;padding:0 4px}
+  .sop-tabbtn{background:transparent;border:none;color:rgba(255,255,255,.62);font-size:.86rem;font-weight:600;padding:10px 16px;cursor:pointer;border-bottom:3px solid transparent;display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .sop-tabbtn:hover{color:#fff}
+  .sop-tabbtn.active{color:#fff;border-bottom-color:var(--orange);background:rgba(0,0,0,.12)}
+  .sop-tabbtn .spill{font-size:.66rem;font-weight:700;padding:1px 7px;border-radius:10px;background:rgba(255,255,255,.2);color:rgba(255,255,255,.8)}
+  .sop-tabbtn.active[data-stab="extract"] .spill{background:var(--orange);color:#fff}
+  .sop-tab-panel{display:none}
+  .sop-tab-panel.active{display:block}
+  .sop-info{border-radius:8px;padding:9px 13px;font-size:.86rem;margin:12px 0 8px;border:1px solid var(--line)}
+  .sop-info.prep{background:var(--amber-bg,#fff1d2);border-color:var(--amber,#c47b00)}
+  .sop-info.batch{background:var(--surface);border-color:var(--line)}
+  .sop-info b{color:var(--orange)}
+  .sop-batch-box{background:var(--card);border:1.5px solid var(--line-2);border-left:4px solid var(--navy);border-radius:8px;padding:14px 16px;margin:12px 0}
+  .sop-batch-box .bb-title{font-size:.72rem;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:10px}
+  .sop-bb-add{display:flex;gap:8px;margin-bottom:10px}
+  .sop-bb-add input{flex:1;font-size:.86rem;border:1.5px solid var(--line);border-radius:6px;padding:6px 9px;background:var(--card);color:var(--ink)}
+  .sop-bb-add button{background:var(--navy);color:#fff;border:none;border-radius:6px;padding:6px 13px;font-size:.8rem;cursor:pointer}
+  .sop-bb-add button:hover{background:var(--navy-700)}
+  .sop-bb-chips{display:flex;flex-wrap:wrap;gap:8px}
+  .sop-chip{display:flex;align-items:center;gap:7px;border:1.5px solid var(--line);border-radius:20px;padding:5px 8px 5px 13px;font-size:.8rem;cursor:pointer;background:var(--card);transition:.12s}
+  .sop-chip:hover{border-color:var(--navy)}
+  .sop-chip.active{background:var(--navy);border-color:var(--navy);color:#fff}
+  .sop-chip .sc-pct{font-weight:700;font-size:.68rem;background:var(--line);color:var(--navy);border-radius:10px;padding:1px 7px;min-width:30px;text-align:center}
+  .sop-chip.active .sc-pct{background:var(--orange);color:#fff}
+  .sop-chip.done .sc-pct{background:var(--green);color:#fff}
+  .sop-chip .sc-x{opacity:.55;font-size:.78rem;padding:0 2px}
+  .sop-chip .sc-x:hover{opacity:1;color:var(--red)}
+  .sop-bb-empty{font-size:.8rem;color:var(--muted);font-style:italic}
+  .sop-sample-box{background:var(--card);border:1.5px solid var(--line-2);border-left:4px solid var(--orange);border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .sop-sample-box .sop-active-tag{font-size:.8rem;font-weight:700;color:var(--navy);background:var(--amber-bg,#fff1d2);border:1px solid var(--amber,#c47b00);border-radius:5px;padding:4px 10px}
+  .sop-reset-btn{margin-left:auto;background:var(--card);border:1.5px solid var(--line);color:var(--muted);font-size:.74rem;padding:5px 11px;border-radius:6px;cursor:pointer}
+  .sop-reset-btn:hover{border-color:var(--red);color:var(--red)}
+  .sop-prog{background:var(--card);border:1.5px solid var(--line-2);border-radius:8px;padding:11px 14px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .sop-prog.single{grid-template-columns:1fr}
+  .sop-prog .sp-row{display:flex;justify-content:space-between;font-size:.74rem;margin-bottom:5px;color:var(--muted)}
+  .sop-prog .sp-bar-outer{background:var(--line);border-radius:20px;height:6px;overflow:hidden}
+  .sop-prog .sp-bar-inner{height:100%;width:0%;transition:width .25s}
+  .sop-prog .sp-bar-inner.sample{background:var(--green)}
+  .sop-prog .sp-bar-inner.global{background:var(--navy)}
+  .sop-dc-card{background:var(--card);border:1.5px solid var(--line-2);border-top:4px solid var(--orange);border-radius:8px;padding:15px 18px;margin-bottom:16px}
+  .sop-dc-card h3{font-size:.9rem;color:var(--navy);margin:0 0 3px;font-weight:700}
+  .sop-dc-card .dc-sub{font-size:.74rem;color:var(--muted);margin-bottom:10px}
+  .sop-dc-grp{font-size:.7rem;color:var(--orange);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin:12px 0 7px;border-bottom:1px solid var(--line);padding-bottom:3px}
+  .sop-dc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:9px 13px;margin-bottom:2px}
+  .sop-dc-field{display:flex;flex-direction:column;gap:3px}
+  .sop-dc-field label{font-size:.7rem;color:var(--muted)}
+  .sop-dc-field input,.sop-dc-field textarea,.sop-dc-field select{font-family:inherit;font-size:.86rem;border:1.5px solid var(--line);border-radius:6px;padding:5px 8px;background:var(--card);color:var(--ink)}
+  .sop-dc-field textarea{resize:vertical;min-height:34px}
+  .sop-dc-field.calc input{background:var(--green-bg,#e3f5ea);border-color:var(--green);font-weight:700;color:var(--green)}
+  .sop-dc-formula{background:var(--surface);border:1px dashed var(--line-2);border-radius:6px;padding:7px 12px;font-family:"Cambria Math","Times New Roman",serif;font-size:.8rem;margin:10px 0 0}
+  .sop-step{background:var(--card);border:1.5px solid var(--line-2);border-radius:8px;margin-bottom:12px;overflow:hidden}
+  .sop-step[data-scope="global"]{border-left:4px solid var(--navy-700,var(--navy))}
+  .sop-step-head{display:flex;align-items:center;gap:9px;padding:11px 15px;background:var(--navy);color:#fff;cursor:pointer;user-select:none}
+  .sop-tab-panel[data-process="extract"] .sop-step-head{background:#3a2410}
+  .sop-step-head .snum{background:var(--orange);color:#fff;font-weight:800;font-size:.78rem;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .sop-step-head h3{font-size:.9rem;margin:0;font-weight:600}
+  .sop-step-head .scope-badge{font-size:.62rem;background:rgba(255,255,255,.15);padding:1px 6px;border-radius:10px;color:rgba(255,255,255,.75);margin-left:2px}
+  .sop-step-head .spacer{flex:1}
+  .sop-step-count{font-size:.74rem;color:rgba(255,255,255,.65);white-space:nowrap}
+  .sop-chevron{transition:transform .2s;font-size:.72rem;color:rgba(255,255,255,.65)}
+  .sop-step.collapsed .sop-chevron{transform:rotate(-90deg)}
+  .sop-step-minibar{height:3px;background:rgba(34,55,113,.22)}
+  .sop-tab-panel[data-process="extract"] .sop-step-minibar{background:#5a3a1c}
+  .sop-step-minibar .fill{height:100%;background:var(--orange);width:0%;transition:width .2s}
+  .sop-step-body{padding:13px 16px 15px}
+  .sop-step.collapsed .sop-step-body{display:none}
+  .sop-grp-title{font-size:.72rem;color:var(--navy);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin:11px 0 4px}
+  .sop-grp-title:first-child{margin-top:0}
+  ul.sop-cl{list-style:none;margin:0 0 4px;padding:0}
+  ul.sop-cl li{display:flex;align-items:flex-start;gap:7px;padding:4px 3px;border-radius:5px;font-size:.86rem}
+  ul.sop-cl li:hover{background:var(--surface)}
+  ul.sop-cl input[type=checkbox]{margin-top:2px;width:14px;height:14px;accent-color:var(--green);flex-shrink:0;cursor:pointer}
+  ul.sop-cl label{cursor:pointer;flex:1}
+  ul.sop-cl li.checked label{color:var(--muted);text-decoration:line-through}
+  .sop-note{background:var(--amber-bg,#fff1d2);border:1px solid var(--amber,#c47b00);border-radius:7px;padding:7px 11px;margin:7px 0;font-size:.84rem}
+  .sop-note b{color:var(--orange)}
+  .sop-warn{background:var(--red-bg);border:1px solid var(--red);border-radius:7px;padding:7px 11px;font-size:.84rem;margin:7px 0}
+  .sop-warn b{color:var(--red)}
+  .sop-photo-box{background:var(--surface);border:1px dashed var(--line-2);border-radius:8px;padding:10px 12px;margin:5px 0 3px}
+  .sop-photo-btn{background:var(--sop-imp);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:.8rem;cursor:pointer}
+  .sop-photo-btn:hover{filter:brightness(1.12)}
+  .sop-photo-status{margin-left:9px;font-size:.76rem;color:var(--muted)}
+  .sop-photo-status.ok{color:var(--green);font-weight:700}
+  .sop-photo-gallery{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+  .sop-photo-thumb{position:relative;width:78px;height:78px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+  .sop-photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .sop-photo-thumb .ph-x{position:absolute;top:2px;right:2px;background:rgba(192,57,43,.9);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:.66rem;cursor:pointer;line-height:1;padding:0}
+  .sop-sync-bar{display:flex;align-items:center;gap:10px;padding:7px 12px;background:var(--surface);border:1px solid var(--line);border-radius:0 0 8px 8px;margin-bottom:12px;font-size:.78rem}
+  .sop-sync-btn{background:var(--navy);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:.76rem;cursor:pointer;white-space:nowrap}
+  .sop-sync-btn:hover{background:var(--navy-700)}
+  .sop-sync-status{color:var(--muted);flex:1}
+  @media print{.sop-tabbar,.sop-reset-btn,.sop-sync-bar{display:none}.sop-step-body{display:block!important}.sop-tab-panel{display:block!important}}
   /* bảng rộng → cuộn ngang trong khung, không tràn cả trang */
   #tc-rollup,#tc-detail,#tc2-khoanchibang,#tc2-giaodich,#tc2-dotgiaongan,.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
   @media(max-width:560px){
@@ -359,6 +453,7 @@
     <button class="tabbtn subbtn" data-tab="giaoviec">📋 Giao việc</button>
     <button class="tabbtn subbtn" data-tab="tiendoCN">👤 Tiến độ cá nhân</button>
     <button class="tabbtn subbtn" data-tab="tinhcong">💰 Tính công</button>
+    <button class="tabbtn subbtn" data-tab="sopdata">🧪 SOP & Thực nghiệm</button>
   </div>
   <div class="tabnav sub-tabnav hide" id="subnav-hanhchinh">
     <button class="tabbtn subbtn active" data-tab="giaoviecHC">📋 Giao việc</button>
@@ -590,6 +685,278 @@
       <div id="tc-detail"></div>
     </section>
   </div><!-- /tab-tinhcong -->
+
+  <!-- ===== SOP & Dữ liệu thực nghiệm ===== -->
+  <div id="tab-sopdata" class="tabpane hide">
+  <section class="block">
+    <h2>🧪 SOP & Dữ liệu thực nghiệm <span class="note">(chiết mẫu · nhập số liệu · minh chứng ảnh)</span></h2>
+    <div class="sop-pane">
+
+      <!-- Sync bar -->
+      <div class="sop-sync-bar">
+        <span class="sop-sync-status" id="sop-sync-status">💾 Lưu trình duyệt</span>
+        <button class="sop-sync-btn" onclick="sop_loadFromCloud()">⬇ Tải từ Drive</button>
+        <button class="sop-sync-btn" onclick="sop_syncToCloud()">☁ Đẩy lên Drive</button>
+      </div>
+
+      <!-- Tab bar nội bộ SOP -->
+      <div class="sop-tabbar">
+        <button class="sop-tabbtn active" data-stab="prep" onclick="sop_switchTab('prep')">1 · Chuẩn bị mẫu <span class="spill">xác nhận trước chiết</span></button>
+        <button class="sop-tabbtn" data-stab="extract" onclick="sop_switchTab('extract')">2 · Chiết mẫu <span class="spill">nhập số liệu</span></button>
+      </div>
+
+      <!-- Quản lý mẻ mẫu (chung 2 tab) -->
+      <div class="sop-batch-box">
+        <div class="bb-title">Danh sách mẫu trong mẻ chiết</div>
+        <div class="sop-bb-add">
+          <input id="sop-new-ma" type="text" placeholder="Mã dược liệu (vd. BV-052) → Enter hoặc bấm Thêm">
+          <button onclick="sop_addSample()">+ Thêm mẫu</button>
+        </div>
+        <div class="sop-bb-chips" id="sop-bb-chips"></div>
+        <div class="sop-bb-empty" id="sop-bb-empty">Chưa có mẫu — thêm mã dược liệu để bắt đầu.</div>
+      </div>
+
+      <div class="sop-sample-box">
+        <span class="sop-active-tag">Mẫu đang chọn: <span id="sop-active-label">—</span></span>
+        <button class="sop-reset-btn" onclick="sop_resetActiveSample()">↺ Xóa tick mẫu này (tab hiện tại)</button>
+      </div>
+
+      <div class="sop-prog" id="sop-prog-wrap">
+        <div>
+          <div class="sp-row"><span>Dùng chung — chuẩn bị dụng cụ (cả mẻ)</span><span id="sop-global-pct">0%</span></div>
+          <div class="sp-bar-outer"><div class="sp-bar-inner global" id="sop-global-bar"></div></div>
+        </div>
+        <div>
+          <div class="sp-row"><span>Tiến độ mẫu đang chọn (tab hiện tại)</span><span id="sop-sample-pct">0%</span></div>
+          <div class="sp-bar-outer"><div class="sp-bar-inner sample" id="sop-sample-bar"></div></div>
+        </div>
+      </div>
+
+      <!-- ===== TAB 1: CHUẨN BỊ MẪU ===== -->
+      <div class="sop-tab-panel active" data-process="prep">
+        <div class="sop-info prep"><b>Giai đoạn chuẩn bị</b> — xác nhận trước khi chiết: dược liệu đã khô, đã xay–rây, đã đo hàm ẩm và lưu bột theo mã. Bước 2 (dụng cụ) tick <b>1 lần dùng chung cho cả mẻ</b>.</div>
+
+        <div class="sop-step" data-step="1">
+          <div class="sop-step-head" onclick="sop_toggleStep(this)">
+            <span class="snum">1</span><h3>Tìm mẫu &amp; xác nhận hàm ẩm</h3>
+            <span class="scope-badge">riêng từng mẫu</span><span class="spacer"></span>
+            <span class="sop-step-count"><span class="sdone">0</span>/<span class="stotal">0</span></span><span class="sop-chevron">▼</span>
+          </div>
+          <div class="sop-step-minibar"><div class="fill"></div></div>
+          <div class="sop-step-body">
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Tra cứu sheet "8. Chiết mẫu" để tìm túi dược liệu tương ứng mã</label></li>
+              <li><input type="checkbox"><label>Kiểm tra độ khô: bóp thấy ỉu/dai → sấy lại cho khô</label></li>
+              <li><input type="checkbox"><label>Đã xác định hàm ẩm bột (%) và ghi lại — dùng tính hiệu suất về khối lượng khô</label></li>
+              <li><input type="checkbox"><label>Đã rà mã trùng và chốt quy tắc gộp/tách mã</label></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sop-step" data-step="2" data-scope="global">
+          <div class="sop-step-head" onclick="sop_toggleStep(this)">
+            <span class="snum">2</span><h3>Chuẩn bị dụng cụ</h3>
+            <span class="scope-badge">dùng chung cho cả mẻ</span><span class="spacer"></span>
+            <span class="sop-step-count"><span class="sdone">0</span>/<span class="stotal">0</span></span><span class="sop-chevron">▼</span>
+          </div>
+          <div class="sop-step-minibar"><div class="fill"></div></div>
+          <div class="sop-step-body">
+            <div class="sop-note">Quy mô chiết <b>5 g/mẫu</b> → dùng dụng cụ nhỏ. Chuẩn bị 1 lần, nhân số lượng theo số mẫu trong mẻ.</div>
+            <div class="sop-grp-title">Dụng cụ</div>
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Sổ ghi chép chung + file Excel online</label></li>
+              <li><input type="checkbox"><label>Bình nón / lọ thủy tinh nhỏ ~50–100 ml có nắp — 1 cái/mẫu</label></li>
+              <li><input type="checkbox"><label>Cốc có mỏ nhỏ (50–100 ml) để cô cao — 1 cái/mẫu, đã dán mã</label></li>
+              <li><input type="checkbox"><label>Máy xay, bộ rây cỡ mắt xác định, phễu lọc</label></li>
+              <li><input type="checkbox"><label>Thìa/đũa thủy tinh khuấy + thìa cạo cao</label></li>
+              <li><input type="checkbox"><label>Bể cách thủy / máy cô quay chân không</label></li>
+              <li><input type="checkbox"><label>Giấy lọc, bông lọc</label></li>
+              <li><input type="checkbox"><label>Ống Eppendorf 1,5 ml (lưu mẫu) + lọ thủy tinh nhỏ nếu cần</label></li>
+              <li><input type="checkbox"><label>Băng dính giấy, bút bi, màng/nắp bịt bình, pipet/ống đong 25–50 ml</label></li>
+              <li><input type="checkbox"><label>Dung môi: methanol (ghi cấp độ tinh khiết, hãng, lô)</label></li>
+            </ul>
+            <div class="sop-grp-title">Kiểm tra trước khi bắt đầu</div>
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Rửa sạch dụng cụ, tráng methanol — ghi mã lên từng bộ để tránh lẫn</label></li>
+              <li><input type="checkbox"><label>Đã đọc HDSD: máy siêu âm, tủ sấy, tủ hút, máy cô quay, cân kỹ thuật, cân phân tích</label></li>
+              <li><input type="checkbox"><label>Máy siêu âm đủ chỗ chứa hết số bình của cả mẻ</label></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sop-step" data-step="3">
+          <div class="sop-step-head" onclick="sop_toggleStep(this)">
+            <span class="snum">3</span><h3>Xay, rây &amp; lưu bột</h3>
+            <span class="scope-badge">riêng từng mẫu</span><span class="spacer"></span>
+            <span class="sop-step-count"><span class="sdone">0</span>/<span class="stotal">0</span></span><span class="sop-chevron">▼</span>
+          </div>
+          <div class="sop-step-minibar"><div class="fill"></div></div>
+          <div class="sop-step-body">
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Xay bằng máy xay thường (làm sạch máy giữa các mã để tránh lẫn tạp)</label></li>
+              <li><input type="checkbox"><label>Luôn để lại 1–2 mảnh lá/thân/rễ/hoa/quả để lưu tiêu bản — không xay hết</label></li>
+              <li><input type="checkbox"><label>Rây qua cỡ mắt xác định (ghi cỡ mm); phần trên rây xay lại rồi rây tiếp</label></li>
+              <li><input type="checkbox"><label>Đổ bột ra giấy/khay sạch, chụp ảnh — ghi rõ mã trong ảnh</label></li>
+              <li><input type="checkbox"><label>Cân tổng khối lượng bột thu được (cân kỹ thuật)</label></li>
+              <li><input type="checkbox"><label>Lưu bột trong lọ thủy tinh/giấy ghi mã (giữ khô, tránh ẩm)</label></li>
+              <li><input type="checkbox"><label>Ghi sổ + file online: mã, hàm ẩm (%), cỡ rây (mm), tổng khối lượng bột, ngày &amp; người xử lý</label></li>
+            </ul>
+          </div>
+        </div>
+      </div><!-- /sop-tab-panel prep -->
+
+      <!-- ===== TAB 2: CHIẾT MẪU ===== -->
+      <div class="sop-tab-panel" data-process="extract">
+        <div class="sop-info batch"><b>Quy trình chiết 5 g:</b> cân chính xác <b>5,00 g bột</b>/mẫu, chiết siêu âm 3 lần (60 °C · 30 phút/lần · methanol), <b>gộp dịch ~50 ml</b>, cô <b>toàn bộ</b> dịch thành cao. Nhập số liệu từng mẫu vào bảng dưới.</div>
+
+        <!-- Card nhập số liệu -->
+        <div class="sop-dc-card">
+          <h3>Số liệu chiết mẫu — <span id="sop-dc-ma-label" style="color:var(--orange)">(chưa chọn mẫu)</span></h3>
+          <div class="dc-sub">Số thập phân dùng dấu phẩy (vd. 5,00). Ô nền xanh tự tính và lưu theo từng mẫu.</div>
+          <div class="sop-dc-grp">Thông tin chung</div>
+          <div class="sop-dc-grid">
+            <div class="sop-dc-field"><label>Ngày chiết</label><input type="date" data-f="ngay"></div>
+            <div class="sop-dc-field"><label>Người chiết</label><input type="text" data-f="nguoi" placeholder="Họ tên"></div>
+          </div>
+          <div class="sop-dc-grp">Chiết &amp; cô cao</div>
+          <div class="sop-dc-grid">
+            <div class="sop-dc-field"><label>Hàm ẩm bột (%)</label><input type="text" data-f="ham_am" inputmode="decimal" placeholder="vd. 8,20"></div>
+            <div class="sop-dc-field"><label>m bột đem chiết (g)</label><input type="text" data-f="m_bot" inputmode="decimal" placeholder="≈ 5,00"></div>
+            <div class="sop-dc-field"><label>V dịch chiết tổng sau 3 lần (ml)</label><input type="text" data-f="v_dich" inputmode="decimal" placeholder="≈ 50"></div>
+            <div class="sop-dc-field"><label>m cốc cô rỗng + nhãn (g)</label><input type="text" data-f="m_coc" inputmode="decimal" placeholder="cân phân tích 4 số"></div>
+            <div class="sop-dc-field"><label>m đũa thủy tinh (g, nếu có)</label><input type="text" data-f="m_dua" inputmode="decimal" placeholder="0 nếu không dùng"></div>
+            <div class="sop-dc-field"><label>m cốc + cao sau sấy (g)</label><input type="text" data-f="m_coc_cao" inputmode="decimal" placeholder="cân phân tích 4 số"></div>
+            <div class="sop-dc-field calc"><label>→ m cao khô (g)</label><input type="text" id="sop-calc-cao" readonly></div>
+            <div class="sop-dc-field calc"><label>→ Hiệu suất / khối lượng khô (%)</label><input type="text" id="sop-calc-hs" readonly></div>
+          </div>
+          <div class="sop-dc-formula">m<sub>cao khô</sub> = m<sub>cốc+cao</sub> − m<sub>cốc rỗng</sub> − m<sub>đũa</sub> &nbsp;·&nbsp; H(%) = m<sub>cao khô</sub> / [m<sub>bột</sub> × (1 − hàm ẩm/100)] × 100</div>
+          <div class="sop-dc-grp">Lưu mẫu (ống Eppendorf 1,5 ml)</div>
+          <div class="sop-dc-grid">
+            <div class="sop-dc-field"><label>m ống rỗng (g)</label><input type="text" data-f="m_ong" inputmode="decimal" placeholder="cân phân tích"></div>
+            <div class="sop-dc-field"><label>m ống + cao lưu (g)</label><input type="text" data-f="m_ong_cao" inputmode="decimal"></div>
+            <div class="sop-dc-field calc"><label>→ m cao lưu (g)</label><input type="text" id="sop-calc-luu" readonly></div>
+          </div>
+          <div class="sop-dc-grp">Lưu trữ &amp; gửi thử in vitro</div>
+          <div class="sop-dc-grid">
+            <div class="sop-dc-field"><label>Nơi lưu mẫu sau chiết</label>
+              <select data-f="noi_luu">
+                <option value="">— chọn —</option>
+                <option value="VIGH">VIGH (Viện Sâm &amp; Dược liệu)</option>
+                <option value="HUP">HUP (ĐH Dược Hà Nội)</option>
+                <option value="VIGH + HUP">VIGH + HUP</option>
+                <option value="Khác">Khác</option>
+              </select>
+            </div>
+            <div class="sop-dc-field"><label>Tình trạng gửi mẫu in vitro (AChE)</label>
+              <select data-f="tt_invitro">
+                <option value="">— chọn —</option>
+                <option value="Chưa gửi">Chưa gửi</option>
+                <option value="Đã gửi">Đã gửi</option>
+                <option value="Đã có kết quả">Đã có kết quả</option>
+              </select>
+            </div>
+            <div class="sop-dc-field"><label>Ngày gửi in vitro</label><input type="date" data-f="ngay_gui"></div>
+            <div class="sop-dc-field"><label>Nơi nhận thử in vitro</label><input type="text" data-f="noi_nhan_invitro" placeholder="vd. VIGH / HUP"></div>
+          </div>
+          <div class="sop-dc-grp">Ghi chú</div>
+          <div class="sop-dc-grid" style="grid-template-columns:1fr">
+            <div class="sop-dc-field"><textarea data-f="ghichu" rows="2" placeholder="Sự cố, mẫu khó lọc, bông xốp, hết dược liệu..."></textarea></div>
+          </div>
+        </div>
+
+        <div class="sop-step" data-step="4">
+          <div class="sop-step-head" onclick="sop_toggleStep(this)">
+            <span class="snum">4</span><h3>Chiết mẫu (5 g × 3 lần siêu âm)</h3>
+            <span class="scope-badge">riêng từng mẫu, cùng mẻ siêu âm</span><span class="spacer"></span>
+            <span class="sop-step-count"><span class="sdone">0</span>/<span class="stotal">0</span></span><span class="sop-chevron">▼</span>
+          </div>
+          <div class="sop-step-minibar"><div class="fill"></div></div>
+          <div class="sop-step-body">
+            <div class="sop-note"><b>Điều kiện:</b> siêu âm · 60 °C (57–63 °C) · 30 phút/lần × 3 lần · methanol. Mỗi lần ~15–20 ml; gộp 3 lần → <b>~50 ml</b>.</div>
+            <div class="sop-grp-title">Cân mẫu</div>
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Cân chính xác ~5,00 g bột (cân phân tích) vào bình/lọ nhỏ đã dán mã → ghi vào ô "m bột đem chiết"</label></li>
+            </ul>
+            <div class="sop-grp-title">Lần chiết 1</div>
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Thêm ~15–20 ml methanol, khuấy làm ẩm (mẫu nổi → khuấy thêm; bông xốp → thêm cho ngập)</label></li>
+              <li><input type="checkbox"><label>Bịt kín miệng bình (nắp/màng chọc 2–3 lỗ)</label></li>
+              <li><input type="checkbox"><label>Xếp vào máy siêu âm cùng mẻ, mực nước ngập vạch dung môi; đạt 60 °C, siêu âm 30 phút</label></li>
+              <li><input type="checkbox"><label>Lọc qua bông vào lọ gộp đã dán mã → dịch chiết lần 1; giữ bã trong bình</label></li>
+            </ul>
+            <div class="sop-grp-title">Lần chiết 2 &amp; 3</div>
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Thêm dung môi cho ngập bã, bịt kín, siêu âm 60 °C 30 phút — lọc qua bông, gộp vào lọ chung → dịch lần 2</label></li>
+              <li><input type="checkbox"><label>Lặp lại cho lần 3 → dịch lần 3; bỏ bã; rửa bình sạch</label></li>
+            </ul>
+            <div class="sop-grp-title">Gộp dịch chiết 3 lần</div>
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Lọc lại dịch gộp qua giấy lọc cho trong, hết cắn mịn</label></li>
+              <li><input type="checkbox"><label><b>Đo/ghi thể tích dịch chiết tổng ~50 ml</b> → điền ô "V dịch chiết tổng"</label></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sop-step" data-step="5">
+          <div class="sop-step-head" onclick="sop_toggleStep(this)">
+            <span class="snum">5</span><h3>Cô cao (toàn bộ dịch)</h3>
+            <span class="scope-badge">riêng từng mẫu</span><span class="spacer"></span>
+            <span class="sop-step-count"><span class="sdone">0</span>/<span class="stotal">0</span></span><span class="sop-chevron">▼</span>
+          </div>
+          <div class="sop-step-minibar"><div class="fill"></div></div>
+          <div class="sop-step-body">
+            <div class="sop-note">Cô <b>toàn bộ ~50 ml dịch</b>, không cần tính lượng dịch tương đương.</div>
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Cân cốc cô rỗng + nhãn (cân phân tích 4 số) → ghi ô "m cốc cô rỗng"</label></li>
+              <li><input type="checkbox"><label>Chuyển toàn bộ ~50 ml dịch vào cốc; tráng lọ gộp bằng ít methanol, dồn vào cốc</label></li>
+              <li><input type="checkbox"><label>Cô cách thủy ~80 °C (lót vải đáy, không sôi sùng sục) hoặc cô quay chân không ~40 °C</label></li>
+              <li><input type="checkbox"><label>Còn ~2–5 ml/sền sệt → chuyển tủ sấy 60 °C đến khô hoàn toàn</label></li>
+              <li><input type="checkbox"><label>Quá sánh đặc: dùng đũa thủy tinh (đã cân) phết cao theo thành cốc; để đũa trong cốc (tính là bì) → ghi ô "m đũa"</label></li>
+              <li><input type="checkbox"><label>Cô đến cao khô hoàn toàn: chênh lệch 2 lần cân liên tiếp ≤0,5 mg</label></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sop-step" data-step="6">
+          <div class="sop-step-head" onclick="sop_toggleStep(this)">
+            <span class="snum">6</span><h3>Cân, cạo cao khô, lưu &amp; ghi số liệu</h3>
+            <span class="scope-badge">riêng từng mẫu</span><span class="spacer"></span>
+            <span class="sop-step-count"><span class="sdone">0</span>/<span class="stotal">0</span></span><span class="sop-chevron">▼</span>
+          </div>
+          <div class="sop-step-minibar"><div class="fill"></div></div>
+          <div class="sop-step-body">
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Xác nhận cao khô: khô hoàn toàn, hết dung môi</label></li>
+              <li><input type="checkbox"><label>Cân cốc + cao sau sấy (cân phân tích) → ghi ô "m cốc + cao sau sấy"</label></li>
+              <li><input type="checkbox"><label>Chụp ảnh cao khô trong cốc (kèm mã số) — đính kèm bên dưới</label></li>
+            </ul>
+            <div class="sop-photo-box">
+              <input type="file" id="sop-photo-input" accept="image/*" multiple hidden>
+              <button type="button" class="sop-photo-btn" onclick="sop_triggerPhoto()">📷 Tải ảnh minh chứng thực nghiệm</button>
+              <span id="sop-photo-status" class="sop-photo-status">Chưa có ảnh</span>
+              <div id="sop-photo-gallery" class="sop-photo-gallery"></div>
+            </div>
+            <div class="sop-grp-title">Lưu mẫu vào ống Eppendorf 1,5 ml</div>
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Rửa, tráng methanol, sấy khô ống; ghi mã vào phần mờ</label></li>
+              <li><input type="checkbox"><label>Cân ống rỗng → ghi ô "m ống rỗng"</label></li>
+              <li><input type="checkbox"><label>Cạo cao vào ống, cân → ghi ô "m ống + cao lưu"</label></li>
+              <li><input type="checkbox"><label>Cất mẫu: hộp có silicagel hoặc −20 °C, tránh ánh sáng</label></li>
+            </ul>
+            <div class="sop-grp-title">Hoàn tất</div>
+            <ul class="sop-cl">
+              <li><input type="checkbox"><label>Điền đủ số liệu bảng trên và đồng bộ file Excel online</label></li>
+              <li><input type="checkbox"><label>Post ảnh lên folder chung theo mã số mẫu</label></li>
+              <li><input type="checkbox"><label>Rửa và cất dụng cụ đúng vị trí</label></li>
+            </ul>
+            <div class="sop-warn"><b>Lưu ý:</b> chiết 5 g → lượng cao nhỏ. Nếu cần thêm cao (&lt;0,2 g), lặp lại mẻ 5 g khác cùng mã rồi gộp cao.</div>
+          </div>
+        </div>
+      </div><!-- /sop-tab-panel extract -->
+
+    </div><!-- /.sop-pane -->
+  </section>
+  </div><!-- /tab-sopdata -->
 
   <!-- ===== HÀNH CHÍNH: Giao việc (tài chính & quản lý) ===== -->
   <div id="tab-giaoviecHC" class="tabpane hide">
@@ -1109,7 +1476,7 @@
   }).join("");
 
   /* ---------- Chuyển tab 2 cấp (Nhóm + Sub) ---------- */
-  var ALL_PANES=["tongquan","trienkhai","giaoviec","tiendoCN","tinhcong","giaoviecHC","tiendoCNHC","hosothutu","taichinhtongho"];
+  var ALL_PANES=["tongquan","trienkhai","giaoviec","tiendoCN","tinhcong","sopdata","giaoviecHC","tiendoCNHC","hosothutu","taichinhtongho"];
   var subNavCM=document.getElementById("subnav-chuyenmon");
   var subNavHC=document.getElementById("subnav-hanhchinh");
   var activeGroup="chuyenmon";
@@ -2036,6 +2403,453 @@
     }
     render();
   })();
+})();
+
+/* ===== SOP & Dữ liệu thực nghiệm ===== */
+(function(){
+  var SK='sop2-samples', AK='sop2-active', TK='sop2-tab';
+  var DATA_FIELDS=['ngay','nguoi','ham_am','m_bot','v_dich','m_coc','m_dua','m_coc_cao','m_ong','m_ong_cao','noi_luu','tt_invitro','ngay_gui','noi_nhan_invitro','ghichu'];
+
+  function sop_getSamples(){ try{ return JSON.parse(localStorage.getItem(SK)||'[]'); }catch(e){ return []; } }
+  function sop_setSamples(a){ localStorage.setItem(SK,JSON.stringify(a)); }
+  function sop_getActive(){ return localStorage.getItem(AK)||''; }
+  function sop_setActive(ma){ localStorage.setItem(AK,ma); }
+  function sop_currentProcess(){
+    var p=document.querySelector('.sop-tab-panel.active');
+    return p ? p.getAttribute('data-process') : 'prep';
+  }
+  function sop_ckKey(ma,process){ return 'sop2-sample::'+process+'::'+ma; }
+  function sop_fKey(ma){ return 'sop2-fields::'+ma; }
+  function sop_photoKey(ma){ return 'sop2-photos::'+ma; }
+  function sop_globalKey(process){ return 'sop2-global::'+process; }
+
+  /* ---------- sample manager ---------- */
+  window.sop_addSample = function(){
+    var inp=document.getElementById('sop-new-ma');
+    if(!inp) return;
+    var ma=(inp.value||'').trim().toUpperCase();
+    if(!ma){ inp.focus(); return; }
+    var arr=sop_getSamples();
+    if(arr.indexOf(ma)<0){ arr.push(ma); sop_setSamples(arr); }
+    inp.value='';
+    sop_setActive(ma);
+    sop_renderChips();
+    sop_loadActiveIntoForm();
+    sop_updateAllProgress();
+  };
+
+  window.sop_removeSample = function(ma,e){
+    if(e){ e.stopPropagation(); }
+    if(!confirm('Xóa mẫu '+ma+' khỏi mẻ? Dữ liệu đã nhập sẽ vẫn được giữ trong localStorage.')){ return; }
+    var arr=sop_getSamples().filter(function(x){ return x!==ma; });
+    sop_setSamples(arr);
+    if(sop_getActive()===ma){ sop_setActive(arr.length>0?arr[0]:''); }
+    sop_renderChips();
+    sop_loadActiveIntoForm();
+    sop_updateAllProgress();
+  };
+
+  window.sop_activateSample = function(ma){
+    sop_persistActiveSample();
+    sop_setActive(ma);
+    sop_renderChips();
+    sop_loadActiveIntoForm();
+    sop_updateAllProgress();
+  };
+
+  function sop_sampleProgress(ma,process){
+    var scope = (process==='prep') ? 'non-global' : 'non-global';
+    var panel=document.querySelector('.sop-tab-panel[data-process="'+process+'"]');
+    if(!panel) return 0;
+    var steps=panel.querySelectorAll('.sop-step:not([data-scope="global"])');
+    var total=0,done=0;
+    steps.forEach(function(s){
+      var cbs=s.querySelectorAll('input[type=checkbox]');
+      var storedCks=[];
+      try{ storedCks=JSON.parse(localStorage.getItem(sop_ckKey(ma,process)+'::'+s.getAttribute('data-step'))||'[]'); }catch(e){}
+      cbs.forEach(function(cb,i){ total++; if(storedCks[i]) done++; });
+    });
+    return total>0 ? Math.round(done/total*100) : 0;
+  }
+
+  function sop_globalProgress(){
+    var process='prep';
+    var panel=document.querySelector('.sop-tab-panel[data-process="'+process+'"]');
+    if(!panel) return 0;
+    var gsteps=panel.querySelectorAll('.sop-step[data-scope="global"]');
+    var total=0,done=0;
+    gsteps.forEach(function(s){
+      var cbs=s.querySelectorAll('input[type=checkbox]');
+      var stored=[];
+      try{ stored=JSON.parse(localStorage.getItem(sop_globalKey(process)+'::'+s.getAttribute('data-step'))||'[]'); }catch(e){}
+      cbs.forEach(function(cb,i){ total++; if(stored[i]) done++; });
+    });
+    return total>0 ? Math.round(done/total*100) : 0;
+  }
+
+  function sop_renderChips(){
+    var chips=document.getElementById('sop-bb-chips');
+    var empty=document.getElementById('sop-bb-empty');
+    var active=sop_getActive();
+    var arr=sop_getSamples();
+    if(!chips) return;
+    if(arr.length===0){
+      chips.innerHTML='';
+      if(empty) empty.style.display='';
+      return;
+    }
+    if(empty) empty.style.display='none';
+    chips.innerHTML=arr.map(function(ma){
+      var pct=sop_sampleProgress(ma,sop_currentProcess());
+      var cls='sop-chip'+(ma===active?' active':'')+(pct>=100?' done':'');
+      return '<span class="'+cls+'" onclick="sop_activateSample(\''+ma+'\')">'+
+        ma+'<span class="sc-pct">'+pct+'%</span>'+
+        '<span class="sc-x" onclick="sop_removeSample(\''+ma+'\',event)">✕</span></span>';
+    }).join('');
+    var lbl=document.getElementById('sop-active-label');
+    if(lbl) lbl.textContent=active||'—';
+    var dcLbl=document.getElementById('sop-dc-ma-label');
+    if(dcLbl) dcLbl.textContent=active||'(chưa chọn mẫu)';
+  }
+
+  /* ---------- form data ---------- */
+  function sop_loadActiveIntoForm(){
+    var ma=sop_getActive();
+    var data={};
+    if(ma){ try{ data=JSON.parse(localStorage.getItem(sop_fKey(ma))||'{}'); }catch(e){} }
+    DATA_FIELDS.forEach(function(f){
+      var el=document.querySelector('#tab-sopdata [data-f="'+f+'"]');
+      if(el) el.value=data[f]||'';
+    });
+    sop_recompute();
+    sop_loadAllChecks();
+    sop_renderPhotos();
+  }
+
+  function sop_persistFields(){
+    var ma=sop_getActive();
+    if(!ma) return;
+    var data={};
+    DATA_FIELDS.forEach(function(f){
+      var el=document.querySelector('#tab-sopdata [data-f="'+f+'"]');
+      if(el) data[f]=el.value;
+    });
+    localStorage.setItem(sop_fKey(ma),JSON.stringify(data));
+  }
+
+  /* ---------- derived calc ---------- */
+  function sop_parse(v){ return parseFloat((v||'').replace(',','.')); }
+  function sop_recompute(){
+    var ham_am=sop_parse(document.querySelector('#tab-sopdata [data-f="ham_am"]')?document.querySelector('#tab-sopdata [data-f="ham_am"]').value:'');
+    var m_bot=sop_parse(document.querySelector('#tab-sopdata [data-f="m_bot"]')?document.querySelector('#tab-sopdata [data-f="m_bot"]').value:'');
+    var m_coc=sop_parse(document.querySelector('#tab-sopdata [data-f="m_coc"]')?document.querySelector('#tab-sopdata [data-f="m_coc"]').value:'');
+    var m_dua=sop_parse(document.querySelector('#tab-sopdata [data-f="m_dua"]')?document.querySelector('#tab-sopdata [data-f="m_dua"]').value:'');
+    var m_coc_cao=sop_parse(document.querySelector('#tab-sopdata [data-f="m_coc_cao"]')?document.querySelector('#tab-sopdata [data-f="m_coc_cao"]').value:'');
+    var m_ong=sop_parse(document.querySelector('#tab-sopdata [data-f="m_ong"]')?document.querySelector('#tab-sopdata [data-f="m_ong"]').value:'');
+    var m_ong_cao=sop_parse(document.querySelector('#tab-sopdata [data-f="m_ong_cao"]')?document.querySelector('#tab-sopdata [data-f="m_ong_cao"]').value:'');
+    var mcao=m_coc_cao-m_coc-(isFinite(m_dua)?m_dua:0);
+    var denom=m_bot*(1-ham_am/100);
+    var hs=(isFinite(mcao)&&isFinite(denom)&&denom>0)?(mcao/denom*100):NaN;
+    var mluu=m_ong_cao-m_ong;
+    var cCao=document.getElementById('sop-calc-cao');
+    var cHs=document.getElementById('sop-calc-hs');
+    var cLuu=document.getElementById('sop-calc-luu');
+    if(cCao) cCao.value=isFinite(mcao)?mcao.toFixed(4).replace('.',','):'';
+    if(cHs) cHs.value=isFinite(hs)?hs.toFixed(2).replace('.',',')+'%':'';
+    if(cLuu) cLuu.value=isFinite(mluu)&&m_ong_cao&&m_ong?mluu.toFixed(4).replace('.',','):'';
+  }
+
+  /* ---------- checkboxes ---------- */
+  function sop_ckStepKey(ma,process,step){ return sop_ckKey(ma,process)+'::'+step; }
+  function sop_loadAllChecks(){
+    var ma=sop_getActive();
+    document.querySelectorAll('#tab-sopdata .sop-step').forEach(function(stepEl){
+      var process=stepEl.closest('.sop-tab-panel') ? stepEl.closest('.sop-tab-panel').getAttribute('data-process') : null;
+      var step=stepEl.getAttribute('data-step');
+      var isGlobal=stepEl.getAttribute('data-scope')==='global';
+      var stored=[];
+      if(isGlobal){
+        try{ stored=JSON.parse(localStorage.getItem(sop_globalKey(process||'prep')+'::'+step)||'[]'); }catch(e){}
+      } else {
+        if(ma){ try{ stored=JSON.parse(localStorage.getItem(sop_ckStepKey(ma,process,step))||'[]'); }catch(e){} }
+      }
+      stepEl.querySelectorAll('input[type=checkbox]').forEach(function(cb,i){
+        cb.checked=stored[i]||false;
+        cb.closest('li').classList.toggle('checked',cb.checked);
+      });
+      sop_updateStepProgress(stepEl);
+    });
+  }
+
+  function sop_persistCheckboxes(stepEl){
+    var process=stepEl.closest('.sop-tab-panel') ? stepEl.closest('.sop-tab-panel').getAttribute('data-process') : null;
+    var step=stepEl.getAttribute('data-step');
+    var isGlobal=stepEl.getAttribute('data-scope')==='global';
+    var arr=Array.from(stepEl.querySelectorAll('input[type=checkbox]')).map(function(cb){ return cb.checked; });
+    if(isGlobal){
+      localStorage.setItem(sop_globalKey(process||'prep')+'::'+step,JSON.stringify(arr));
+    } else {
+      var ma=sop_getActive();
+      if(ma) localStorage.setItem(sop_ckStepKey(ma,process,step),JSON.stringify(arr));
+    }
+  }
+
+  function sop_updateStepProgress(stepEl){
+    var cbs=stepEl.querySelectorAll('input[type=checkbox]');
+    var done=Array.from(cbs).filter(function(cb){ return cb.checked; }).length;
+    var total=cbs.length;
+    var fill=stepEl.querySelector('.sop-step-minibar .fill');
+    if(fill) fill.style.width=(total>0?(done/total*100):0)+'%';
+    var sdone=stepEl.querySelector('.sdone');
+    var stotal=stepEl.querySelector('.stotal');
+    if(sdone) sdone.textContent=done;
+    if(stotal) stotal.textContent=total;
+  }
+
+  function sop_updateAllProgress(){
+    var ma=sop_getActive();
+    var process=sop_currentProcess();
+    var spct=ma?sop_sampleProgress(ma,process):0;
+    var gpct=sop_globalProgress();
+    var sb=document.getElementById('sop-sample-bar');
+    var spEl=document.getElementById('sop-sample-pct');
+    var gb=document.getElementById('sop-global-bar');
+    var gpEl=document.getElementById('sop-global-pct');
+    if(sb) sb.style.width=spct+'%';
+    if(spEl) spEl.textContent=spct+'%';
+    if(gb) gb.style.width=gpct+'%';
+    if(gpEl) gpEl.textContent=gpct+'%';
+    sop_renderChips();
+  }
+
+  /* ---------- step toggle ---------- */
+  window.sop_toggleStep = function(head){
+    head.closest('.sop-step').classList.toggle('collapsed');
+  };
+
+  /* ---------- tab switch ---------- */
+  window.sop_switchTab = function(tab){
+    sop_persistActiveSample();
+    localStorage.setItem(TK,tab);
+    document.querySelectorAll('#tab-sopdata .sop-tabbtn').forEach(function(b){ b.classList.toggle('active',b.getAttribute('data-stab')===tab); });
+    document.querySelectorAll('#tab-sopdata .sop-tab-panel').forEach(function(p){ p.classList.toggle('active',p.getAttribute('data-process')===tab); });
+    sop_loadAllChecks();
+    sop_updateAllProgress();
+  };
+
+  /* ---------- reset ---------- */
+  window.sop_resetActiveSample = function(){
+    var ma=sop_getActive();
+    var process=sop_currentProcess();
+    if(!ma){ alert('Chưa chọn mẫu.'); return; }
+    if(!confirm('Xóa hết tick của mẫu '+ma+' (tab hiện tại: '+process+')? Số liệu form vẫn giữ.')){ return; }
+    document.querySelectorAll('#tab-sopdata .sop-tab-panel[data-process="'+process+'"] .sop-step:not([data-scope="global"])').forEach(function(s){
+      localStorage.removeItem(sop_ckStepKey(ma,process,s.getAttribute('data-step')));
+    });
+    sop_loadAllChecks();
+    sop_updateAllProgress();
+  };
+
+  /* ---------- persist active ---------- */
+  function sop_persistActiveSample(){
+    sop_persistFields();
+    // checkboxes are persisted live via change events
+  }
+
+  /* ---------- photos ---------- */
+  window.sop_triggerPhoto = function(){ var inp=document.getElementById('sop-photo-input'); if(inp) inp.click(); };
+  window.sop_renderPhotos = function(){
+    var ma=sop_getActive();
+    var gallery=document.getElementById('sop-photo-gallery');
+    var status=document.getElementById('sop-photo-status');
+    var photos=[];
+    if(ma){ try{ photos=JSON.parse(localStorage.getItem(sop_photoKey(ma))||'[]'); }catch(e){} }
+    if(!gallery) return;
+    gallery.innerHTML=photos.map(function(src,i){
+      return '<div class="sop-photo-thumb"><img src="'+src+'" loading="lazy">'+'<button class="ph-x" onclick="sop_removePhoto('+i+')">✕</button></div>';
+    }).join('');
+    if(status){ status.textContent=photos.length>0?photos.length+' ảnh':'Chưa có ảnh'; status.className='sop-photo-status'+(photos.length>0?' ok':''); }
+  };
+  window.sop_removePhoto = function(i){
+    var ma=sop_getActive(); if(!ma) return;
+    var photos=[]; try{ photos=JSON.parse(localStorage.getItem(sop_photoKey(ma))||'[]'); }catch(e){}
+    photos.splice(i,1);
+    localStorage.setItem(sop_photoKey(ma),JSON.stringify(photos));
+    sop_renderPhotos();
+  };
+
+  /* ---------- cloud sync ---------- */
+  function sop_isHosted(){ return /^https?:$/.test(location.protocol) && location.hostname !== 'localhost'; }
+  function sop_syncUrl(){ return localStorage.getItem('nafosted_cong_url') || ''; }
+  function sop_setSyncStatus(txt){ var el=document.getElementById('sop-sync-status'); if(el) el.textContent=txt; }
+
+  function sop_getPayload(){
+    var samples=sop_getSamples();
+    var fields={};
+    var checks={};
+    samples.forEach(function(ma){
+      try{ fields[ma]=JSON.parse(localStorage.getItem('sop2-fields::'+ma)||'{}'); }catch(e){}
+      ['prep','extract'].forEach(function(proc){
+        [1,2,3,4,5,6].forEach(function(s){
+          var k='sop2-sample::'+proc+'::'+ma+'::'+s;
+          var v=localStorage.getItem(k);
+          if(v){ try{ checks[k]=JSON.parse(v); }catch(e){} }
+        });
+      });
+    });
+    ['prep','extract'].forEach(function(proc){
+      [1,2,3,4,5,6].forEach(function(s){
+        var k='sop2-global::'+proc+'::'+s;
+        var v=localStorage.getItem(k);
+        if(v){ try{ checks[k]=JSON.parse(v); }catch(e){} }
+      });
+    });
+    return {type:'sop', samples:samples, fields:fields, checks:checks};
+  }
+
+  function sop_applyStoreData(data){
+    if(!data||(!data.samples&&!data.fields&&!data.checks)) return;
+    if(data.samples) sop_setSamples(data.samples);
+    Object.keys(data.fields||{}).forEach(function(ma){
+      localStorage.setItem('sop2-fields::'+ma, JSON.stringify(data.fields[ma]));
+    });
+    Object.keys(data.checks||{}).forEach(function(k){
+      localStorage.setItem(k, JSON.stringify(data.checks[k]));
+    });
+  }
+
+  window.sop_syncToCloud = function(){
+    sop_setSyncStatus('⏳ Đang đẩy lên Drive…');
+    sop_persistActiveSample();
+    var payload=sop_getPayload();
+    if(sop_isHosted()){
+      fetch('/api/store',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+        .then(function(r){ return r.json(); })
+        .then(function(r){ sop_setSyncStatus(r.ok?'✅ Đã lưu Drive · '+new Date().toLocaleTimeString('vi-VN'):'⚠️ Lỗi: '+r.error); })
+        .catch(function(){ sop_setSyncStatus('⚠️ Lỗi mạng — chưa lưu được'); });
+      return;
+    }
+    var url=sop_syncUrl();
+    if(!url){ sop_setSyncStatus('⚠️ Chưa cấu hình SYNC_URL (tab Tính công)'); return; }
+    fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+      .then(function(){ sop_setSyncStatus('✅ Đã gửi Apps Script · '+new Date().toLocaleTimeString('vi-VN')); })
+      .catch(function(){ sop_setSyncStatus('⚠️ Lỗi đồng bộ Apps Script'); });
+  };
+
+  window.sop_loadFromCloud = function(){
+    sop_setSyncStatus('⏳ Đang tải từ Drive…');
+    if(sop_isHosted()){
+      fetch('/api/store?type=sop')
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          sop_applyStoreData(data);
+          sop_renderChips(); sop_loadActiveIntoForm(); sop_updateAllProgress();
+          sop_setSyncStatus('☁ Đã đồng bộ từ Drive · '+new Date().toLocaleTimeString('vi-VN'));
+        })
+        .catch(function(){ sop_setSyncStatus('⚠️ Lỗi đọc Drive'); });
+      return;
+    }
+    var s=document.createElement('script');
+    s.src='nafosted-sop.js?'+Date.now();
+    s.onload=function(){
+      if(window.NAFOSTED_SOP){
+        sop_applyStoreData(window.NAFOSTED_SOP);
+        sop_renderChips(); sop_loadActiveIntoForm(); sop_updateAllProgress();
+        sop_setSyncStatus('☁ Đã đọc bản Drive · '+new Date().toLocaleTimeString('vi-VN'));
+      } else { sop_setSyncStatus('ℹ️ Chưa có dữ liệu Drive — dùng bản trình duyệt'); }
+    };
+    s.onerror=function(){ sop_setSyncStatus('💾 Chưa có sidecar Drive (nafosted-sop.js)'); };
+    document.head.appendChild(s);
+  };
+
+  /* ---------- init ---------- */
+  document.addEventListener('DOMContentLoaded',function(){
+    // Tab key from localStorage
+    var savedTab=localStorage.getItem(TK)||'prep';
+    document.querySelectorAll('#tab-sopdata .sop-tabbtn').forEach(function(b){ b.classList.toggle('active',b.getAttribute('data-stab')===savedTab); });
+    document.querySelectorAll('#tab-sopdata .sop-tab-panel').forEach(function(p){ p.classList.toggle('active',p.getAttribute('data-process')===savedTab); });
+
+    // Enter on input
+    var inp=document.getElementById('sop-new-ma');
+    if(inp) inp.addEventListener('keydown',function(e){ if(e.key==='Enter') sop_addSample(); });
+
+    // Photo input
+    var phi=document.getElementById('sop-photo-input');
+    if(phi) phi.addEventListener('change',function(e){
+      var ma=sop_getActive(); if(!ma) return;
+      var files=Array.from(e.target.files);
+      var photos=[]; try{ photos=JSON.parse(localStorage.getItem(sop_photoKey(ma))||'[]'); }catch(err){}
+      var pending=files.length;
+      if(!pending){ return; }
+      files.forEach(function(f){
+        var reader=new FileReader();
+        reader.onload=function(ev){
+          photos.push(ev.target.result);
+          pending--;
+          if(pending===0){
+            localStorage.setItem(sop_photoKey(ma),JSON.stringify(photos));
+            sop_renderPhotos();
+          }
+        };
+        reader.readAsDataURL(f);
+      });
+      phi.value='';
+    });
+
+    // Field change → persist + recompute
+    document.querySelectorAll('#tab-sopdata [data-f]').forEach(function(el){
+      el.addEventListener('input',function(){ sop_recompute(); sop_persistFields(); });
+      el.addEventListener('change',function(){ sop_recompute(); sop_persistFields(); });
+    });
+
+    // Checkbox change
+    document.querySelectorAll('#tab-sopdata .sop-cl input[type=checkbox]').forEach(function(cb){
+      cb.addEventListener('change',function(){
+        cb.closest('li').classList.toggle('checked',cb.checked);
+        var stepEl=cb.closest('.sop-step');
+        sop_updateStepProgress(stepEl);
+        sop_persistCheckboxes(stepEl);
+        sop_updateAllProgress();
+      });
+    });
+
+    // Init render
+    sop_renderChips();
+    sop_loadActiveIntoForm();
+    sop_updateAllProgress();
+
+    // Auto-load từ cloud/sidecar lần đầu mở
+    if(sop_isHosted()){
+      sop_setSyncStatus('⏳ Đang tải…');
+      fetch('/api/store?type=sop')
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if(data && (data.samples||data.fields||data.checks)){
+            sop_applyStoreData(data);
+            sop_renderChips(); sop_loadActiveIntoForm(); sop_updateAllProgress();
+            sop_setSyncStatus('☁ Vercel · đã đồng bộ Drive');
+          } else { sop_setSyncStatus('☁ Vercel · chưa có dữ liệu Drive'); }
+        })
+        .catch(function(){ sop_setSyncStatus('☁ Vercel (offline cache)'); });
+    } else {
+      // Offline: thử load sidecar nafosted-sop.js
+      var sc=document.createElement('script');
+      sc.src='nafosted-sop.js?'+Date.now();
+      sc.onload=function(){
+        if(window.NAFOSTED_SOP && (window.NAFOSTED_SOP.samples||[]).length){
+          sop_applyStoreData(window.NAFOSTED_SOP);
+          sop_renderChips(); sop_loadActiveIntoForm(); sop_updateAllProgress();
+          sop_setSyncStatus('☁ Offline · đã đọc bản Drive · '+(window.NAFOSTED_SOP.capNhat||''));
+        } else {
+          sop_setSyncStatus(sop_syncUrl()?'☁ Đồng bộ BẬT (Apps Script)':'💾 Lưu trình duyệt — bấm "Đẩy lên Drive" để sao lưu');
+        }
+      };
+      sc.onerror=function(){
+        sop_setSyncStatus(sop_syncUrl()?'☁ Đồng bộ BẬT (Apps Script)':'💾 Lưu trình duyệt — bấm "Đẩy lên Drive" để sao lưu');
+      };
+      document.head.appendChild(sc);
+    }
+  });
 })();
 </script>
 </body>
