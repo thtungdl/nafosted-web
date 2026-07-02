@@ -405,6 +405,9 @@
   .sop-photo-btn:hover{filter:brightness(1.12)}
   .sop-photo-status{margin-left:9px;font-size:.76rem;color:var(--muted)}
   .sop-photo-status.ok{color:var(--green);font-weight:700}
+  /* Tách 2 view trong nhóm SOP: SOP (checklist) ↔ Kết quả thực nghiệm (số liệu + ảnh) */
+  #tab-sopdata[data-sopview="sop"] .kq-only{display:none}
+  #tab-sopdata[data-sopview="ketqua"] .sop-only{display:none}
   .sop-photo-gallery{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
   .sop-photo-thumb{position:relative;width:78px;height:78px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
   .sop-photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
@@ -485,8 +488,9 @@
 
 <div class="wrap">
   <div class="tabnav group-nav">
-    <button class="tabbtn groupbtn active" data-group="chuyenmon">🔬 Chuyên môn<span class="grp-badge" id="badge-cm" title="Việc chậm tiến độ cần thúc đẩy"></span></button>
     <button class="tabbtn groupbtn" data-group="hanhchinh">🗂 Hành chính<span class="grp-badge" id="badge-hc" title="Việc chậm tiến độ cần thúc đẩy"></span></button>
+    <button class="tabbtn groupbtn active" data-group="chuyenmon">🔬 Chuyên môn<span class="grp-badge" id="badge-cm" title="Việc chậm tiến độ cần thúc đẩy"></span></button>
+    <button class="tabbtn groupbtn" data-group="sop">🧪 SOP &amp; Thực nghiệm</button>
     <button class="tabbtn groupbtn" data-group="tinhcong" id="groupbtn-tinhcong">💰 Tính công</button>
   </div>
   <div class="tabnav sub-tabnav" id="subnav-chuyenmon">
@@ -494,7 +498,10 @@
     <button class="tabbtn subbtn" data-tab="trienkhai">📊 Triển khai</button>
     <button class="tabbtn subbtn" data-tab="giaoviec">📋 Giao việc</button>
     <button class="tabbtn subbtn" data-tab="tiendoCN">👤 Tiến độ cá nhân</button>
-    <button class="tabbtn subbtn" data-tab="sopdata">🧪 SOP & Thực nghiệm</button>
+  </div>
+  <div class="tabnav sub-tabnav hide" id="subnav-sop">
+    <button class="tabbtn subbtn sopviewbtn active" data-sopview="sop">🧪 SOP</button>
+    <button class="tabbtn subbtn sopviewbtn" data-sopview="ketqua">📊 Kết quả thực nghiệm</button>
   </div>
   <div class="tabnav sub-tabnav hide" id="subnav-hanhchinh">
     <button class="tabbtn subbtn active" data-tab="giaoviecHC">📋 Giao việc</button>
@@ -715,7 +722,7 @@
   </div><!-- /tab-tinhcong -->
 
   <!-- ===== SOP & Dữ liệu thực nghiệm ===== -->
-  <div id="tab-sopdata" class="tabpane hide">
+  <div id="tab-sopdata" class="tabpane hide" data-sopview="sop">
   <section class="block">
     <h2>🧪 SOP & Dữ liệu thực nghiệm</h2>
     <div class="sop-pane">
@@ -726,8 +733,8 @@
         <button class="sop-sync-btn" onclick="sop_exportExcel()">📊 Xuất Excel</button>
       </div>
 
-      <!-- Tab bar nội bộ SOP -->
-      <div class="sop-tabbar">
+      <!-- Tab bar nội bộ SOP (chỉ hiện ở view SOP) -->
+      <div class="sop-tabbar sop-only">
         <button class="sop-tabbtn active" data-stab="prep" onclick="sop_switchTab('prep')">1 · Chuẩn bị mẫu <span class="spill">xác nhận trước chiết</span></button>
         <button class="sop-tabbtn" data-stab="extract" onclick="sop_switchTab('extract')">2 · Chiết mẫu <span class="spill">nhập số liệu</span></button>
       </div>
@@ -758,19 +765,13 @@
         <button class="sop-reset-btn" onclick="sop_resetActiveSample()">↺ Xóa tick mẫu này (tab hiện tại)</button>
       </div>
 
-      <div class="sop-prog" id="sop-prog-wrap">
-        <div>
-          <div class="sp-row"><span>Dùng chung — chuẩn bị dụng cụ (cả mẻ)</span><span id="sop-global-pct">0%</span></div>
-          <div class="sp-bar-outer"><div class="sp-bar-inner global" id="sop-global-bar"></div></div>
-        </div>
-        <div>
-          <div class="sp-row"><span>Tiến độ mẫu đang chọn (tab hiện tại)</span><span id="sop-sample-pct">0%</span></div>
-          <div class="sp-bar-outer"><div class="sp-bar-inner sample" id="sop-sample-bar"></div></div>
-        </div>
+      <!-- ===== KẾT QUẢ THỰC NGHIỆM (số liệu + ảnh) — JS chuyển card số liệu & ảnh vào đây ===== -->
+      <div class="kq-only" id="sop-kq">
+        <div class="dc-sub" style="margin-bottom:6px">Số liệu &amp; minh chứng ảnh cho <b>mẫu đang chọn</b> (chọn mẻ/mã ở trên).</div>
       </div>
 
       <!-- ===== TAB 1: CHUẨN BỊ MẪU ===== -->
-      <div class="sop-tab-panel active" data-process="prep">
+      <div class="sop-tab-panel sop-only active" data-process="prep">
         <div class="sop-info prep"><b>Giai đoạn chuẩn bị</b> — xác nhận trước khi chiết: dược liệu đã khô, đã xay–rây, đã đo hàm ẩm và lưu bột theo mã. Bước 2 (dụng cụ) tick <b>1 lần dùng chung cho cả mẻ</b>.</div>
 
         <div class="sop-step" data-step="1">
@@ -843,7 +844,7 @@
       </div><!-- /sop-tab-panel prep -->
 
       <!-- ===== TAB 2: CHIẾT MẪU ===== -->
-      <div class="sop-tab-panel" data-process="extract">
+      <div class="sop-tab-panel sop-only" data-process="extract">
         <div class="sop-info batch"><b>Quy trình chiết 5 g:</b> cân chính xác <b>5,00 g bột</b>/mẫu, chiết siêu âm 3 lần (60 °C · 30 phút/lần · methanol), <b>gộp dịch ~50 ml</b>, cô <b>toàn bộ</b> dịch thành cao. Nhập số liệu từng mẫu vào bảng dưới.</div>
 
         <!-- Card nhập số liệu -->
@@ -1563,12 +1564,10 @@
 
   /* ---------- Chuyển tab 2 cấp (Nhóm + Sub) ---------- */
   var ALL_PANES=["tongquan","trienkhai","giaoviec","tiendoCN","tinhcong","sopdata","giaoviecHC","tiendoCNHC","hosothutu","taichinhtongho"];
-  var subNavCM=document.getElementById("subnav-chuyenmon");
-  var subNavHC=document.getElementById("subnav-hanhchinh");
   var activeGroup="chuyenmon";
-  var activeSub={chuyenmon:"tongquan",hanhchinh:"giaoviecHC",tinhcong:"tinhcong"};
+  var activeSub={chuyenmon:"tongquan",hanhchinh:"giaoviecHC",sop:"sopdata",tinhcong:"tinhcong"};
   function showPane(id){ALL_PANES.forEach(function(p){var e=document.getElementById("tab-"+p);if(e)e.classList.toggle("hide",p!==id);});}
-  // Tính công: nhóm riêng ngang hàng Chuyên môn/Hành chính, CHỈ admin (thtungdl@gmail.com) thấy nút
+  // Tính công: nhóm riêng, CHỈ admin (thtungdl@gmail.com) thấy nút
   var btnTinhCong=document.getElementById("groupbtn-tinhcong");
   if(btnTinhCong && !VIEWER_IS_ADMIN) btnTinhCong.style.display="none";
   document.querySelectorAll(".groupbtn").forEach(function(b){
@@ -1576,18 +1575,27 @@
       document.querySelectorAll(".groupbtn").forEach(function(x){x.classList.remove("active");});
       b.classList.add("active");
       activeGroup=b.dataset.group;
-      subNavCM.classList.toggle("hide",activeGroup!=="chuyenmon");
-      subNavHC.classList.toggle("hide",activeGroup!=="hanhchinh");
+      document.querySelectorAll(".sub-tabnav").forEach(function(n){ n.classList.toggle("hide", n.id!=="subnav-"+activeGroup); });
       showPane(activeSub[activeGroup]);
       window.scrollTo(0,0);
     });
   });
   document.querySelectorAll(".subbtn").forEach(function(b){
+    if(b.classList.contains("sopviewbtn")) return;   // subtab nhóm SOP xử lý riêng bên dưới
     b.addEventListener("click",function(){
       b.closest(".sub-tabnav").querySelectorAll(".subbtn").forEach(function(x){x.classList.remove("active");});
       b.classList.add("active");
       activeSub[activeGroup]=b.dataset.tab;
       showPane(b.dataset.tab);
+      window.scrollTo(0,0);
+    });
+  });
+  // Subtab nhóm SOP: đổi view SOP (checklist) ↔ Kết quả thực nghiệm (số liệu + ảnh) trong cùng pane
+  document.querySelectorAll(".sopviewbtn").forEach(function(b){
+    b.addEventListener("click",function(){
+      document.querySelectorAll(".sopviewbtn").forEach(function(x){x.classList.remove("active");});
+      b.classList.add("active");
+      var pane=document.getElementById("tab-sopdata"); if(pane) pane.setAttribute("data-sopview", b.dataset.sopview);
       window.scrollTo(0,0);
     });
   });
@@ -2920,11 +2928,9 @@
     var wrap=document.getElementById('sop-me-chips'); if(!wrap) return;
     var active=sop_getActiveBatch();
     wrap.innerHTML=sop_getBatches().map(function(b){
-      var st=sop_batchStatus(b.id);
-      var cls='sop-chip'+(b.id===active?' active':'')+(st.ok?' done':'');
-      var badge=st.ok?'✓ hoàn thành':(st.pct+'%');
+      var cls='sop-chip'+(b.id===active?' active':'');
       return '<span class="'+cls+'" onclick="sop_activateBatch(\''+b.id+'\')">'
-        +'🧪 '+esc2(b.ten)+' <span class="sc-pct">'+badge+'</span>'
+        +'🧪 '+esc2(b.ten)
         +'<span class="sc-x" title="Đổi tên mẻ" onclick="sop_renameBatch(\''+b.id+'\',event)">✎</span>'
         +'<span class="sc-x" title="Xóa mẻ" onclick="sop_removeBatch(\''+b.id+'\',event)">✕</span></span>';
     }).join('');
@@ -2975,10 +2981,9 @@
     }
     if(empty) empty.style.display='none';
     chips.innerHTML=arr.map(function(ma){
-      var pct=sop_sampleProgress(ma,sop_currentProcess());
-      var cls='sop-chip'+(ma===active?' active':'')+(pct>=100?' done':'');
+      var cls='sop-chip'+(ma===active?' active':'');
       return '<span class="'+cls+'" onclick="sop_activateSample(\''+ma+'\')">'+
-        ma+'<span class="sc-pct">'+pct+'%</span>'+
+        ma+
         '<span class="sc-x" onclick="sop_removeSample(\''+ma+'\',event)">✕</span></span>';
     }).join('');
     var lbl=document.getElementById('sop-active-label');
@@ -3393,6 +3398,16 @@
       });
     });
 
+    // Chuyển card số liệu + ô ảnh sang view "Kết quả thực nghiệm" (tách khỏi checklist SOP)
+    (function(){
+      var kq=document.getElementById('sop-kq');
+      if(kq){
+        var card=document.querySelector('#tab-sopdata .sop-dc-card');
+        var pb=document.querySelector('#tab-sopdata .sop-photo-box');
+        if(card) kq.appendChild(card);
+        if(pb) kq.appendChild(pb);
+      }
+    })();
     // Init render
     sop_ensureBatch();
     sop_renderBatches();
