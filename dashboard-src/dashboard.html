@@ -15,11 +15,11 @@
     --navy:#223771; --navy-d:#16244c; --navy-700:#2c4684; --orange:#F26522; --orange-d:#d9531a;
     --bg:#e9edf4; --card:#ffffff; --surface:#eef2f9; --ink:#141d33; --muted:#566080; --line:#cdd6e8; --line-2:#b7c2db; --hit:#ffe6cf;
     --green:#178a4e; --green-bg:#e3f5ea; --amber:#c47b00; --amber-bg:#fff1d2; --grey:#717e9a; --grey-bg:#eaeef6; --red:#cc342f; --red-bg:#fbe3e2;
-    --shadow-sm:0 1px 2px rgba(20,32,72,.04);
-    --shadow-md:0 3px 10px rgba(20,32,72,.10);
-    --shadow-lg:0 12px 30px rgba(20,32,72,.16);
-    --ring:0 0 0 3px rgba(34,55,113,.20);
-    --rad:10px; --rad-sm:8px;
+    --shadow-sm:0 1px 2px rgba(20,32,72,.05), 0 1px 1px rgba(20,32,72,.03);
+    --shadow-md:0 2px 4px -1px rgba(20,32,72,.06), 0 6px 16px -6px rgba(20,32,72,.14);
+    --shadow-lg:0 4px 10px -4px rgba(20,32,72,.10), 0 20px 44px -14px rgba(20,32,72,.22);
+    --ring:0 0 0 3px rgba(34,55,113,.18);
+    --rad:12px; --rad-sm:9px; --rad-lg:16px;
   }
   @media (prefers-color-scheme: dark){
     :root{ --bg:#090d15; --card:#121826; --surface:#0e1420; --ink:#e9edf6; --muted:#9aa6c0; --line:#2e3a55; --line-2:#3c4a6c; --hit:#5a3417; --navy:#6480d6; --navy-d:#3a4f93; --navy-700:#7892e0; --orange:#f2772f; --orange-d:#e0631c;
@@ -469,22 +469,22 @@
   .wbs-cv{border-left-width:3px}
   a{transition:color .12s}
   ::selection{background:var(--hit);color:var(--ink)}
-  /* ===== Phương án B — “Đường nét”: panel viền rõ, tiêu đề dạng dải, vuông vức ===== */
-  section.block{border:1.5px solid var(--line-2);border-radius:10px}
-  section.block > h2:first-child{margin:-18px -20px 16px;padding:13px 20px 12px;background:var(--surface);border-bottom:1.5px solid var(--line-2);border-left:0;border-radius:9px 9px 0 0;font-size:1.02rem}
+  /* ===== Soft-modern: panel viền nhẹ + đổ bóng tinh tế, bo góc mềm, tiêu đề dạng dải ===== */
+  section.block{border:1px solid var(--line);border-radius:var(--rad);box-shadow:var(--shadow-sm)}
+  section.block > h2:first-child{margin:-18px -20px 16px;padding:14px 20px 13px;background:var(--surface);border-bottom:1px solid var(--line);border-left:0;border-radius:var(--rad) var(--rad) 0 0;font-size:1.02rem;letter-spacing:-.01em}
   section.block > h2:first-child::before{content:"";display:inline-block;width:4px;height:1.05em;background:var(--orange);border-radius:2px;margin-right:9px;vertical-align:-2px}
-  .kpi,.nd,.person{border:1.5px solid var(--line-2);border-radius:9px;box-shadow:none;background:var(--surface)}
-  .kpi:hover,.nd:hover,.person:hover{transform:none;box-shadow:none;border-color:var(--navy)}
-  .gv2-card{box-shadow:none;border-color:var(--line-2);border-radius:9px}
-  .gv2-card:hover{box-shadow:var(--shadow-md);transform:none}
-  .gv{box-shadow:none;border:1.5px solid var(--line-2);border-top:4px solid var(--navy);border-radius:9px}
-  .wbs-mt{box-shadow:none;border:1.5px solid var(--line-2)}
-  .tcwork{border:1.5px solid var(--line-2)}
-  .group-nav{border-radius:8px 8px 0 0}
-  .sub-tabnav{border-radius:0 0 8px 8px;border:1.5px solid var(--line-2);border-top:0}
-  .sub-tabnav .tabbtn{border-radius:0}
-  .filters input,.filters select{border-radius:8px;border-width:1.5px;border-color:var(--line-2)}
-  .narrbox{border-width:1.5px}
+  .kpi,.nd,.person{border:1px solid var(--line);border-radius:var(--rad-sm);box-shadow:var(--shadow-sm);background:var(--card);transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease}
+  .kpi:hover,.nd:hover,.person:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--line-2)}
+  .gv2-card{box-shadow:var(--shadow-sm);border-color:var(--line);border-radius:var(--rad-sm)}
+  .gv2-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+  .gv{box-shadow:var(--shadow-sm);border:1px solid var(--line);border-top:3px solid var(--navy);border-radius:var(--rad-sm)}
+  .wbs-mt{box-shadow:var(--shadow-sm);border:1px solid var(--line)}
+  .tcwork{border:1px solid var(--line);border-radius:var(--rad-sm)}
+  .group-nav{border-radius:var(--rad) var(--rad) 0 0}
+  .sub-tabnav{border-radius:0 0 var(--rad) var(--rad);border:1px solid var(--line);border-top:0}
+  .sub-tabnav .tabbtn{border-radius:var(--rad-sm) var(--rad-sm) 0 0}
+  .filters input,.filters select{border-radius:var(--rad-sm);border-color:var(--line)}
+  .narrbox{border-radius:var(--rad-sm)}
 </style>
 </head>
 <body>
