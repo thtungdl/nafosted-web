@@ -409,6 +409,8 @@
   .sop-photo-thumb{position:relative;width:78px;height:78px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
   .sop-photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .sop-photo-thumb .ph-x{position:absolute;top:2px;right:2px;background:rgba(192,57,43,.9);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:.66rem;cursor:pointer;line-height:1;padding:0}
+  .sop-photo-thumb .ph-drv{position:absolute;bottom:2px;right:2px;background:rgba(34,55,113,.92);color:#fff;border-radius:4px;font-size:.7rem;line-height:1;padding:2px 4px;text-decoration:none}
+  .sop-photo-thumb .ph-nolink{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.66rem;color:var(--muted);text-align:center;background:var(--surface)}
   .sop-sync-bar{display:flex;align-items:center;gap:10px;padding:7px 12px;background:var(--surface);border:1px solid var(--line);border-radius:0 0 8px 8px;margin-bottom:12px;font-size:.78rem}
   .sop-sync-btn{background:var(--navy);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:.76rem;cursor:pointer;white-space:nowrap}
   .sop-sync-btn:hover{background:var(--navy-700)}
@@ -3131,6 +3133,8 @@
 
   /* ---------- photos ---------- */
   window.sop_triggerPhoto = function(){ var inp=document.getElementById('sop-photo-input'); if(inp) inp.click(); };
+  // Ảnh minh chứng: entry là chuỗi base64 (cũ) HOẶC object {thumb, id, link, name} (đã lên Drive).
+  function sop_photoSrc(p){ return (typeof p==='string')?p:(p&&p.thumb?p.thumb:''); }
   window.sop_renderPhotos = function(){
     var ma=sop_getActive();
     var gallery=document.getElementById('sop-photo-gallery');
@@ -3138,18 +3142,51 @@
     var photos=[];
     if(ma){ try{ photos=JSON.parse(localStorage.getItem(sop_photoKey(ma))||'[]'); }catch(e){} }
     if(!gallery) return;
-    gallery.innerHTML=photos.map(function(src,i){
-      return '<div class="sop-photo-thumb"><img src="'+src+'" loading="lazy">'+'<button class="ph-x" onclick="sop_removePhoto('+i+')">✕</button></div>';
+    gallery.innerHTML=photos.map(function(p,i){
+      var src=sop_photoSrc(p), link=(p&&p.link)?p.link:'';
+      var inner=src?('<img src="'+src+'" loading="lazy">'):('<div class="ph-nolink">📷<br>'+(link?'trên Drive':'—')+'</div>');
+      var drv=link?('<a class="ph-drv" href="'+link+'" target="_blank" rel="noopener" title="Mở trên Drive">🔗</a>'):'';
+      return '<div class="sop-photo-thumb">'+inner+drv+'<button class="ph-x" onclick="sop_removePhoto('+i+')">✕</button></div>';
     }).join('');
     if(status){ status.textContent=photos.length>0?photos.length+' ảnh':'Chưa có ảnh'; status.className='sop-photo-status'+(photos.length>0?' ok':''); }
   };
   window.sop_removePhoto = function(i){
     var ma=sop_getActive(); if(!ma) return;
     var photos=[]; try{ photos=JSON.parse(localStorage.getItem(sop_photoKey(ma))||'[]'); }catch(e){}
-    photos.splice(i,1);
-    localStorage.setItem(sop_photoKey(ma),JSON.stringify(photos));
-    sop_renderPhotos();
+    var p=photos[i]; if(p===undefined) return;
+    if(!confirm('Xóa ảnh minh chứng này?'+((p&&p.id)?' File trên Drive sẽ chuyển vào thùng rác.':''))) return;
+    function done(){ photos.splice(i,1); localStorage.setItem(sop_photoKey(ma),JSON.stringify(photos)); sop_renderPhotos(); sop_scheduleAutoSync(); }
+    if(sop_isHosted() && p && p.id){
+      fetch('/api/upload',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:p.id})})
+        .then(function(r){return r.json();}).then(function(){ done(); }).catch(function(){ done(); });
+    } else { done(); }
   };
+  // Thu nhỏ ảnh → thumbnail base64 (hiển thị nhanh, đỡ phình localStorage)
+  function sop_makeThumb(file, cb){
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var img=new Image();
+      img.onload=function(){
+        var max=640, w=img.width, h=img.height;
+        if(w>max||h>max){ if(w>=h){ h=Math.round(h*max/w); w=max; } else { w=Math.round(w*max/h); h=max; } }
+        try{ var cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h); cb(cv.toDataURL('image/jpeg',0.7)); }
+        catch(e){ cb(ev.target.result); }
+      };
+      img.onerror=function(){ cb(ev.target.result); };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  // Upload full ảnh lên Drive: Raw/SOP/<mã mẫu>/<tên> (dùng /api/upload)
+  function sop_uploadPhoto(ma, file, cb){
+    var ext=(file.name.match(/\.[^.]+$/)||['.jpg'])[0];
+    var nm=(ma+' - anh '+new Date().toISOString().replace(/[:T]/g,'-').slice(0,19)).replace(/[\\\/:*?"<>|]/g,'')+ext;
+    var fd=new FormData(); fd.append('file',file); fd.append('tenChuan',nm); fd.append('nd','SOP'); fd.append('cvMa',ma); fd.append('cvTen','Anh minh chung');
+    fetch('/api/upload',{method:'POST',credentials:'same-origin',body:fd})
+      .then(function(r){return r.json();})
+      .then(function(j){ cb(j&&j.ok?{id:j.id||'',link:j.link||'',name:nm}:null); })
+      .catch(function(){ cb(null); });
+  }
 
   /* ---------- cloud sync ---------- */
   function sop_isHosted(){ return /^https?:$/.test(location.protocol) && location.hostname !== 'localhost'; }
@@ -3179,11 +3216,18 @@
       var k='sop2-global::'+b.id+'::'+proc+'::'+s, v=localStorage.getItem(k);
       if(v){ try{ checks[k]=JSON.parse(v); }catch(e){} }
     }); }); });
-    return {type:'sop', samples:allSamples, batches:batches, fields:fields, checks:checks};
+    // Ảnh minh chứng: chỉ đồng bộ metadata ảnh ĐÃ LÊN DRIVE (id/link/name — bỏ thumb cho nhẹ JSON)
+    var photos={};
+    allSamples.forEach(function(ma){
+      var arr=[]; try{ arr=JSON.parse(localStorage.getItem('sop2-photos::'+ma)||'[]'); }catch(e){}
+      var meta=arr.map(function(p){ return (p&&typeof p==='object'&&p.id)?{name:p.name||'',id:p.id,link:p.link||''}:null; }).filter(Boolean);
+      if(meta.length) photos[ma]=meta;
+    });
+    return {type:'sop', samples:allSamples, batches:batches, fields:fields, checks:checks, photos:photos};
   }
 
   function sop_applyStoreData(data){
-    if(!data||(!data.samples&&!data.fields&&!data.checks&&!data.batches)) return;
+    if(!data||(!data.samples&&!data.fields&&!data.checks&&!data.batches&&!data.photos)) return;
     if(data.batches && data.batches.length){ sop_setBatches(data.batches); }
     else if(data.samples){ sop_ensureBatch(); sop_setSamples(data.samples); }  // payload cũ (không có mẻ) → dồn vào mẻ hiện hành
     Object.keys(data.fields||{}).forEach(function(ma){
@@ -3191,6 +3235,15 @@
     });
     Object.keys(data.checks||{}).forEach(function(k){
       localStorage.setItem(k, JSON.stringify(data.checks[k]));
+    });
+    // Ảnh: gộp danh sách Drive (đa máy) + giữ thumb local theo id + giữ ảnh local-only (chưa lên Drive)
+    Object.keys(data.photos||{}).forEach(function(ma){
+      var incoming=data.photos[ma]||[];
+      var local=[]; try{ local=JSON.parse(localStorage.getItem('sop2-photos::'+ma)||'[]'); }catch(e){}
+      var thumbById={}; local.forEach(function(p){ if(p&&p.id&&p.thumb) thumbById[p.id]=p.thumb; });
+      var merged=incoming.map(function(p){ var e={name:p.name||'',id:p.id||'',link:p.link||''}; if(thumbById[p.id]) e.thumb=thumbById[p.id]; return e; });
+      var localOnly=local.filter(function(p){ return typeof p==='string' || (p && typeof p==='object' && !p.id); });
+      localStorage.setItem('sop2-photos::'+ma, JSON.stringify(merged.concat(localOnly)));
     });
     sop_ensureBatch();
   }
@@ -3306,22 +3359,18 @@
     // Photo input
     var phi=document.getElementById('sop-photo-input');
     if(phi) phi.addEventListener('change',function(e){
-      var ma=sop_getActive(); if(!ma) return;
-      var files=Array.from(e.target.files);
+      var ma=sop_getActive(); if(!ma){ alert('Chọn/nhập mã mẫu trước khi tải ảnh.'); phi.value=''; return; }
+      var files=Array.from(e.target.files); if(!files.length) return;
       var photos=[]; try{ photos=JSON.parse(localStorage.getItem(sop_photoKey(ma))||'[]'); }catch(err){}
+      var hosted=sop_isHosted();
+      var stEl=document.getElementById('sop-photo-status'); if(stEl) stEl.textContent='⏳ Đang xử lý '+files.length+' ảnh…';
       var pending=files.length;
-      if(!pending){ return; }
       files.forEach(function(f){
-        var reader=new FileReader();
-        reader.onload=function(ev){
-          photos.push(ev.target.result);
-          pending--;
-          if(pending===0){
-            localStorage.setItem(sop_photoKey(ma),JSON.stringify(photos));
-            sop_renderPhotos();
-          }
-        };
-        reader.readAsDataURL(f);
+        sop_makeThumb(f,function(thumb){
+          function fin(entry){ photos.push(entry); if(--pending===0){ localStorage.setItem(sop_photoKey(ma),JSON.stringify(photos)); sop_renderPhotos(); sop_scheduleAutoSync(); } }
+          if(hosted){ sop_uploadPhoto(ma,f,function(drv){ fin(drv?{thumb:thumb,id:drv.id,link:drv.link,name:drv.name}:{thumb:thumb}); }); }
+          else { fin({thumb:thumb}); }
+        });
       });
       phi.value='';
     });
