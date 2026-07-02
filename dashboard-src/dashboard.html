@@ -1943,12 +1943,14 @@
     function cvSo(g){ return String(g.cvMa||g.ma||"").trim(); }
     function tmNo(g,i){ var b=cvSo(g); return b?(b+"."+(i+1)):String(i+1); }
     // Danh sách báo cáo đã nộp (mảng); small=true → gọn 1 dòng
-    function baoCaoHTML(g){
+    function baoCaoHTML(g, canDel){
       var bc=g.baoCao||[]; if(!bc.length) return '';
       return '<div style="font-size:.8rem;margin:6px 0"><b>📤 Báo cáo đã nộp ('+bc.length+'):</b><ul class="gv2-bclist">'
-        + bc.map(function(b){
+        + bc.map(function(b,i){
             return '<li>📄 '+(b.link?('<a href="'+esc(b.link)+'" target="_blank" rel="noopener" style="color:var(--orange)">'+esc(b.tenChuan||b.link)+'</a>'):esc(b.tenChuan||'—'))
-              + (b.ngay?' <span style="color:var(--muted);font-size:.74rem">· '+esc(b.ngay)+'</span>':'')+'</li>';
+              + (b.ngay?' <span style="color:var(--muted);font-size:.74rem">· '+esc(b.ngay)+'</span>':'')
+              + (canDel?' <button class="gv2-bcdel" data-ma="'+esc(g.ma)+'" data-i="'+i+'" title="Xóa báo cáo này" style="border:0;background:none;color:var(--red);cursor:pointer;font-size:.85rem;line-height:1">✕</button>':'')
+              +'</li>';
           }).join("")+'</ul></div>';
     }
     // Một dòng tiểu mục. canApprove → nút ✓ Duyệt của CNĐT · canEdit → nút ✕ xóa
@@ -2053,7 +2055,7 @@
       h+='<div class="gv2-drop" data-ma="'+esc(g.ma)+'">📎 Kéo &amp; thả file vào đây, hoặc <b>bấm để chọn</b> (chọn được nhiều file)</div>';
       h+='<input type="file" multiple class="gv2-fileinput" data-ma="'+esc(g.ma)+'" style="display:none">';
       h+='<div class="gv2-upstatus" data-ma="'+esc(g.ma)+'" style="font-size:.76rem;color:var(--muted);margin-top:4px"></div>';
-      h+=baoCaoHTML(g);
+      h+=baoCaoHTML(g, true);
       h+='</div>';
       // Hành động
       h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
@@ -2333,7 +2335,7 @@
           setUp("⏳ Đang tải lên "+(k+1)+"/"+files.length+": "+tenChuan);
           fetch("/api/upload",{method:"POST",credentials:"same-origin",body:fd})
             .then(function(r){return r.json();})
-            .then(function(j){ if(j&&j.ok){ results.push({tenChuan:tenChuan,ngay:nowD(),link:j.link||""}); } else { setUp("⚠ Lỗi ở "+tenChuan+": "+((j&&j.error)||"?")); } next(k+1); })
+            .then(function(j){ if(j&&j.ok){ results.push({tenChuan:tenChuan,ngay:nowD(),link:j.link||"",id:j.id||""}); } else { setUp("⚠ Lỗi ở "+tenChuan+": "+((j&&j.error)||"?")); } next(k+1); })
             .catch(function(){ setUp("⚠ Lỗi mạng khi tải "+tenChuan); next(k+1); });
         })(0);
       }
@@ -2347,6 +2349,22 @@
       });
       document.querySelectorAll(".gv2-fileinput").forEach(function(fi){
         fi.addEventListener("change",function(){ var g=gByMa(fi.dataset.ma); if(g&&fi.files.length) uploadReports(g,fi.files); fi.value=""; });
+      });
+      // ✕ Xóa 1 báo cáo đã nộp — gỡ khỏi danh sách + chuyển file Drive vào thùng rác (nếu có id)
+      document.querySelectorAll(".gv2-bcdel").forEach(function(b){
+        b.addEventListener("click",function(){
+          var ma=b.dataset.ma, i=+b.dataset.i;
+          var s=loadState(); var arr=(s[ma]&&Array.isArray(s[ma].baoCao))?s[ma].baoCao.slice():[];
+          var bc=arr[i]; if(!bc) return;
+          if(!confirm('Xóa báo cáo "'+(bc.tenChuan||"")+'"?'+(bc.id?" File trên Drive sẽ chuyển vào thùng rác (khôi phục được).":""))) return;
+          function removeLocal(){ arr.splice(i,1); s[ma]=Object.assign(s[ma]||{},{baoCao:arr}); saveState(s); render(); }
+          if(HOSTED_GV && bc.id){
+            fetch('/api/upload',{method:'DELETE',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:bc.id})})
+              .then(function(r){return r.json();})
+              .then(function(j){ if(!j||!j.ok) alert('Lưu ý: chưa xóa được file Drive ('+((j&&j.error)||"?")+') — vẫn gỡ khỏi danh sách.'); removeLocal(); })
+              .catch(function(){ alert('Lỗi mạng khi xóa Drive — vẫn gỡ khỏi danh sách.'); removeLocal(); });
+          } else { removeLocal(); }
+        });
       });
       // 📩 Gửi CNĐT duyệt (việc không chia tiểu mục) → chuyển sang hàng chờ duyệt
       document.querySelectorAll(".gv2-sendduyet-btn").forEach(function(btn){

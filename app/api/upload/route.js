@@ -1,8 +1,22 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/authOptions";
-import { uploadReport } from "../../../lib/drive";
+import { uploadReport, trashFile } from "../../../lib/drive";
 
 export const dynamic = "force-dynamic";
+
+// Xóa báo cáo đã nộp: chuyển file Drive vào thùng rác. Body: { id }
+export async function DELETE(req) {
+  const session = await getServerSession(authOptions);
+  if (!session) return Response.json({ ok: false, error: "unauthorized" }, { status: 401 });
+  try {
+    const { id } = await req.json();
+    if (!id) return Response.json({ ok: false, error: "Thiếu id file" }, { status: 400 });
+    await trashFile(id);
+    return Response.json({ ok: true });
+  } catch (e) {
+    return Response.json({ ok: false, error: String(e?.message || e) }, { status: 500 });
+  }
+}
 
 // Nộp báo cáo tiến độ cá nhân (nút "📤 Nộp báo cáo" trên thẻ việc) — lưu vào
 // "4. Nafosted/Project management system/Raw/<ND>/<mã công việc - tên công việc>/<tên chuẩn>".
