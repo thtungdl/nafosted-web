@@ -4,7 +4,7 @@ import { getStore, saveStore } from "../../../lib/drive";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED_TYPES = ["cong", "giaoviec", "sop"];
+const ALLOWED_TYPES = ["cong", "giaoviec", "sop", "tieuchi"];
 
 /**
  * GET /api/store?type=<type>
@@ -40,6 +40,9 @@ export async function POST(req) {
     const type = (body.type || "cong").replace("_state", "");
     if (!ALLOWED_TYPES.includes(type))
       return Response.json({ error: "invalid type" }, { status: 400 });
+    // Bộ tiêu chí ĐẠT là nguồn chuẩn để AI chấm — CHỈ admin được sửa.
+    if (type === "tieuchi" && !session.user?.isAdmin)
+      return Response.json({ error: "forbidden" }, { status: 403 });
 
     const editor = session.user?.email || session.user?.name || "?";
     const store = await saveStore(type, body, editor);

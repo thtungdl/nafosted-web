@@ -262,6 +262,21 @@
   .tcdat-n{flex:0 0 auto;width:18px;height:18px;border-radius:50%;background:var(--navy);color:#fff;font-size:.72rem;display:inline-flex;align-items:center;justify-content:center}
   .tcdat-b{display:flex;flex-direction:column;gap:2px}
   .tcdat-mc{color:var(--muted);font-size:.76rem}
+  .tcdat-wrap.is-ovr{border-left-color:var(--navy)}
+  .tcdat-body{padding:0 4px}
+  .tcdat-empty{color:var(--muted);font-size:.8rem;padding:4px 10px}
+  .tcdat-adm{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 10px 8px}
+  .tcdat-adm button{font-size:.76rem;padding:3px 9px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
+  .tcdat-edit:hover,.tcdat-reset:hover{border-color:var(--navy)}
+  .tcdat-ovr{font-size:.74rem;color:var(--navy);font-weight:700}
+  .tcdat-ed{padding:4px 10px 10px}
+  .tcdat-ed-hint{font-size:.76rem;color:var(--muted);margin-bottom:5px}
+  .tcdat-ed-hint code{background:var(--bg);padding:1px 4px;border-radius:4px}
+  .tcdat-ta{width:100%;box-sizing:border-box;padding:7px 9px;border:1px solid var(--line);border-radius:6px;font-size:.82rem;font-family:inherit;background:var(--card);color:var(--ink);resize:vertical}
+  .tcdat-ed-btns{display:flex;align-items:center;gap:8px;margin-top:6px}
+  .tcdat-savebtn{font-size:.8rem;padding:4px 12px;border:0;border-radius:6px;background:var(--navy);color:#fff;cursor:pointer;font-weight:700}
+  .tcdat-cancelbtn{font-size:.8rem;padding:4px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
+  .tcdat-ed-st{font-size:.76rem;color:var(--muted)}
   .narrbox{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--navy);border-radius:10px;padding:13px 15px;margin-bottom:14px;font-size:.9rem}
   /* tab Tổng quan */
   .inforow{display:grid;grid-template-columns:160px 1fr;gap:4px 14px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.92rem}
@@ -1124,6 +1139,13 @@
     return p ? p.ten : null;
   })();
 
+  /* ---------- Bộ tiêu chí ĐẠT: snapshot bản gốc (data.js) + override do admin sửa ----------
+     TC_BASE = bản mặc định trong nafosted-progress-data.js (để "Khôi phục mặc định").
+     TC_OVERRIDES = { "<mã>": [{ten,minhChung}] } — chỉ công việc admin đã ghi đè; lưu Drive
+     qua /api/store?type=tieuchi. D.tieuChiDat = hiệu lực = base phủ bởi override. ---------- */
+  var TC_BASE = JSON.parse(JSON.stringify(D.tieuChiDat || {}));
+  var TC_OVERRIDES = {};
+
   /* ---------- DERIVE noiDung + congViec từ cây WBS (nguồn duy nhất) ---------- */
   if(D.wbs){
     D.noiDung = D.wbs.filter(function(m){return m.loai==="nc";}).map(function(m){
@@ -1309,14 +1331,27 @@
       + '<span class="mini"><i class="fill-'+(done?"xong":"dangLam")+'" style="width:'+(g.tienDo||0)+'%"></i></span><span class="gvpct">'+(g.tienDo||0)+'%</span></div>';
   }
   // Bộ tiêu chí ĐẠT của 1 công việc (đọc D.tieuChiDat theo mã) — nguồn chuẩn để AI + CNĐT đánh giá.
+  // Admin (thtungdl@gmail.com) sửa trực tiếp trên dashboard → lưu Drive (override, xem khối tc_* bên dưới).
+  function tcSafe(ma){ return String(ma).replace(/[^a-zA-Z0-9]/g,"_"); }
   function tieuChiHTML(cv){
-    var tc=(D.tieuChiDat||{})[cv.ma]; if(!tc||!tc.length) return "";
-    var rows=tc.map(function(t,i){
+    var tc=(D.tieuChiDat||{})[cv.ma], has=tc&&tc.length;
+    if(!has && !VIEWER_IS_ADMIN) return "";
+    var overridden=Object.prototype.hasOwnProperty.call(TC_OVERRIDES, cv.ma);
+    var rows=(tc||[]).map(function(t,i){
       return '<li class="tcdat-item"><span class="tcdat-n">'+(i+1)+'</span><span class="tcdat-b"><b>'+esc(t.ten)+'</b>'
         + '<span class="tcdat-mc">📎 Minh chứng: '+esc(t.minhChung||"—")+'</span></span></li>';
     }).join("");
-    return '<details class="tcdat-wrap"><summary>🎯 Tiêu chí ĐẠT ('+tc.length+') <span class="tcdat-note">— minh chứng cần cho AI chấm</span></summary>'
-      + '<ul class="tcdat-list">'+rows+'</ul></details>';
+    var body=has ? '<ul class="tcdat-list">'+rows+'</ul>'
+                 : '<div class="tcdat-empty">Chưa có tiêu chí — bấm ✏️ để thêm.</div>';
+    var adm=VIEWER_IS_ADMIN
+      ? '<div class="tcdat-adm"><button type="button" class="tcdat-edit" onclick="tc_edit(\''+esc(cv.ma)+'\')">✏️ Sửa tiêu chí</button>'
+        + (overridden?'<span class="tcdat-ovr">✎ đã tùy chỉnh</span><button type="button" class="tcdat-reset" onclick="tc_reset(\''+esc(cv.ma)+'\')">↩ Khôi phục mặc định</button>':'')
+        + '</div>'
+      : '';
+    return '<details class="tcdat-wrap'+(overridden?' is-ovr':'')+'" id="tc-wrap-'+tcSafe(cv.ma)+'"'+((VIEWER_IS_ADMIN&&!has)?' open':'')+'>'
+      + '<summary>🎯 Tiêu chí ĐẠT ('+(has?tc.length:0)+')'
+      + (overridden?' <span class="tcdat-note">— đã tùy chỉnh</span>':' <span class="tcdat-note">— minh chứng cần cho AI chấm</span>')+'</summary>'
+      + '<div class="tcdat-body">'+body+adm+'</div></details>';
   }
   function cvBlock(cv){
     var st=effStatus(cv), who=nguoiText(cv);
@@ -2286,6 +2321,66 @@
        +'</body></html>';
       w.document.write(doc); w.document.close();
     }
+
+    /* ---------- EDITOR bộ tiêu chí ĐẠT (chỉ admin) — sửa inline, lưu Drive ---------- */
+    function tc_setSt(ma,msg){ var s=document.getElementById("tc-st-"+tcSafe(ma)); if(s) s.textContent=msg; }
+    function tc_parse(text){
+      return String(text||"").split("\n").map(function(l){
+        l=l.trim(); if(!l) return null;
+        var p=l.split("|");
+        return { ten:(p[0]||"").trim(), minhChung:(p.slice(1).join("|")||"").trim() };
+      }).filter(function(x){ return x && x.ten; });
+    }
+    function tc_persist(ma){
+      if(HOSTED_GV){
+        tc_setSt(ma,"⏳ Đang lưu Drive…");
+        fetch("/api/store",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"tieuchi",map:TC_OVERRIDES})})
+          .then(function(r){return r.json();})
+          .then(function(res){ if(res&&res.ok){ render(); } else { tc_setSt(ma,"⚠ "+((res&&res.error)||"lỗi lưu")); } })
+          .catch(function(){ tc_setSt(ma,"⚠ Lỗi mạng — chưa lưu Drive"); });
+      } else {
+        try{ localStorage.setItem("nafosted_tieuchi_ovr", JSON.stringify(TC_OVERRIDES)); }catch(e){}
+        render();
+      }
+    }
+    window.tc_edit=function(ma){
+      var wrap=document.getElementById("tc-wrap-"+tcSafe(ma)); if(!wrap) return;
+      var b=wrap.querySelector(".tcdat-body"); if(!b) return;
+      var tc=(D.tieuChiDat||{})[ma]||[];
+      var lines=tc.map(function(t){ return (t.ten||"")+" | "+(t.minhChung||""); }).join("\n");
+      b.innerHTML='<div class="tcdat-ed">'
+        + '<div class="tcdat-ed-hint">Mỗi dòng = 1 tiêu chí, mẫu <code>tên tiêu chí | minh chứng cần nộp</code>. Dòng trống bỏ qua; xóa hết = công việc không còn tiêu chí.</div>'
+        + '<textarea id="tc-ta-'+tcSafe(ma)+'" class="tcdat-ta" rows="'+Math.max(3,tc.length+1)+'">'+esc(lines)+'</textarea>'
+        + '<div class="tcdat-ed-btns"><button type="button" class="tcdat-savebtn" onclick="tc_save(\''+esc(ma)+'\')">💾 Lưu</button>'
+        + '<button type="button" class="tcdat-cancelbtn" onclick="render()">✕ Hủy</button>'
+        + '<span class="tcdat-ed-st" id="tc-st-'+tcSafe(ma)+'"></span></div></div>';
+      var ta=document.getElementById("tc-ta-"+tcSafe(ma)); if(ta) ta.focus();
+    };
+    window.tc_save=function(ma){
+      var ta=document.getElementById("tc-ta-"+tcSafe(ma)); if(!ta) return;
+      var arr=tc_parse(ta.value);
+      D.tieuChiDat[ma]=arr; TC_OVERRIDES[ma]=arr;   // mảng rỗng = override "không tiêu chí" (khác Khôi phục mặc định)
+      tc_persist(ma);
+    };
+    window.tc_reset=function(ma){
+      delete TC_OVERRIDES[ma];
+      if(Object.prototype.hasOwnProperty.call(TC_BASE, ma)) D.tieuChiDat[ma]=JSON.parse(JSON.stringify(TC_BASE[ma]));
+      else delete D.tieuChiDat[ma];
+      tc_persist(ma);
+    };
+    // Nạp override bộ tiêu chí lúc mở trang: hosted → /api/store?type=tieuchi; offline → localStorage + sidecar.
+    (function(){
+      function applyTC(map){ if(!map||typeof map!=="object") return; TC_OVERRIDES=map;
+        Object.keys(map).forEach(function(k){ D.tieuChiDat[k]=map[k]; }); render(); }
+      if(HOSTED_GV){
+        fetch("/api/store?type=tieuchi").then(function(r){return r.json();}).then(function(d){ applyTC(d&&d.map); }).catch(function(){});
+      } else {
+        try{ var ls=localStorage.getItem("nafosted_tieuchi_ovr"); if(ls) applyTC(JSON.parse(ls)); }catch(e){}
+        var s=document.createElement("script"); s.src="nafosted-tieuchi.js?"+Date.now();
+        s.onload=function(){ if(window.NAFOSTED_TIEUCHI && window.NAFOSTED_TIEUCHI.map) applyTC(window.NAFOSTED_TIEUCHI.map); };
+        s.onerror=function(){}; document.head.appendChild(s);
+      }
+    })();
 
     // Nạp bản chính thức từ Drive rồi render: hosted (Vercel) → /api/store; offline → sidecar nafosted-giaoviec.js.
     // (nafosted-giaoviec-thucte.js là alias RIÊNG cho bộ não AI .ai-review/chuan_bi_goi_duyet.mjs — không đọc ở đây.)
