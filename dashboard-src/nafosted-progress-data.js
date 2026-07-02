@@ -161,6 +161,152 @@ window.NAFOSTED_PROGRESS = {
   },
 
   /* ===========================================================================
+     BỘ TIÊU CHÍ ĐẠT (nguồn chuẩn để BỘ NÃO AI đánh giá tiến độ hoàn thành)
+       Khóa = mã công việc n.n.n (như congKeHoach).
+       Mỗi công việc có DANH SÁCH tiêu chí; MỘT tiêu chí = 1 kết quả cụ thể +
+       loại minh chứng bắt buộc. Công việc chỉ ĐẠT khi ĐỦ minh chứng cho TẤT CẢ
+       tiêu chí. AI đối chiếu minh chứng nộp (tab Giao việc / thư mục Raw) với
+       từng tiêu chí → chấm % đạt = số tiêu chí có minh chứng / tổng tiêu chí.
+     ★ ĐÂY LÀ BẢN ĐỀ XUẤT (Claude suy từ "kết quả cần đạt" + sản phẩm YCCS).
+       CHỈ ADMIN (thtungdl@gmail.com) rà soát & chỉnh cho đúng chuyên môn.
+     =========================================================================== */
+  tieuChiDat: {
+    // ND1 — Điều tra dân tộc học
+    "1.1.1": [
+      { ten: "Bộ công cụ điều tra (phiếu phỏng vấn) hoàn chỉnh", minhChung: "File phiếu điều tra + hướng dẫn sử dụng" },
+      { ten: "Dữ liệu khảo sát đủ 3 xã (Ba Vì, Sa Pa, Nậm Đăm)", minhChung: "Bảng dữ liệu phỏng vấn + danh sách người cung cấp tin" },
+      { ten: "Báo cáo tổng hợp điều tra thực địa", minhChung: "File báo cáo (docx/pdf)" }
+    ],
+    "1.2.1": [
+      { ten: "Danh mục tên khoa học đã giám định", minhChung: "Bảng danh mục loài + tên KH + người giám định" },
+      { ten: "Bộ tiêu bản lưu trữ (HNIP)", minhChung: "Ảnh tiêu bản + mã số lưu" }
+    ],
+    "1.3.1": [
+      { ten: "Ngân hàng dược liệu khô có mã", minhChung: "Danh sách mẫu + ảnh kho mẫu" },
+      { ten: "Ngân hàng cao chiết", minhChung: "Danh sách cao chiết + khối lượng" },
+      { ten: "CSDL quản lý mẫu", minhChung: "File CSDL (xlsx/link)" }
+    ],
+    // ND2 — Sàng lọc AChE in vitro
+    "2.1.1": [
+      { ten: "Dữ liệu % ức chế AChE (Ellman) các cao chiết", minhChung: "Bảng số liệu IC₅₀/% ức chế + đường chuẩn" },
+      { ten: "Dữ liệu bảo vệ tế bào", minhChung: "Bảng số liệu + biểu đồ" },
+      { ten: "Báo cáo chuyên đề 2.1", minhChung: "File báo cáo" }
+    ],
+    // ND3 — Bộ tiêu chí chọn 03 cây
+    "3.1.1": [
+      { ten: "Bộ tiêu chí chọn cây (kèm trọng số)", minhChung: "Bảng tiêu chí + trọng số" },
+      { ten: "Bảng chấm điểm các cây", minhChung: "Bảng điểm chi tiết" },
+      { ten: "Danh sách 03 cây tiềm năng đã chốt", minhChung: "Biên bản/chuyên đề 3.1" }
+    ],
+    // ND4 — In vivo cải thiện trí nhớ
+    "4.1.1": [
+      { ten: "Số liệu thô né tránh thụ động (đủ lô/nhóm)", minhChung: "Bảng số liệu thô + sổ thí nghiệm" },
+      { ten: "Số liệu đã làm sạch + thống kê sơ bộ", minhChung: "File số liệu sạch + kết quả thống kê" },
+      { ten: "Báo cáo mô hình né tránh thụ động", minhChung: "File báo cáo + biểu đồ" }
+    ],
+    "4.2.1": [
+      { ten: "Số liệu thô Y-maze (đủ lô/nhóm)", minhChung: "Bảng số liệu + sổ thí nghiệm" },
+      { ten: "Số liệu đã xử lý", minhChung: "File số liệu + thống kê" },
+      { ten: "Báo cáo mô hình Y-maze", minhChung: "File báo cáo" }
+    ],
+    "4.3.1": [
+      { ten: "Số liệu hoạt độ AChE mô não toàn phần", minhChung: "Bảng số liệu + đường chuẩn" },
+      { ten: "Báo cáo định lượng AChE in vivo", minhChung: "File báo cáo" }
+    ],
+    "4.4.1": [
+      { ten: "Số liệu bảo vệ tế bào HT-22 (độc glutamate)", minhChung: "Bảng số liệu + biểu đồ" },
+      { ten: "Báo cáo HT-22", minhChung: "File báo cáo" }
+    ],
+    "4.5.1": [
+      { ten: "Bộ số liệu ND4 đã khóa", minhChung: "File số liệu khóa (không chỉnh sửa)" },
+      { ten: "Kết quả thống kê (ANOVA/Tukey…)", minhChung: "Output phần mềm thống kê" },
+      { ten: "Báo cáo nội dung ND4 hoàn chỉnh", minhChung: "File báo cáo ND4" }
+    ],
+    // ND5 — Hóa thực vật (đường găng)
+    "5.1.1": [
+      { ten: "Các phân đoạn đã làm giàu (2 cây còn lại)", minhChung: "Sơ đồ phân đoạn + khối lượng + mã HAU" },
+      { ten: "Sổ thí nghiệm chiết/chạy cột", minhChung: "Ảnh/scan sổ thí nghiệm" }
+    ],
+    "5.2.1": [
+      { ten: "≥10 đơn chất phân lập/dược liệu", minhChung: "Danh sách chất + khối lượng + độ tinh khiết" },
+      { ten: "Dữ liệu độ tinh khiết (HPLC/TLC)", minhChung: "Sắc ký đồ" }
+    ],
+    "5.3.1": [
+      { ten: "Bộ phổ đầy đủ (¹H, ¹³C, HSQC, HMBC, MS)", minhChung: "File phổ + bảng quy kết" },
+      { ten: "Cấu trúc 10–15 chất đã xác định", minhChung: "Bảng cấu trúc + đối chiếu TLTK" }
+    ],
+    "5.4.1": [
+      { ten: "CSDL hợp chất phân lập", minhChung: "File CSDL + cấu trúc số hóa" }
+    ],
+    // ND6 — Hồ sơ tiêu chuẩn
+    "6.1.1": [
+      { ten: "Mẫu chuẩn đã thu thập", minhChung: "Danh sách mẫu chuẩn + nguồn gốc" },
+      { ten: "Bộ chỉ tiêu định tính/định lượng", minhChung: "Bảng chỉ tiêu" }
+    ],
+    "6.2.1": [
+      { ten: "Số liệu định lượng marker", minhChung: "Bảng số liệu HPLC/định lượng" },
+      { ten: "Hồ sơ TCCS hoàn chỉnh", minhChung: "File tiêu chuẩn cơ sở" }
+    ],
+    // Công bố (mục 7)
+    "7.1.1": [
+      { ten: "Bản thảo JEP hoàn chỉnh (IMRAD)", minhChung: "File bản thảo" },
+      { ten: "Xác nhận đã nộp (submission ID)", minhChung: "Email/ảnh xác nhận submit" }
+    ],
+    "7.2.1": [
+      { ten: "Bản thảo ISI hoàn chỉnh", minhChung: "File bản thảo" },
+      { ten: "Xác nhận đã nộp", minhChung: "Submission ID" }
+    ],
+    "7.3.1": [
+      { ten: "Bản thảo tạp chí QG #1", minhChung: "File bản thảo" },
+      { ten: "Xác nhận nộp/đăng", minhChung: "Giấy xác nhận" }
+    ],
+    "7.3.2": [
+      { ten: "Bản thảo tạp chí QG #2", minhChung: "File bản thảo" },
+      { ten: "Xác nhận nộp/đăng", minhChung: "Giấy xác nhận" }
+    ],
+    "7.4.1": [
+      { ten: "Abstract được chấp nhận (hội thảo #1)", minhChung: "Thư chấp nhận + abstract" },
+      { ten: "Báo cáo đã trình bày", minhChung: "Slide/poster + giấy chứng nhận" }
+    ],
+    "7.4.2": [
+      { ten: "Abstract được chấp nhận (hội thảo #2)", minhChung: "Thư chấp nhận + abstract" },
+      { ten: "Báo cáo đã trình bày", minhChung: "Slide/poster + giấy chứng nhận" }
+    ],
+    // Đào tạo (mục 8)
+    "8.1.1": [
+      { ten: "Luận văn ThS Quỳnh hoàn chỉnh", minhChung: "File luận văn" },
+      { ten: "Biên bản bảo vệ đạt", minhChung: "Biên bản hội đồng + điểm" }
+    ],
+    "8.2.1": [
+      { ten: "PP HPLC định lượng oxostephanin đã thẩm định", minhChung: "Hồ sơ thẩm định phương pháp" },
+      { ten: "Cao chuẩn hóa + hồ sơ TCCS", minhChung: "Số liệu + hồ sơ" }
+    ],
+    // Tài chính & Quản lý (mục 9)
+    "9.1.1": [
+      { ten: "Hồ sơ tạm ứng Năm 1", minhChung: "Chứng từ tạm ứng" },
+      { ten: "Hồ sơ thầu hóa chất hoàn tất", minhChung: "Hợp đồng + biên bản nghiệm thu" }
+    ],
+    "9.1.2": [
+      { ten: "Quyết toán tài chính Năm 1 được duyệt", minhChung: "Biên bản quyết toán N1" }
+    ],
+    "9.1.3": [
+      { ten: "Báo cáo tài chính Năm 2", minhChung: "File BCTC + chứng từ" },
+      { ten: "Quyết toán Năm 2 nộp Quỹ", minhChung: "Xác nhận nộp Quỹ" }
+    ],
+    "9.1.4": [
+      { ten: "Hồ sơ tạm ứng Năm 3", minhChung: "Chứng từ tạm ứng" },
+      { ten: "Mua sắm NVL bổ sung", minhChung: "Hợp đồng mua + nghiệm thu" }
+    ],
+    "9.2.1": [
+      { ten: "Hồ sơ tài chính nghiệm thu (quyết toán cuối)", minhChung: "Bộ chứng từ quyết toán cuối" }
+    ],
+    "9.2.2": [
+      { ten: "Báo cáo tổng kết đề tài", minhChung: "File báo cáo tổng kết" },
+      { ten: "Bộ hồ sơ nghiệm thu nộp Quỹ", minhChung: "Bộ hồ sơ đầy đủ" }
+    ]
+  },
+
+  /* ===========================================================================
      WBS — CÂY CÔNG VIỆC 4 CẤP (nguồn duy nhất cho bảng công việc)
        n.        Mục tiêu  (loai: nc/cb/dt/tc — nc = nội dung nghiên cứu ND)
        n.n.      Hoạt động (kèm kết quả tương ứng)

@@ -252,6 +252,16 @@
   .gvmeta{color:var(--muted);font-size:.78rem;margin-left:4px}
   .wbs-gv .mini{width:70px;margin-left:auto}
   .gvpct{font-size:.76rem;color:var(--muted);width:34px;text-align:right}
+  /* Bộ tiêu chí ĐẠT */
+  .tcdat-wrap{margin:6px 0 2px 8px;border-left:3px solid var(--orange);background:var(--bg);border-radius:6px;padding:2px 0}
+  .tcdat-wrap>summary{cursor:pointer;font-size:.82rem;font-weight:700;padding:5px 10px;user-select:none;color:var(--navy)}
+  .tcdat-note{font-weight:400;color:var(--muted);font-size:.76rem}
+  .tcdat-list{list-style:none;margin:2px 0 6px;padding:0 10px}
+  .tcdat-item{display:flex;gap:8px;padding:5px 0;border-top:1px dotted var(--line);font-size:.82rem}
+  .tcdat-item:first-child{border-top:0}
+  .tcdat-n{flex:0 0 auto;width:18px;height:18px;border-radius:50%;background:var(--navy);color:#fff;font-size:.72rem;display:inline-flex;align-items:center;justify-content:center}
+  .tcdat-b{display:flex;flex-direction:column;gap:2px}
+  .tcdat-mc{color:var(--muted);font-size:.76rem}
   .narrbox{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--navy);border-radius:10px;padding:13px 15px;margin-bottom:14px;font-size:.9rem}
   /* tab Tổng quan */
   .inforow{display:grid;grid-template-columns:160px 1fr;gap:4px 14px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.92rem}
@@ -1298,12 +1308,23 @@
       + '<span class="gvmeta">'+esc(g.nguoiNhan||"—")+(g.deadline?' · hạn '+esc(g.deadline):'')+'</span>'
       + '<span class="mini"><i class="fill-'+(done?"xong":"dangLam")+'" style="width:'+(g.tienDo||0)+'%"></i></span><span class="gvpct">'+(g.tienDo||0)+'%</span></div>';
   }
+  // Bộ tiêu chí ĐẠT của 1 công việc (đọc D.tieuChiDat theo mã) — nguồn chuẩn để AI + CNĐT đánh giá.
+  function tieuChiHTML(cv){
+    var tc=(D.tieuChiDat||{})[cv.ma]; if(!tc||!tc.length) return "";
+    var rows=tc.map(function(t,i){
+      return '<li class="tcdat-item"><span class="tcdat-n">'+(i+1)+'</span><span class="tcdat-b"><b>'+esc(t.ten)+'</b>'
+        + '<span class="tcdat-mc">📎 Minh chứng: '+esc(t.minhChung||"—")+'</span></span></li>';
+    }).join("");
+    return '<details class="tcdat-wrap"><summary>🎯 Tiêu chí ĐẠT ('+tc.length+') <span class="tcdat-note">— minh chứng cần cho AI chấm</span></summary>'
+      + '<ul class="tcdat-list">'+rows+'</ul></details>';
+  }
   function cvBlock(cv){
     var st=effStatus(cv), who=nguoiText(cv);
     var gv=(cv.giaoViec||[]).map(gvMark).join("");
     return '<div class="wbs-cv"><div class="wbs-cv-h"><span class="num">'+esc(cv.ma)+'</span><span class="cvtag">CV</span> <b>'+esc(cv.ten)+'</b>'
       + '<div class="wbs-cv-m">👤 '+esc(who)+' · 🗓 '+esc(cv.deadline)+' · <span class="badge s-'+st+'">'+STT[st]+' '+(cv.tienDo||0)+'%</span></div>'
       + '<div class="bar" style="margin-top:4px"><i class="fill-'+st+'" style="width:'+(cv.tienDo||0)+'%"></i></div></div>'
+      + tieuChiHTML(cv)
       + (gv?'<div class="wbs-gvwrap">'+gv+'</div>':'') + '</div>';
   }
   function render(){
