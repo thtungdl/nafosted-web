@@ -616,7 +616,7 @@
             </div>
           </div>
           <div>
-            <label class="gv2-lbl">🧩 Tiểu mục công việc <span style="font-weight:400;color:var(--muted)">(mỗi tiểu mục 1 ô — tự đánh số n.n.n.n; để trống nếu không chia)</span></label>
+            <label class="gv2-lbl">🧩 Tiểu mục công việc</label>
             <div id="gv2-tm-rows"></div>
             <button type="button" id="gv2-tm-addrow" class="btn-print" style="font-size:.82rem;padding:4px 12px;background:var(--grey)">＋ Thêm tiểu mục</button>
           </div>
@@ -627,7 +627,7 @@
     </section>
 
     <section class="block" id="gv2-phieu-section">
-      <h2>🗂 Phiếu đã giao — sửa tiểu mục <span class="note">(chọn công việc n.n.n để hiện tiểu mục · đồng bộ sang tab 👤 Tiến độ cá nhân)</span></h2>
+      <h2>🗂 Phiếu đã giao — sửa tiểu mục</h2>
       <select id="gv2-phieu-select" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;margin-bottom:10px"><option value="">— Chọn công việc để sửa tiểu mục —</option></select>
       <div id="gv2-phieu-editor"></div>
     </section>
@@ -1034,7 +1034,7 @@
             </div>
           </div>
           <div>
-            <label class="gv2-lbl">🧩 Tiểu mục công việc <span style="font-weight:400;color:var(--muted)">(mỗi tiểu mục 1 ô — tự đánh số n.n.n.n; để trống nếu không chia)</span></label>
+            <label class="gv2-lbl">🧩 Tiểu mục công việc</label>
             <div id="gv2-tm-rowsH"></div>
             <button type="button" id="gv2-tm-addrowH" class="btn-print" style="font-size:.82rem;padding:4px 12px;background:var(--grey)">＋ Thêm tiểu mục</button>
           </div>
@@ -1045,7 +1045,7 @@
     </section>
 
     <section class="block" id="gv2-phieu-sectionH">
-      <h2>🗂 Phiếu đã giao — sửa tiểu mục <span class="note">(chọn công việc n.n.n để hiện tiểu mục · đồng bộ sang tab 👤 Tiến độ cá nhân)</span></h2>
+      <h2>🗂 Phiếu đã giao — sửa tiểu mục</h2>
       <select id="gv2-phieu-selectH" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;margin-bottom:10px"><option value="">— Chọn công việc để sửa tiểu mục —</option></select>
       <div id="gv2-phieu-editorH"></div>
     </section>
@@ -1338,7 +1338,7 @@
       + '<span class="gvmeta">'+esc(g.nguoiNhan||"—")+(g.deadline?' · hạn '+esc(g.deadline):'')+'</span>'
       + '<span class="mini"><i class="fill-'+(done?"xong":"dangLam")+'" style="width:'+(g.tienDo||0)+'%"></i></span><span class="gvpct">'+(g.tienDo||0)+'%</span></div>';
   }
-  // Bộ tiêu chí ĐẠT của 1 công việc (đọc D.tieuChiDat theo mã) — nguồn chuẩn để AI + CNĐT đánh giá.
+  // Bộ tiêu chí ĐẠT của 1 công việc (đọc D.tieuChiDat theo mã) — nguồn chuẩn để CNĐT đánh giá.
   // Admin (thtungdl@gmail.com) sửa trực tiếp trên dashboard → lưu Drive (override, xem khối tc_* bên dưới).
   function tcSafe(ma){ return String(ma).replace(/[^a-zA-Z0-9]/g,"_"); }
   function tieuChiHTML(cv){
@@ -1358,7 +1358,7 @@
       : '';
     return '<details class="tcdat-wrap'+(overridden?' is-ovr':'')+'" id="tc-wrap-'+tcSafe(cv.ma)+'"'+((VIEWER_IS_ADMIN&&!has)?' open':'')+'>'
       + '<summary>🎯 Tiêu chí ĐẠT ('+(has?tc.length:0)+')'
-      + (overridden?' <span class="tcdat-note">— đã tùy chỉnh</span>':' <span class="tcdat-note">— minh chứng cần cho AI chấm</span>')+'</summary>'
+      + (overridden?' <span class="tcdat-note">— đã tùy chỉnh</span>':' <span class="tcdat-note">— minh chứng cần nộp</span>')+'</summary>'
       + '<div class="tcdat-body">'+body+adm+'</div></details>';
   }
   function cvBlock(cv){
