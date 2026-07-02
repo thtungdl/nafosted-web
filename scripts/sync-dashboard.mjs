@@ -1,12 +1,13 @@
 // Copy dashboard offline (NAFOSTED-PROGRESS.html + nafosted-progress-data.js)
-// từ kho master Drive vào public/ để Vercel phục vụ.
-//   node scripts/sync-dashboard.mjs "<đường dẫn thư mục 4. Nafosted>"
-// Mặc định lấy từ J:\My Drive\4. Nafosted (sửa nếu khác).
+// từ kho master Drive vào dashboard-src/ để Vercel phục vụ.
+//   node scripts/sync-dashboard.mjs "<đường dẫn thư mục Project management system>"
+// Mặc định: J:\My Drive\4. Nafosted\Project management system (sửa nếu khác).
+// (2026-07-02: dời từ gốc 4. Nafosted sang đây để gọn — xem dashboard-tien-do.md)
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const SRC = process.argv[2] || "J:\\My Drive\\4. Nafosted";
+const SRC = process.argv[2] || "J:\\My Drive\\4. Nafosted\\Project management system";
 const DST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "dashboard-src");
 fs.mkdirSync(DST, { recursive: true });
 
