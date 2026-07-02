@@ -405,6 +405,11 @@
   .sop-photo-btn:hover{filter:brightness(1.12)}
   .sop-photo-status{margin-left:9px;font-size:.76rem;color:var(--muted)}
   .sop-photo-status.ok{color:var(--green);font-weight:700}
+  /* Hàng nút chọn công việc trong nhóm SOP */
+  .sop-cv-nav{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+  .sop-cv-btn{font-size:.82rem;padding:5px 12px;border:1px solid var(--line);border-radius:20px;background:var(--card);color:var(--ink);cursor:pointer;white-space:nowrap}
+  .sop-cv-btn:hover{border-color:var(--navy)}
+  .sop-cv-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
   /* Tách 2 view trong nhóm SOP: SOP (checklist) ↔ Kết quả thực nghiệm (số liệu + ảnh) */
   #tab-sopdata[data-sopview="sop"] .kq-only{display:none}
   #tab-sopdata[data-sopview="ketqua"] .sop-only{display:none}
@@ -733,6 +738,10 @@
         <button class="sop-sync-btn" onclick="sop_exportExcel()">📊 Xuất Excel</button>
       </div>
 
+      <!-- Nút chọn công việc (SOP + kết quả theo từng công việc) -->
+      <div class="sop-cv-nav" id="sop-cv-nav"></div>
+
+      <div id="sop-cv-work">
       <!-- Tab bar nội bộ SOP (chỉ hiện ở view SOP) -->
       <div class="sop-tabbar sop-only">
         <button class="sop-tabbtn active" data-stab="prep" onclick="sop_switchTab('prep')">1 · Chuẩn bị mẫu <span class="spill">xác nhận trước chiết</span></button>
@@ -989,6 +998,13 @@
           </div>
         </div>
       </div><!-- /sop-tab-panel extract -->
+      </div><!-- /#sop-cv-work -->
+
+      <!-- Công việc chưa có nội dung: ô nhập dần (SOP + kết quả), lưu theo công việc -->
+      <div id="sop-cv-other" style="display:none">
+        <div class="dc-sub" style="margin:6px 0">Công việc <b id="sop-cv-other-label">—</b>: chưa có nội dung SOP/kết quả. Nhập dần vào ô dưới (tự lưu).</div>
+        <textarea id="sop-cv-note" rows="10" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:.9rem;background:var(--card);color:var(--ink);resize:vertical" placeholder="Ghi SOP / quy trình và kết quả thực nghiệm cho công việc này…"></textarea>
+      </div>
 
     </div><!-- /.sop-pane -->
   </section>
@@ -3228,7 +3244,9 @@
       var meta=arr.map(function(p){ return (p&&typeof p==='object'&&p.id)?{name:p.name||'',id:p.id,link:p.link||''}:null; }).filter(Boolean);
       if(meta.length) photos[ma]=meta;
     });
-    return {type:'sop', samples:allSamples, batches:batches, fields:fields, checks:checks, photos:photos};
+    var cvnotes={};
+    try{ Object.keys(localStorage).forEach(function(k){ if(k.indexOf('sop2-cvnote::')===0){ var v=localStorage.getItem(k); if(v) cvnotes[k.slice(13)]=v; } }); }catch(e){}
+    return {type:'sop', samples:allSamples, batches:batches, fields:fields, checks:checks, photos:photos, cvnotes:cvnotes};
   }
 
   function sop_applyStoreData(data){
@@ -3250,6 +3268,8 @@
       var localOnly=local.filter(function(p){ return typeof p==='string' || (p && typeof p==='object' && !p.id); });
       localStorage.setItem('sop2-photos::'+ma, JSON.stringify(merged.concat(localOnly)));
     });
+    // Ghi chú SOP/kết quả nhập dần theo công việc
+    Object.keys(data.cvnotes||{}).forEach(function(cv){ localStorage.setItem('sop2-cvnote::'+cv, data.cvnotes[cv]); });
     sop_ensureBatch();
   }
 
@@ -3348,6 +3368,42 @@
     sop_setSyncStatus('✅ Đã xuất Excel (.xls) về máy (bản offline)');
   }
 
+  /* ---------- Chọn công việc: SOP + kết quả theo từng công việc ---------- */
+  var CVK='sop2-cv', EXTRACT_CV='2.1.1';
+  function sop_expCvList(){
+    var out=[], D=window.NAFOSTED_PROGRESS;
+    if(D&&D.wbs){ D.wbs.forEach(function(nd){
+      if(['ND2','ND4','ND5'].indexOf(nd.code)<0) return;
+      (nd.hoatDong||[]).forEach(function(hd){ (hd.congViec||[]).forEach(function(cv){ out.push({ma:cv.ma, ten:cv.ten}); }); });
+    }); }
+    if(!out.some(function(c){return c.ma===EXTRACT_CV;})) out.push({ma:EXTRACT_CV, ten:'Sàng lọc AChE in vitro'});
+    out.sort(function(a,b){ return a.ma<b.ma?-1:(a.ma>b.ma?1:0); });
+    return out;
+  }
+  function sop_getCv(){ return localStorage.getItem(CVK)||EXTRACT_CV; }
+  function sop_setCv(ma){ localStorage.setItem(CVK,ma); }
+  function sop_cvNoteKey(cv){ return 'sop2-cvnote::'+cv; }
+  function sop_renderCvNav(){
+    var nav=document.getElementById('sop-cv-nav'); if(!nav) return;
+    var cur=sop_getCv();
+    nav.innerHTML=sop_expCvList().map(function(c){
+      var lbl='['+c.ma+'] '+String(c.ten||'').slice(0,26);
+      return '<button class="sop-cv-btn'+(c.ma===cur?' active':'')+'" onclick="sop_selectCv(\''+c.ma+'\')" title="'+esc2(c.ten||'')+'">'+esc2(lbl)+'</button>';
+    }).join('');
+  }
+  function sop_applyCv(){
+    var cv=sop_getCv(), isEx=(cv===EXTRACT_CV);
+    var work=document.getElementById('sop-cv-work'), other=document.getElementById('sop-cv-other');
+    if(work) work.style.display=isEx?'':'none';
+    if(other) other.style.display=isEx?'none':'';
+    if(!isEx){
+      var c=sop_expCvList().filter(function(x){return x.ma===cv;})[0];
+      var lbl=document.getElementById('sop-cv-other-label'); if(lbl) lbl.textContent='['+cv+'] '+((c&&c.ten)||'');
+      var ta=document.getElementById('sop-cv-note'); if(ta){ try{ ta.value=localStorage.getItem(sop_cvNoteKey(cv))||''; }catch(e){ ta.value=''; } }
+    }
+  }
+  window.sop_selectCv=function(ma){ sop_setCv(ma); sop_renderCvNav(); sop_applyCv(); window.scrollTo(0,0); };
+
   /* ---------- init ---------- */
   document.addEventListener('DOMContentLoaded',function(){
     // Tab key from localStorage
@@ -3408,6 +3464,11 @@
         if(pb) kq.appendChild(pb);
       }
     })();
+    // Nút chọn công việc + ô ghi chú "nhập dần" cho công việc chưa có nội dung
+    sop_renderCvNav();
+    sop_applyCv();
+    var cvNote=document.getElementById('sop-cv-note');
+    if(cvNote) cvNote.addEventListener('input',function(){ try{ localStorage.setItem(sop_cvNoteKey(sop_getCv()), cvNote.value); }catch(e){} sop_scheduleAutoSync(); });
     // Init render
     sop_ensureBatch();
     sop_renderBatches();
