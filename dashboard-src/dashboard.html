@@ -1542,16 +1542,18 @@
     var SYNC_URL=localStorage.getItem("nafosted_cong_url")||"";
     var HOSTED_GV=/^https?:$/.test(location.protocol);   // chạy Vercel → tự đẩy /api/store, không cần cấu hình URL
     function loadCustom(){try{return JSON.parse(localStorage.getItem(LS_CUSTOM)||"[]");}catch(e){return [];}}
-    function saveCustom(a){localStorage.setItem(LS_CUSTOM,JSON.stringify(a));}
+    function saveCustom(a){localStorage.setItem(LS_CUSTOM,JSON.stringify(a)); pushSync();}
     function loadState(){try{return JSON.parse(localStorage.getItem(LS_STATE)||"{}");}catch(e){return {};}}
-    function saveState(s){localStorage.setItem(LS_STATE,JSON.stringify(s)); pushSync(s);}
+    function saveState(s){localStorage.setItem(LS_STATE,JSON.stringify(s)); pushSync();}
     function gvSetStatus(t){ var e=document.getElementById('gv-syncstatus'); if(e) e.textContent=t; }
-    // Đồng bộ TỰ ĐỘNG mỗi lần đổi trạng thái: hosted (Vercel) → /api/store (đăng nhập, ghi Drive ngay);
-    // offline → Apps Script nếu đã cấu hình URL ở tab Tính công.
-    function pushSync(s){
+    // Đồng bộ TỰ ĐỘNG mỗi lần đổi trạng thái HOẶC tạo/xóa phiếu: hosted (Vercel) → /api/store (đăng nhập, ghi Drive ngay);
+    // offline → Apps Script nếu đã cấu hình URL ở tab Tính công. Gửi CẢ state (tiến độ/duyệt theo mã) LẪN
+    // custom (danh sách phiếu tự tạo) — thiếu custom thì phiếu mới tạo không bao giờ lên Drive.
+    function pushSync(){
+      var payload={type:'giaoviec_state', state:loadState(), custom:loadCustom(), capNhat:new Date().toISOString()};
       if(HOSTED_GV){
         gvSetStatus('⏳ Đang lưu…');
-        fetch('/api/store',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'giaoviec_state',state:s})})
+        fetch('/api/store',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
           .then(function(r){ return r.json(); })
           .then(function(r){ gvSetStatus(r&&r.ok ? ('✅ Đã lưu Drive · '+new Date().toLocaleTimeString('vi-VN')) : '⚠️ Lỗi lưu — kiểm tra đăng nhập'); })
           .catch(function(){ gvSetStatus('⚠️ Lỗi mạng — chưa lưu được'); });
@@ -1560,7 +1562,7 @@
       if(!SYNC_URL){ gvSetStatus('💾 Lưu trình duyệt (chưa bật đồng bộ)'); return; }
       gvSetStatus('⏳ Đang đồng bộ…');
       try{
-        fetch(SYNC_URL,{method:"POST",mode:"no-cors",body:JSON.stringify({type:"giaoviec_state",state:s,capNhat:new Date().toISOString()})})
+        fetch(SYNC_URL,{method:"POST",mode:"no-cors",body:JSON.stringify(payload)})
           .then(function(){ gvSetStatus('✅ Đã đồng bộ lên Drive · '+new Date().toLocaleTimeString('vi-VN')); })
           .catch(function(){ gvSetStatus('⚠️ Lỗi đồng bộ'); });
       }catch(e){ gvSetStatus('⚠️ Lỗi đồng bộ'); }
@@ -2198,10 +2200,26 @@
       w.document.write(doc); w.document.close();
     }
 
-    // Nạp bản chính thức từ Drive sidecar (nếu có) rồi render
+    // Nạp bản chính thức từ Drive rồi render: hosted (Vercel) → /api/store; offline → sidecar nafosted-giaoviec.js.
+    // (nafosted-giaoviec-thucte.js là alias RIÊNG cho bộ não AI .ai-review/chuan_bi_goi_duyet.mjs — không đọc ở đây.)
     (function(){
-      var s=document.createElement("script"); s.src="nafosted-giaoviec-thucte.js?"+Date.now();
-      s.onload=function(){ if(window.NAFOSTED_GIAOVIEC){ try{ var cur=loadState(); var merged=Object.assign({},window.NAFOSTED_GIAOVIEC,cur); localStorage.setItem(LS_STATE,JSON.stringify(merged)); }catch(e){} render(); } };
+      function mergeCustom(local,cloud){
+        var map={}; (cloud||[]).forEach(function(c){ if(c&&c.ma) map[c.ma]=c; });
+        (local||[]).forEach(function(c){ if(c&&c.ma) map[c.ma]=c; }); // local thắng khi trùng mã
+        return Object.keys(map).map(function(k){ return map[k]; });
+      }
+      function applyRestored(data){
+        if(!data) return;
+        if(data.state){ try{ var cur=loadState(); localStorage.setItem(LS_STATE,JSON.stringify(Object.assign({},data.state,cur))); }catch(e){} }
+        if(data.custom){ try{ localStorage.setItem(LS_CUSTOM,JSON.stringify(mergeCustom(loadCustom(),data.custom))); }catch(e){} }
+        render();
+      }
+      if(HOSTED_GV){
+        fetch('/api/store?type=giaoviec').then(function(r){return r.json();}).then(applyRestored).catch(function(){});
+        return;
+      }
+      var s=document.createElement("script"); s.src="nafosted-giaoviec.js?"+Date.now();
+      s.onload=function(){ if(window.NAFOSTED_GIAOVIEC) applyRestored(window.NAFOSTED_GIAOVIEC); };
       s.onerror=function(){}; document.head.appendChild(s);
     })();
     // Nạp nhận xét digest tự động (do pipeline ingest ghi ra) — window.NAFOSTED_DIGEST
