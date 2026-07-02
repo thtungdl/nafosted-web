@@ -1,0 +1,20 @@
+{
+  "name": "nafosted-progress-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web nộp & theo dõi tiến độ đề tài NAFOSTED 108.05-2023.20 — deploy Vercel, lưu dữ liệu vào Google Drive (thư mục 4. Nafosted).",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "get-token": "node scripts/get-refresh-token.mjs",
+    "sync-dashboard": "node scripts/sync-dashboard.mjs"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "next-auth": "4.24.7",
+    "googleapis": "140.0.1"
+  }
+}

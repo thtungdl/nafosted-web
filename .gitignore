@@ -1,0 +1,9 @@
+# KHÔNG đẩy các thư mục này lên git / KHÔNG để chúng trong Google Drive
+node_modules/
+.next/
+out/
+.env
+.env*.local
+*.log
+.vercel
+.DS_Store
