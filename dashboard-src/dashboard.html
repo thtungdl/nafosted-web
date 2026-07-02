@@ -536,6 +536,7 @@
     <!-- Tạo phiếu giao việc (tab này CHỈ để giao việc) -->
     <section class="block">
       <div class="narrbox" style="margin-bottom:12px">📋 <b>Giao việc</b> — tạo và giao phiếu công việc cho thành viên (chọn từ cây WBS hoặc nhập tự do). Phần <b>theo dõi tiến độ · duyệt kết quả · giám sát tuần</b> nằm ở tab <b>👤 Tiến độ cá nhân</b>.</div>
+      <div style="font-size:.78rem;color:var(--muted);margin:-4px 0 12px" id="gv-syncstatus">💾 Lưu trình duyệt</div>
       <details id="gv2-create-panel" open>
         <summary style="cursor:pointer;font-size:.95rem;font-weight:700;padding:4px 0;user-select:none">
           ➕ Tạo phiếu giao việc mới <span class="note" style="font-size:.8rem;font-weight:400;margin-left:6px">chọn từ WBS hoặc nhập tự do</span>
@@ -1539,20 +1540,35 @@
   (function(){
     var LS_CUSTOM="nafosted_gv_custom", LS_STATE="nafosted_gv_state";
     var SYNC_URL=localStorage.getItem("nafosted_cong_url")||"";
+    var HOSTED_GV=/^https?:$/.test(location.protocol);   // chạy Vercel → tự đẩy /api/store, không cần cấu hình URL
     function loadCustom(){try{return JSON.parse(localStorage.getItem(LS_CUSTOM)||"[]");}catch(e){return [];}}
     function saveCustom(a){localStorage.setItem(LS_CUSTOM,JSON.stringify(a));}
     function loadState(){try{return JSON.parse(localStorage.getItem(LS_STATE)||"{}");}catch(e){return {};}}
     function saveState(s){localStorage.setItem(LS_STATE,JSON.stringify(s)); pushSync(s);}
-    // Đồng bộ bản chính thức lên Drive (nếu đã cấu hình URL ở tab Tính công)
+    function gvSetStatus(t){ var e=document.getElementById('gv-syncstatus'); if(e) e.textContent=t; }
+    // Đồng bộ TỰ ĐỘNG mỗi lần đổi trạng thái: hosted (Vercel) → /api/store (đăng nhập, ghi Drive ngay);
+    // offline → Apps Script nếu đã cấu hình URL ở tab Tính công.
     function pushSync(s){
-      if(!SYNC_URL) return;
-      try{ fetch(SYNC_URL,{method:"POST",mode:"no-cors",body:JSON.stringify({type:"giaoviec_state",state:s,capNhat:new Date().toISOString()})}); }catch(e){}
+      if(HOSTED_GV){
+        gvSetStatus('⏳ Đang lưu…');
+        fetch('/api/store',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'giaoviec_state',state:s})})
+          .then(function(r){ return r.json(); })
+          .then(function(r){ gvSetStatus(r&&r.ok ? ('✅ Đã lưu Drive · '+new Date().toLocaleTimeString('vi-VN')) : '⚠️ Lỗi lưu — kiểm tra đăng nhập'); })
+          .catch(function(){ gvSetStatus('⚠️ Lỗi mạng — chưa lưu được'); });
+        return;
+      }
+      if(!SYNC_URL){ gvSetStatus('💾 Lưu trình duyệt (chưa bật đồng bộ)'); return; }
+      gvSetStatus('⏳ Đang đồng bộ…');
+      try{
+        fetch(SYNC_URL,{method:"POST",mode:"no-cors",body:JSON.stringify({type:"giaoviec_state",state:s,capNhat:new Date().toISOString()})})
+          .then(function(){ gvSetStatus('✅ Đã đồng bộ lên Drive · '+new Date().toLocaleTimeString('vi-VN')); })
+          .catch(function(){ gvSetStatus('⚠️ Lỗi đồng bộ'); });
+      }catch(e){ gvSetStatus('⚠️ Lỗi đồng bộ'); }
     }
     function nowD(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
 
     /* ---- Nộp báo cáo lên thư mục Raw (offline-first; sẵn cho /api/upload khi deploy Vercel) ---- */
     var LS_RAW="nafosted_raw_url";
-    var HOSTED_GV=/^https?:$/.test(location.protocol);   // chạy Vercel → upload thật qua /api/upload
     function rawUrl(){ return localStorage.getItem(LS_RAW)||""; }
     // tên file chuẩn: "mã - tên việc" (bỏ ký tự Windows cấm \ / : * ? " < > |)
     function tenChuan(g){
@@ -2436,6 +2452,7 @@
     sop_renderChips();
     sop_loadActiveIntoForm();
     sop_updateAllProgress();
+    sop_scheduleAutoSync();
   };
 
   window.sop_removeSample = function(ma,e){
@@ -2447,6 +2464,7 @@
     sop_renderChips();
     sop_loadActiveIntoForm();
     sop_updateAllProgress();
+    sop_scheduleAutoSync();
   };
 
   window.sop_activateSample = function(ma){
@@ -2455,6 +2473,7 @@
     sop_renderChips();
     sop_loadActiveIntoForm();
     sop_updateAllProgress();
+    sop_scheduleAutoSync();
   };
 
   function sop_sampleProgress(ma,process){
@@ -2682,6 +2701,12 @@
   function sop_isHosted(){ return /^https?:$/.test(location.protocol) && location.hostname !== 'localhost'; }
   function sop_syncUrl(){ return localStorage.getItem('nafosted_cong_url') || ''; }
   function sop_setSyncStatus(txt){ var el=document.getElementById('sop-sync-status'); if(el) el.textContent=txt; }
+  var sop_autoTimer=null;
+  // Đồng bộ TỰ ĐỘNG: gộp nhiều thay đổi liên tiếp (gõ liên tục) rồi đẩy 1 lần sau 1.5s ngừng tay
+  function sop_scheduleAutoSync(){
+    if(sop_autoTimer) clearTimeout(sop_autoTimer);
+    sop_autoTimer=setTimeout(function(){ sop_syncToCloud(); }, 1500);
+  }
 
   function sop_getPayload(){
     var samples=sop_getSamples();
@@ -2798,8 +2823,8 @@
 
     // Field change → persist + recompute
     document.querySelectorAll('#tab-sopdata [data-f]').forEach(function(el){
-      el.addEventListener('input',function(){ sop_recompute(); sop_persistFields(); });
-      el.addEventListener('change',function(){ sop_recompute(); sop_persistFields(); });
+      el.addEventListener('input',function(){ sop_recompute(); sop_persistFields(); sop_scheduleAutoSync(); });
+      el.addEventListener('change',function(){ sop_recompute(); sop_persistFields(); sop_scheduleAutoSync(); });
     });
 
     // Checkbox change
@@ -2810,6 +2835,7 @@
         sop_updateStepProgress(stepEl);
         sop_persistCheckboxes(stepEl);
         sop_updateAllProgress();
+        sop_scheduleAutoSync();
       });
     });
 
