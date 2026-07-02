@@ -721,6 +721,7 @@
       <!-- Sync bar -->
       <div class="sop-sync-bar">
         <span class="sop-sync-status" id="sop-sync-status">💾 Lưu trình duyệt</span>
+        <button class="sop-sync-btn" onclick="sop_exportExcel()">📊 Xuất Excel</button>
       </div>
 
       <!-- Tab bar nội bộ SOP -->
@@ -3219,6 +3220,57 @@
     s.onerror=function(){ sop_setSyncStatus('💾 Chưa có sidecar Drive (nafosted-sop.js)'); };
     document.head.appendChild(s);
   };
+
+  /* ---------- xuất Excel ---------- */
+  // Hosted (Vercel): đồng bộ trước (server tự tạo nafosted-sop.xlsx trên Drive) rồi tải .xlsx thật về máy.
+  // Offline (file://): xuất .xls (SpreadsheetML) ngay từ trình duyệt.
+  window.sop_exportExcel = function(){
+    sop_persistActiveSample();
+    if(sop_isHosted()){
+      sop_setSyncStatus('⏳ Đang đồng bộ + xuất Excel…');
+      fetch('/api/store',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sop_getPayload())})
+        .then(function(r){ return r.json(); })
+        .then(function(){
+          var a=document.createElement('a'); a.href='/api/export-sop?t='+Date.now(); a.download='So lieu chiet mau SOP.xlsx';
+          document.body.appendChild(a); a.click(); a.remove();
+          sop_setSyncStatus('✅ Đã xuất Excel (.xlsx) về máy + cập nhật nafosted-sop.xlsx trên Drive');
+        })
+        .catch(function(){ sop_setSyncStatus('⚠️ Lỗi — chưa xuất được, thử lại'); });
+      return;
+    }
+    sop_exportXlsClient();
+  };
+  function sop_xmlEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function sop_numOrNull(v){ var s=String(v==null?'':v).trim().replace(',','.'); if(s==='')return null; var n=parseFloat(s); return isFinite(n)?n:null; }
+  function sop_exportXlsClient(){
+    var batches=sop_getBatches(), ma2me={}, order=[];
+    batches.forEach(function(b){ (b.samples||[]).forEach(function(ma){ ma2me[ma]=b.ten||b.id||''; if(order.indexOf(ma)<0) order.push(ma); }); });
+    function fget(ma){ try{ return JSON.parse(localStorage.getItem('sop2-fields::'+ma)||'{}'); }catch(e){ return {}; } }
+    function cell(v){ if(v===null||v===undefined||v==='') return '<Cell><Data ss:Type="String"></Data></Cell>';
+      if(typeof v==='number') return '<Cell><Data ss:Type="Number">'+v+'</Data></Cell>';
+      return '<Cell><Data ss:Type="String">'+sop_xmlEsc(v)+'</Data></Cell>'; }
+    var head=['Mẻ chiết','Mã dược liệu','Ngày chiết','Người chiết','Hàm ẩm (%)','m bột (g)','m cốc rỗng (g)','m cốc+cao (g)','m cao khô (g)','Hiệu suất (%)','m ống rỗng (g)','m ống+cao (g)','m cao lưu (g)','Nơi lưu','Tình trạng in vitro','Ngày gửi','Nơi nhận','Ghi chú'];
+    var rows=order.map(function(ma){
+      var d=fget(ma);
+      var ham=sop_numOrNull(d.ham_am),mb=sop_numOrNull(d.m_bot),mc=sop_numOrNull(d.m_coc),mcc=sop_numOrNull(d.m_coc_cao),mo=sop_numOrNull(d.m_ong),moc=sop_numOrNull(d.m_ong_cao);
+      var r4=function(x){return x==null?null:Math.round(x*10000)/10000;}, r2=function(x){return x==null?null:Math.round(x*100)/100;};
+      var mcaoRaw=(mcc!=null&&mc!=null)?(mcc-mc):null;
+      var den=(mb!=null&&ham!=null)?(mb*(1-ham/100)):null;
+      var mcao=r4(mcaoRaw);
+      var hs=r2((mcaoRaw!=null&&den)?(mcaoRaw/den*100):null);
+      var mluu=r4((moc!=null&&mo!=null)?(moc-mo):null);
+      var vals=[ma2me[ma]||'',ma,d.ngay||'',d.nguoi||'',ham,mb,mc,mcc,mcao,hs,mo,moc,mluu,d.noi_luu||'',d.tt_invitro||'',d.ngay_gui||'',d.noi_nhan_invitro||'',d.ghichu||''];
+      return '<Row>'+vals.map(cell).join('')+'</Row>';
+    }).join('');
+    var headRow='<Row>'+head.map(function(h){return '<Cell><Data ss:Type="String">'+sop_xmlEsc(h)+'</Data></Cell>';}).join('')+'</Row>';
+    var xml='<?xml version="1.0" encoding="UTF-8"?>\n<?mso-application progid="Excel.Sheet"?>\n'
+      +'<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">'
+      +'<Worksheet ss:Name="Số liệu chiết mẫu"><Table>'+headRow+rows+'</Table></Worksheet></Workbook>';
+    var blob=new Blob([String.fromCharCode(0xFEFF)+xml],{type:'application/vnd.ms-excel'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='So lieu chiet mau SOP.xls';
+    document.body.appendChild(a); a.click(); a.remove();
+    sop_setSyncStatus('✅ Đã xuất Excel (.xls) về máy (bản offline)');
+  }
 
   /* ---------- init ---------- */
   document.addEventListener('DOMContentLoaded',function(){

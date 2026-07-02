@@ -11,10 +11,11 @@
     "sync-dashboard": "node scripts/sync-dashboard.mjs"
   },
   "dependencies": {
+    "exceljs": "^4.4.0",
+    "googleapis": "140.0.1",
     "next": "14.2.5",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
     "next-auth": "4.24.7",
-    "googleapis": "140.0.1"
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   }
 }
