@@ -4,7 +4,7 @@ import { getStore, saveStore } from "../../../lib/drive";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED_TYPES = ["cong", "giaoviec", "sop", "tieuchi"];
+const ALLOWED_TYPES = ["cong", "giaoviec", "sop", "tieuchi", "admin"];
 
 /**
  * GET /api/store?type=<type>
@@ -18,6 +18,9 @@ export async function GET(req) {
   const type = (searchParams.get("type") || "cong").replace("_state", "");
   if (!ALLOWED_TYPES.includes(type))
     return Response.json({ error: "invalid type" }, { status: 400 });
+  // Danh mục quản trị (thành viên/quyền) — CHỈ admin đọc được.
+  if (type === "admin" && !session.user?.isAdmin)
+    return Response.json({ error: "forbidden" }, { status: 403 });
 
   try {
     return Response.json(await getStore(type));
@@ -40,8 +43,8 @@ export async function POST(req) {
     const type = (body.type || "cong").replace("_state", "");
     if (!ALLOWED_TYPES.includes(type))
       return Response.json({ error: "invalid type" }, { status: 400 });
-    // Bộ tiêu chí ĐẠT là nguồn chuẩn để AI chấm — CHỈ admin được sửa.
-    if (type === "tieuchi" && !session.user?.isAdmin)
+    // Bộ tiêu chí ĐẠT + danh mục quản trị — CHỈ admin được sửa.
+    if ((type === "tieuchi" || type === "admin") && !session.user?.isAdmin)
       return Response.json({ error: "forbidden" }, { status: 403 });
 
     const editor = session.user?.email || session.user?.name || "?";

@@ -405,6 +405,17 @@
   .sop-photo-btn:hover{filter:brightness(1.12)}
   .sop-photo-status{margin-left:9px;font-size:.76rem;color:var(--muted)}
   .sop-photo-status.ok{color:var(--green);font-weight:700}
+  /* Quản trị: bảng thành viên & quyền */
+  .adm-tablewrap{overflow-x:auto}
+  .adm-table{border-collapse:collapse;font-size:.82rem;min-width:760px;width:100%}
+  .adm-table th,.adm-table td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:middle}
+  .adm-table th{background:var(--surface);font-weight:700;white-space:nowrap}
+  .adm-table th.adm-sec,.adm-table td.adm-sec{text-align:center;font-weight:600}
+  .adm-table th.adm-sec{writing-mode:vertical-rl;transform:rotate(180deg);font-size:.72rem;font-weight:600;padding:6px 3px}
+  .adm-table input.adm-ten,.adm-table input.adm-email{width:100%;min-width:120px;padding:3px 6px;border:1px solid var(--line);border-radius:5px;background:var(--card);color:var(--ink);box-sizing:border-box;font-size:.82rem}
+  .adm-del{border:0;background:none;color:var(--red);cursor:pointer;font-size:.95rem}
+  .adm-addrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+  .adm-addrow input{padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.86rem}
   /* Hàng nút chọn công việc trong nhóm SOP */
   .sop-cv-nav{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
   .sop-cv-btn{font-size:.82rem;padding:5px 12px;border:1px solid var(--line);border-radius:20px;background:var(--card);color:var(--ink);cursor:pointer;white-space:nowrap}
@@ -497,6 +508,7 @@
     <button class="tabbtn groupbtn active" data-group="chuyenmon">🔬 Chuyên môn<span class="grp-badge" id="badge-cm" title="Việc chậm tiến độ cần thúc đẩy"></span></button>
     <button class="tabbtn groupbtn" data-group="sop">🧪 SOP &amp; Thực nghiệm</button>
     <button class="tabbtn groupbtn" data-group="tinhcong" id="groupbtn-tinhcong">💰 Tính công</button>
+    <button class="tabbtn groupbtn" data-group="admin" id="groupbtn-admin">🛠 Quản trị</button>
   </div>
   <div class="tabnav sub-tabnav" id="subnav-chuyenmon">
     <button class="tabbtn subbtn active" data-tab="tongquan">📌 Tổng quan</button>
@@ -748,8 +760,8 @@
         <button class="sop-tabbtn" data-stab="extract" onclick="sop_switchTab('extract')">2 · Chiết mẫu <span class="spill">nhập số liệu</span></button>
       </div>
 
-      <!-- Chọn / quản lý MẺ CHIẾT -->
-      <div class="sop-batch-box" id="sop-me-box">
+      <!-- Chọn / quản lý MẺ CHIẾT (thuộc phần Kết quả — nhập số liệu) -->
+      <div class="sop-batch-box kq-only" id="sop-me-box">
         <div class="bb-title">Mẻ chiết <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">— mỗi mẻ có mã dược liệu + số liệu + checklist riêng</span></div>
         <div class="sop-bb-add">
           <input id="sop-new-me" type="text" placeholder="Tên mẻ (để trống = tự đặt 'Mẻ chiết n') → Enter hoặc bấm Thêm">
@@ -758,8 +770,8 @@
         <div class="sop-bb-chips" id="sop-me-chips"></div>
       </div>
 
-      <!-- Mã dược liệu trong mẻ đang chọn -->
-      <div class="sop-batch-box">
+      <!-- Mã dược liệu trong mẻ đang chọn (thuộc phần Kết quả) -->
+      <div class="sop-batch-box kq-only">
         <div class="bb-title">Mã dược liệu trong <span id="sop-me-label" style="color:var(--navy)">mẻ đang chọn</span></div>
         <div class="sop-bb-add">
           <input id="sop-new-ma" type="text" placeholder="Mã dược liệu (vd. BV-052) → Enter hoặc bấm Thêm">
@@ -769,7 +781,7 @@
         <div class="sop-bb-empty" id="sop-bb-empty">Chưa có mẫu — thêm mã dược liệu để bắt đầu.</div>
       </div>
 
-      <div class="sop-sample-box">
+      <div class="sop-sample-box kq-only">
         <span class="sop-active-tag">Mẫu đang chọn: <span id="sop-active-label">—</span></span>
         <button class="sop-reset-btn" onclick="sop_resetActiveSample()">↺ Xóa tick mẫu này (tab hiện tại)</button>
       </div>
@@ -1143,6 +1155,24 @@
       <div id="tc2-giaodich"></div>
     </section>
   </div><!-- /tab-taichinhtongho -->
+
+  <!-- ===== QUẢN TRỊ (chỉ admin) ===== -->
+  <div id="tab-admin" class="tabpane hide">
+    <section class="block">
+      <h2>🛠 Quản trị — thành viên &amp; quyền truy cập</h2>
+      <div class="narrbox" style="margin-bottom:12px">Chỉ <b>thtungdl@gmail.com</b> quản lý. Thêm <b>email</b> để cấp quyền <b>đăng nhập bằng Google</b>; tick <b>nội dung được xem</b> cho từng người. Email trong cấu hình gốc (env) và tài khoản admin luôn đăng nhập được. Quản trị viên xem toàn bộ.</div>
+      <div id="adm-list"></div>
+      <div class="adm-addrow">
+        <input id="adm-new-ten" type="text" placeholder="Tên thành viên">
+        <input id="adm-new-email" type="email" placeholder="email@gmail.com">
+        <button id="adm-add" class="btn-print">＋ Thêm thành viên</button>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button id="adm-save" class="btn-print" style="padding:8px 18px">💾 Lưu &amp; cấp quyền</button>
+        <span id="adm-save-status" class="tcunit"></span>
+      </div>
+    </section>
+  </div><!-- /tab-admin -->
 
   <footer id="foot">NAFOSTED.OS · Dashboard tiến độ · Chạy offline trên thiết bị của bạn.</footer>
 </div>
@@ -1579,13 +1609,28 @@
   }).join("");
 
   /* ---------- Chuyển tab 2 cấp (Nhóm + Sub) ---------- */
-  var ALL_PANES=["tongquan","trienkhai","giaoviec","tiendoCN","tinhcong","sopdata","giaoviecHC","tiendoCNHC","hosothutu","taichinhtongho"];
+  var ALL_PANES=["tongquan","trienkhai","giaoviec","tiendoCN","tinhcong","sopdata","giaoviecHC","tiendoCNHC","hosothutu","taichinhtongho","admin"];
   var activeGroup="chuyenmon";
-  var activeSub={chuyenmon:"tongquan",hanhchinh:"giaoviecHC",sop:"sopdata",tinhcong:"tinhcong"};
+  var activeSub={chuyenmon:"tongquan",hanhchinh:"giaoviecHC",sop:"sopdata",tinhcong:"tinhcong",admin:"admin"};
   function showPane(id){ALL_PANES.forEach(function(p){var e=document.getElementById("tab-"+p);if(e)e.classList.toggle("hide",p!==id);});}
-  // Tính công: nhóm riêng, CHỈ admin (thtungdl@gmail.com) thấy nút
+  // Tính công + Quản trị: nhóm riêng, CHỈ admin (thtungdl@gmail.com) thấy nút
   var btnTinhCong=document.getElementById("groupbtn-tinhcong");
   if(btnTinhCong && !VIEWER_IS_ADMIN) btnTinhCong.style.display="none";
+  var btnAdmin=document.getElementById("groupbtn-admin");
+  if(btnAdmin && !VIEWER_IS_ADMIN) btnAdmin.style.display="none";
+  // Các mục nội dung có thể cấp quyền xem (loại trừ Tính công + Quản trị vốn admin-only)
+  var SECTIONS=[
+    {key:"tongquan",grp:"chuyenmon",label:"Tổng quan"},
+    {key:"trienkhai",grp:"chuyenmon",label:"Triển khai"},
+    {key:"giaoviec",grp:"chuyenmon",label:"Giao việc (chuyên môn)"},
+    {key:"tiendoCN",grp:"chuyenmon",label:"Tiến độ cá nhân (chuyên môn)"},
+    {key:"sopdata",grp:"sop",label:"SOP & Thực nghiệm"},
+    {key:"giaoviecHC",grp:"hanhchinh",label:"Giao việc (hành chính)"},
+    {key:"tiendoCNHC",grp:"hanhchinh",label:"Tiến độ cá nhân (hành chính)"},
+    {key:"hosothutu",grp:"hanhchinh",label:"Hồ sơ thủ tục"},
+    {key:"taichinhtongho",grp:"hanhchinh",label:"Tài chính"}
+  ];
+  window.NAF_SECTIONS=SECTIONS;
   document.querySelectorAll(".groupbtn").forEach(function(b){
     b.addEventListener("click",function(){
       document.querySelectorAll(".groupbtn").forEach(function(x){x.classList.remove("active");});
@@ -1615,6 +1660,30 @@
       window.scrollTo(0,0);
     });
   });
+  // Cấp quyền xem: ẩn nhóm/subtab người dùng không được phép (admin xem hết; perms=null → không giới hạn)
+  (function applyPerms(){
+    if(VIEWER_IS_ADMIN) return;
+    var perms=VIEWER.perms;
+    if(!Array.isArray(perms)) return;
+    var ok={}; perms.forEach(function(k){ok[k]=1;});
+    SECTIONS.forEach(function(s){
+      if(ok[s.key]) return;
+      document.querySelectorAll('.subbtn[data-tab="'+s.key+'"]').forEach(function(b){b.style.display="none";});
+      var pane=document.getElementById("tab-"+s.key); if(pane) pane.classList.add("hide");
+    });
+    ["chuyenmon","hanhchinh","sop"].forEach(function(g){
+      var any=SECTIONS.some(function(s){return s.grp===g && ok[s.key];});
+      var gb=document.querySelector('.groupbtn[data-group="'+g+'"]');
+      if(gb && !any) gb.style.display="none";
+    });
+    // Chuyển về nhóm + subtab hợp lệ đầu tiên
+    var g1=[].slice.call(document.querySelectorAll(".groupbtn")).filter(function(b){return b.style.display!=="none";})[0];
+    if(g1){
+      g1.click();
+      var sn=document.getElementById("subnav-"+g1.dataset.group);
+      if(sn){ var s1=[].slice.call(sn.querySelectorAll(".subbtn")).filter(function(b){return b.style.display!=="none";})[0]; if(s1) s1.click(); }
+    }
+  })();
 
   /* ---------- Tab Tổng quan (thông tin chính đề tài) ---------- */
   (function(){
@@ -3507,6 +3576,80 @@
       };
       document.head.appendChild(sc);
     }
+  });
+})();
+</script>
+<script>
+/* ===== QUẢN TRỊ: thành viên & quyền truy cập (chỉ admin) ===== */
+(function(){
+  var V=window.NAFOSTED_VIEWER||{isAdmin:true};
+  if(!V.isAdmin) return;
+  var D=window.NAFOSTED_PROGRESS||{};
+  var SECTIONS=window.NAF_SECTIONS||[];
+  var HOSTED=/^https?:$/.test(location.protocol) && location.hostname!=='localhost';
+  var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');};
+  var members=[];
+  function defaultPerms(){ return SECTIONS.map(function(s){return s.key;}); }
+  function seedFromNhanSu(){
+    (D.nhanSu||[]).forEach(function(n){
+      if(!n||!n.ten) return;
+      var em=(n.email||'').toLowerCase();
+      var exist=members.some(function(m){ return (em && (m.email||'').toLowerCase()===em) || (!em && m.ten===n.ten); });
+      if(!exist) members.push({ten:n.ten, email:n.email||'', perms:null});
+    });
+  }
+  function render(){
+    var list=document.getElementById('adm-list'); if(!list) return;
+    if(!members.length){ list.innerHTML='<div class="empty">Chưa có thành viên — thêm bên dưới.</div>'; return; }
+    var head='<tr><th>Thành viên</th><th>Email (đăng nhập Google)</th>'+SECTIONS.map(function(s){return '<th class="adm-sec">'+esc(s.label)+'</th>';}).join('')+'<th></th></tr>';
+    var rows=members.map(function(m,i){
+      var perms=Array.isArray(m.perms)?m.perms:defaultPerms();
+      var pset={}; perms.forEach(function(k){pset[k]=1;});
+      var cks=SECTIONS.map(function(s){return '<td class="adm-sec"><input type="checkbox" class="adm-ck" data-i="'+i+'" data-k="'+s.key+'"'+(pset[s.key]?' checked':'')+'></td>';}).join('');
+      return '<tr><td><input class="adm-ten" data-i="'+i+'" value="'+esc(m.ten)+'"></td>'
+        +'<td><input class="adm-email" data-i="'+i+'" type="email" value="'+esc(m.email)+'"></td>'
+        +cks+'<td><button class="adm-del" data-i="'+i+'" title="Xóa thành viên">✕</button></td></tr>';
+    }).join('');
+    list.innerHTML='<div class="adm-tablewrap"><table class="adm-table"><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div>';
+    list.querySelectorAll('.adm-ten').forEach(function(inp){ inp.addEventListener('change',function(){ members[+inp.dataset.i].ten=inp.value; }); });
+    list.querySelectorAll('.adm-email').forEach(function(inp){ inp.addEventListener('change',function(){ members[+inp.dataset.i].email=inp.value.trim(); }); });
+    list.querySelectorAll('.adm-ck').forEach(function(cb){ cb.addEventListener('change',function(){
+      var i=+cb.dataset.i, k=cb.dataset.k, m=members[i];
+      var perms=Array.isArray(m.perms)?m.perms.slice():defaultPerms();
+      if(cb.checked){ if(perms.indexOf(k)<0) perms.push(k); } else { perms=perms.filter(function(x){return x!==k;}); }
+      m.perms=perms;
+    }); });
+    list.querySelectorAll('.adm-del').forEach(function(b){ b.addEventListener('click',function(){ var i=+b.dataset.i; if(confirm('Xóa "'+(members[i].ten||members[i].email||'')+'"? Người này sẽ không đăng nhập được nữa (trừ khi email nằm trong cấu hình gốc/admin).')){ members.splice(i,1); render(); } }); });
+  }
+  function load(){
+    members=[];
+    if(HOSTED){
+      fetch('/api/store?type=admin',{credentials:'same-origin'}).then(function(r){return r.json();}).then(function(d){
+        members=(d&&Array.isArray(d.members))?d.members:[]; seedFromNhanSu(); render();
+      }).catch(function(){ seedFromNhanSu(); render(); });
+    } else { seedFromNhanSu(); render(); }
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    var addBtn=document.getElementById('adm-add');
+    if(addBtn) addBtn.addEventListener('click',function(){
+      var ten=(document.getElementById('adm-new-ten').value||'').trim();
+      var email=(document.getElementById('adm-new-email').value||'').trim();
+      if(!email){ alert('Nhập email để cấp quyền đăng nhập.'); return; }
+      members.push({ten:ten||email, email:email, perms:defaultPerms()});
+      document.getElementById('adm-new-ten').value=''; document.getElementById('adm-new-email').value='';
+      render();
+    });
+    var saveBtn=document.getElementById('adm-save');
+    if(saveBtn) saveBtn.addEventListener('click',function(){
+      var st=document.getElementById('adm-save-status');
+      var clean=members.filter(function(m){return (m.email||'').trim();}).map(function(m){return {ten:m.ten||'', email:(m.email||'').trim().toLowerCase(), perms:Array.isArray(m.perms)?m.perms:defaultPerms()};});
+      if(!HOSTED){ if(st) st.textContent='⚠ Mở bản web (Vercel) để lưu & cấp quyền.'; return; }
+      if(st) st.textContent='⏳ Đang lưu…';
+      fetch('/api/store',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'admin',members:clean})})
+        .then(function(r){return r.json();}).then(function(res){ if(st) st.textContent=(res&&res.ok)?('✅ Đã lưu & cấp quyền · '+clean.length+' thành viên (họ đăng nhập lại để áp quyền)'):('⚠ '+((res&&res.error)||'lỗi')); })
+        .catch(function(){ if(st) st.textContent='⚠ Lỗi mạng — chưa lưu'; });
+    });
+    load();
   });
 })();
 </script>
