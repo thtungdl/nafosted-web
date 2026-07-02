@@ -2351,13 +2351,14 @@
         + '<div class="sub">Còn '+dDeadline+' ngày tới nghiệm thu (08/2027) · cập nhật: '+esc(D.capNhat)+whoLbl+'</div>'
         + '<div class="chips"><span class="chip">🔴 <b>'+nRed+'</b> quá hạn</span><span class="chip">🟠 <b>'+nBehind+'</b> chậm kỳ vọng</span><span class="chip">📍 <b>'+nWeek+'</b> đến hạn tuần này</span></div></div>';
 
+      // Chỉ hiện tiến độ CÔNG VIỆC (chuTri/hoTro — vai trò chính thức trong WBS). KHÔNG liệt kê
+      // "GV còn lại" ở đây nữa: đó là các mục giao việc chi tiết trong kế hoạch WBS, CHƯA qua
+      // phiếu giao việc chính thức — xem gợi ý tương ứng ở tab Giao việc khi chọn công việc.
       G("gst-urgent").innerHTML = urgent.length ? urgent.map(function(c){
         var cls=c._r.lv==="behind"?"behind":"";
-        var gvLeft=(c.giaoViec||[]).filter(function(g){return !(g.xong||(g.tienDo||0)>=100);});
         return '<div class="urg '+cls+'"><div class="uth"><span class="utt"><span class="num">'+esc(c.ma)+'</span> '+esc(c.ten)+'</span><span class="rs">'+esc(c._r.rs)+'</span></div>'
           + '<div class="meta"><span class="tag-nd">'+esc(c.nd)+'</span> · 👤 '+esc(nguoiText(c))+' · 🗓 hạn '+esc(c.deadline)+' · '+(c.tienDo||0)+'%</div>'
           + '<div class="push">▶ Đẩy nhanh để đạt: '+esc(c.ketQuaCanDat||c.ten)+'</div>'
-          + (gvLeft.length?'<div class="gvmini">GV còn lại: '+gvLeft.map(function(g){return esc(g.ma)+" "+esc(g.ten)+" ("+(g.tienDo||0)+"% · "+esc(g.nguoiNhan||"")+")";}).join("; ")+'</div>':'')
           + '</div>';
       }).join("") : '<div class="empty">✅ '+(who?esc(who)+' không có':'Không có')+' nội dung chậm tiến độ — đang bám đúng kế hoạch.</div>';
       G("khantruong-block").classList.toggle("has-urgent", urgent.length>0);
