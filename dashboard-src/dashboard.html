@@ -247,7 +247,6 @@
   .wbs-gvwrap{margin:6px 0 4px 8px}
   .wbs-gv{display:flex;align-items:center;gap:8px;font-size:.84rem;padding:4px 0;border-bottom:1px dotted var(--line)}
   .wbs-gv:last-child{border-bottom:0}
-  .wbs-gv-draft{opacity:.55;font-style:italic}
   .gvmark{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;border:1px solid var(--grey);color:var(--grey);font-size:.72rem;flex:0 0 auto}
   .gvmark.on{background:var(--green-bg);border-color:var(--green);color:var(--green)}
   .gvmeta{color:var(--muted);font-size:.78rem;margin-left:4px}
@@ -551,6 +550,7 @@
             <select id="gv2-cv-select" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem">
               <option value="">— Chọn công việc từ WBS —</option>
             </select>
+            <div id="gv2-cv-suggest" style="display:none;margin-top:8px"></div>
           </div>
           <div class="fld2">
             <div>
@@ -612,12 +612,6 @@
     <section class="block" id="khantruong-block">
       <h2>⚠️ Cần khẩn trương — công việc chậm tiến độ <span class="note">(đẩy nhanh để hoàn thành)</span></h2>
       <div id="gst-urgent"></div>
-    </section>
-
-    <!-- Gợi ý từ kế hoạch WBS — CHƯA giao chính thức, chưa xác định người -->
-    <section class="block" id="gv2-draft-section" style="display:none;border-left:4px solid var(--line)">
-      <h2 style="color:var(--muted)">🔲 Gợi ý từ kế hoạch <span class="note">(còn tồn tại, cần giải quyết — chưa giao chính thức, chưa xác định người. Bấm "✓ Giao chính thức" để hoàn chỉnh ở đây)</span></h2>
-      <div id="gv2-draft"></div>
     </section>
 
     <!-- Việc chờ chủ nhiệm duyệt -->
@@ -983,6 +977,7 @@
             <select id="gv2-cv-selectH" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem">
               <option value="">— Chọn công việc hành chính từ WBS —</option>
             </select>
+            <div id="gv2-cv-suggestH" style="display:none;margin-top:8px"></div>
           </div>
           <div class="fld2">
             <div>
@@ -1041,11 +1036,6 @@
     <section class="block" id="khantruong-blockH">
       <h2>⚠️ Cần khẩn trương — công việc chậm tiến độ <span class="note">(đẩy nhanh để hoàn thành)</span></h2>
       <div id="gst-urgentH"></div>
-    </section>
-
-    <section class="block" id="gv2-draft-sectionH" style="display:none;border-left:4px solid var(--line)">
-      <h2 style="color:var(--muted)">🔲 Gợi ý từ kế hoạch <span class="note">(còn tồn tại, cần giải quyết — chưa giao chính thức, chưa xác định người)</span></h2>
-      <div id="gv2-draftH"></div>
     </section>
 
     <section class="block" id="gv2-approve-sectionH" style="display:none;border-left:4px solid var(--orange)">
@@ -1300,17 +1290,11 @@
   Object.keys(whoSet).sort().forEach(function(w){ fWho.insertAdjacentHTML("beforeend",'<option>'+esc(w)+'</option>'); });
   ndSet.forEach(function(n){ fNd.insertAdjacentHTML("beforeend",'<option>'+esc(n)+'</option>'); });
 
-  // GV trong WBS chỉ coi là "đã giao chính thức" khi CNĐT bấm xác nhận ở tab Giao việc
-  // (nafosted_gv_state[ma].confirmed) — đọc trực tiếp localStorage vì gvMark ở IIFE khác.
-  function gvConfirmed(ma){
-    try{ var st=JSON.parse(localStorage.getItem('nafosted_gv_state')||'{}'); return !!(st[ma]&&st[ma].confirmed); }catch(e){ return false; }
-  }
   function gvMark(g){
     var done = g.xong || (g.tienDo||0)>=100;
-    var draft = !done && !gvConfirmed(g.ma);
-    return '<div class="wbs-gv'+(draft?" wbs-gv-draft":"")+'"><span class="gvmark '+(done?"on":"")+'">'+(done?"✓":"○")+'</span>'
+    return '<div class="wbs-gv"><span class="gvmark '+(done?"on":"")+'">'+(done?"✓":"○")+'</span>'
       + '<span class="num">GV '+esc(g.ma)+'</span> '+esc(g.ten)
-      + '<span class="gvmeta">'+(draft?'gợi ý: ':'')+esc(g.nguoiNhan||"—")+(g.deadline?' · hạn '+esc(g.deadline):'')+(draft?' · <i>chưa giao chính thức</i>':'')+'</span>'
+      + '<span class="gvmeta">'+esc(g.nguoiNhan||"—")+(g.deadline?' · hạn '+esc(g.deadline):'')+'</span>'
       + '<span class="mini"><i class="fill-'+(done?"xong":"dangLam")+'" style="width:'+(g.tienDo||0)+'%"></i></span><span class="gvpct">'+(g.tienDo||0)+'%</span></div>';
   }
   function cvBlock(cv){
@@ -1675,13 +1659,12 @@
         tieuMuc: tieuMuc,
         khongTieuMuc: khongTieuMuc,
         // báo cáo đã thả lên thư mục Raw: {tenChuan, ngay, link}
-        baoCao: s.baoCao || null,
-        // GV gợi ý từ WBS (_src:"data") CHỈ coi là đã giao chính thức khi CNĐT bấm xác nhận
-        confirmed: !!s.confirmed
+        baoCao: s.baoCao || null
       });
     }
-    // GV gợi ý từ WBS, chưa được CNĐT bấm "✓ Giao chính thức" → hiện mờ, tách riêng khỏi danh sách chính thức
-    function isDraftGV(g){ return g._src==="data" && !g.confirmed && g.duyet!=="dat"; }
+    // GV gợi ý từ WBS (_src:"data", chưa qua form "Tạo phiếu giao việc mới") không tính là việc
+    // chính thức — không hiện trong bảng Tiến độ cá nhân, chỉ tham khảo khi tạo phiếu ở tab Giao việc.
+    function isDraftGV(g){ return g._src==="data" && g.duyet!=="dat"; }
 
     // Giai đoạn vòng đời (4 bước): Giao → Đang làm → Nộp → Đạt
     var STAGES=["Giao","Đang làm","Nộp","Đạt"];
@@ -1759,9 +1742,30 @@
         });
         if(grp.children.length) selCV.appendChild(grp);
       });
+      var sugBox=G("gv2-cv-suggest");
       selCV.addEventListener("change",function(){
         var o=selCV.options[selCV.selectedIndex];
         if(o&&o.value){ G("gv2-ketqua").value=o.dataset.kq||""; G("gv2-deadline").value=toYMD(o.dataset.dl); }
+        // Gợi ý GV từ kế hoạch WBS cho công việc vừa chọn — bấm để điền nhanh người nhận + hạn (vẫn
+        // phải tự bấm "📋 Giao việc" để tạo phiếu thật, không tự động tạo).
+        if(!sugBox) return;
+        var cv=o&&o.value?D.congViec.find(function(c){return c.ma===o.value;}):null;
+        var gvList=(cv&&cv.giaoViec)||[];
+        if(gvList.length){
+          sugBox.style.display="block";
+          sugBox.innerHTML='<div style="font-size:.78rem;color:var(--muted);margin-bottom:4px">🔲 Gợi ý từ kế hoạch — bấm để điền nhanh người nhận + hạn:</div>'
+            + gvList.map(function(g,i){
+                return '<button type="button" class="gv2-sugchip btn-print" data-i="'+i+'" style="font-size:.78rem;padding:4px 10px;margin:0 4px 4px 0;background:var(--bg);border:1px dashed var(--line);color:var(--muted)">'
+                  + esc(g.ma)+' '+esc(g.ten)+' — '+esc(g.nguoiNhan||"?")+(g.deadline?' · '+esc(g.deadline):'')+' · '+(g.tienDo||0)+'%</button>';
+              }).join("");
+          sugBox.querySelectorAll(".gv2-sugchip").forEach(function(chip){
+            chip.addEventListener("click",function(){
+              var g=gvList[+chip.dataset.i]; if(!g) return;
+              selNhan.value=g.nguoiNhan||"";
+              if(g.deadline) G("gv2-deadline").value=toYMD(g.deadline);
+            });
+          });
+        } else { sugBox.style.display="none"; sugBox.innerHTML=""; }
       });
       var nGiao=G("gv2-ngaygiao"); if(nGiao&&!nGiao.value) nGiao.value=nowD();
       G("gv2-create-btn").addEventListener("click",function(){
@@ -1930,21 +1934,6 @@
       return h;
     }
 
-    // Thẻ MỜ cho GV gợi ý từ kế hoạch WBS — còn tồn tại, cần giải quyết, nhưng CHƯA giao chính thức.
-    // Không có input tương tác (không sửa %, không nộp) — chỉ 1 nút mở form tạo phiếu chính thức.
-    function draftCard(g){
-      var h='<div class="gv2-card gv2-draftcard">';
-      h+='<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:5px">';
-      h+='<div><span style="font-size:.75rem;color:var(--muted)">['+esc(g.cvMa||g.nd||g.ma)+'] </span><b>'+esc(g.ten)+'</b>';
-      if(g.cvTen) h+='<br><span style="font-size:.78rem;color:var(--muted)">▶ '+esc(g.cvTen)+'</span>';
-      h+='</div><div style="text-align:right;white-space:nowrap;min-width:110px"><span class="badge" style="background:var(--line);color:var(--muted)">🔲 Gợi ý</span></div></div>';
-      h+='<div style="font-size:.8rem;color:var(--muted);margin-bottom:5px">Người gợi ý: <i>'+esc(g.nguoiNhan||"chưa xác định")+'</i> <span style="font-size:.74rem">(chưa chốt — CNĐT chọn khi giao chính thức)</span></div>';
-      if(g.deadline||g.tienDo) h+='<div style="font-size:.76rem;color:var(--muted);margin-bottom:5px">📅 Hạn dự kiến: '+esc(g.deadline||"—")+' · Tiến độ kế hoạch: '+(g.tienDo||0)+'%</div>';
-      if(g.ketQuaCanDat) h+='<div style="font-size:.82rem;border-left:3px solid var(--line);padding-left:8px;margin:5px 0;line-height:1.4;color:var(--muted)">🎯 '+esc(g.ketQuaCanDat)+'</div>';
-      h+='<div style="margin-top:8px"><button class="gv2-confirm-btn btn-print" data-ma="'+esc(g.ma)+'" data-cvma="'+esc(g.cvMa||"")+'" data-sfx="'+(scopeOf(g)==="hc"?"H":"")+'" style="font-size:.82rem;padding:5px 14px;background:var(--navy);color:#fff">✓ Giao chính thức</button></div>';
-      h+='</div>';
-      return h;
-    }
 
     // Thẻ chờ CNĐT duyệt
     function approveCard(g){
@@ -2022,20 +2011,10 @@
       var stt=ST[sfx];
       if(!G("gv2-active")) return;
 
-      // Bảng "Tiến độ cá nhân" CHỈ liệt kê việc CHÍNH THỨC đã giao — gợi ý từ WBS chưa xác nhận
-      // không tính. Khối "🔲 Gợi ý từ kế hoạch" (công cụ lập kế hoạch, không phải tiến độ cá nhân
-      // thật) CHỈ hiện với admin — thành viên thường không cần thấy việc org-wide chưa ai nhận.
-      var draftAll=itemsAll.filter(isDraftGV);
+      // Bảng "Tiến độ cá nhân" CHỈ liệt kê việc CHÍNH THỨC đã giao — gợi ý từ WBS (chưa tạo phiếu
+      // thật) không tính vào đây. Xem gợi ý cho 1 công việc cụ thể ở tab Giao việc khi chọn công
+      // việc từ dropdown "Tạo phiếu giao việc mới".
       var items=itemsAll.filter(function(g){return !isDraftGV(g);});
-      var draftSec=G("gv2-draft-section");
-      if(draftSec){
-        if(VIEWER_IS_ADMIN && draftAll.length){
-          draftSec.style.display="block";
-          G("gv2-draft").innerHTML=draftAll
-            .sort(function(a,b){return String(a.deadline||"z")<String(b.deadline||"z")?-1:1;})
-            .map(draftCard).join("");
-        } else { draftSec.style.display="none"; G("gv2-draft").innerHTML=""; }
-      }
 
       // 1) Hàng đợi chờ CNĐT duyệt
       var pending=items.filter(function(g){return g.duyet==="cho";});
@@ -2136,24 +2115,6 @@
       document.querySelectorAll(".gv2-tmadd").forEach(function(inp){
         inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); addTM(inp.dataset.ma,inp.value); } });
       });
-      // ✓ Giao chính thức — GV gợi ý từ WBS: đánh dấu confirmed + mở form tạo phiếu (đã prefill công việc,
-      // CHỪA TRỐNG người nhận để CNĐT tự chốt) ở đúng tab Giao việc (chuyên môn/hành chính theo data-sfx).
-      document.querySelectorAll(".gv2-confirm-btn").forEach(function(b){
-        b.addEventListener("click",function(){
-          var ma=b.dataset.ma, cvMa=b.dataset.cvma, sfx=b.dataset.sfx||"";
-          var s=loadState(); s[ma]=Object.assign(s[ma]||{},{confirmed:true}); saveState(s);
-          var grpBtn=document.querySelector('.groupbtn[data-group="'+(sfx==="H"?"hanhchinh":"chuyenmon")+'"]');
-          if(grpBtn) grpBtn.click();
-          var tabBtn=document.querySelector('.subbtn[data-tab="'+(sfx==="H"?"giaoviecHC":"giaoviec")+'"]');
-          if(tabBtn) tabBtn.click();
-          var panel=document.getElementById("gv2-create-panel"+sfx); if(panel) panel.setAttribute("open","");
-          var sel=document.getElementById("gv2-cv-select"+sfx);
-          if(sel&&cvMa){ sel.value=cvMa; sel.dispatchEvent(new Event("change")); }
-          var nh=document.getElementById("gv2-nguoinhan"+sfx); if(nh) nh.value=""; // chưa xác định — CNĐT tự chọn
-          setTimeout(function(){ if(panel) panel.scrollIntoView({behavior:"smooth",block:"start"}); },60);
-          render();
-        });
-      });
       // ✓ Duyệt / ↩ bỏ duyệt 1 tiểu mục (chốt cuối cấp tiểu mục → 🟢)
       document.querySelectorAll(".gv2-tmduyet").forEach(function(b){
         b.addEventListener("click",function(){
@@ -2181,15 +2142,20 @@
           var g=buildAll().map(function(x){return applyState(x,loadState());}).filter(function(x){return x.ma===ma;})[0];
           if(!g) return;
           var tc=tenChuan(g);
-          if(HOSTED_GV){   // Vercel: upload thật → /api/upload (đổi tên + bỏ vào Raw ngay)
+          if(HOSTED_GV){   // Vercel: upload thật → /api/upload (đổi tên + xếp vào Raw phân tầng ND/Công việc)
             var inp=document.createElement("input"); inp.type="file";
             inp.onchange=function(){ var f=inp.files[0]; if(!f) return;
               var ext=(f.name.match(/\.[^.]+$/)||[""])[0];
-              var fd=new FormData(); fd.append("file",f); fd.append("ma",ma); fd.append("tenChuan",tc+ext);
+              var fd=new FormData();
+              fd.append("file",f); fd.append("ma",ma); fd.append("tenChuan",tc+ext);
+              fd.append("nd",g.nd||""); fd.append("cvMa",g.cvMa||""); fd.append("cvTen",g.cvTen||"");
               btn.textContent="⏳ Đang tải lên…";
               fetch("/api/upload",{method:"POST",credentials:"same-origin",body:fd})
                 .then(function(r){return r.json();})
-                .then(function(j){ var s=loadState(); s[ma]=Object.assign(s[ma]||{},{baoCao:{tenChuan:tc+ext,ngay:nowD(),link:(j&&j.link)||""}}); saveState(s); render(); })
+                .then(function(j){
+                  if(!j||!j.ok){ btn.textContent="📤 Nộp báo cáo"; alert("Lỗi tải lên: "+((j&&j.error)||"không rõ nguyên nhân")); return; }
+                  var s=loadState(); s[ma]=Object.assign(s[ma]||{},{baoCao:{tenChuan:tc+ext,ngay:nowD(),link:j.link||""}}); saveState(s); render();
+                })
                 .catch(function(){ btn.textContent="📤 Nộp báo cáo"; alert("Lỗi tải lên — kiểm tra đăng nhập."); });
             };
             inp.click(); return;
@@ -2385,20 +2351,13 @@
         + '<div class="sub">Còn '+dDeadline+' ngày tới nghiệm thu (08/2027) · cập nhật: '+esc(D.capNhat)+whoLbl+'</div>'
         + '<div class="chips"><span class="chip">🔴 <b>'+nRed+'</b> quá hạn</span><span class="chip">🟠 <b>'+nBehind+'</b> chậm kỳ vọng</span><span class="chip">📍 <b>'+nWeek+'</b> đến hạn tuần này</span></div></div>';
 
-      // GV trong WBS chỉ coi là "đã giao chính thức" khi CNĐT bấm xác nhận ở tab Giao việc
-      function gvConfirmed(ma){
-        try{ var st=JSON.parse(localStorage.getItem('nafosted_gv_state')||'{}'); return !!(st[ma]&&st[ma].confirmed); }catch(e){ return false; }
-      }
       G("gst-urgent").innerHTML = urgent.length ? urgent.map(function(c){
         var cls=c._r.lv==="behind"?"behind":"";
         var gvLeft=(c.giaoViec||[]).filter(function(g){return !(g.xong||(g.tienDo||0)>=100);});
         return '<div class="urg '+cls+'"><div class="uth"><span class="utt"><span class="num">'+esc(c.ma)+'</span> '+esc(c.ten)+'</span><span class="rs">'+esc(c._r.rs)+'</span></div>'
           + '<div class="meta"><span class="tag-nd">'+esc(c.nd)+'</span> · 👤 '+esc(nguoiText(c))+' · 🗓 hạn '+esc(c.deadline)+' · '+(c.tienDo||0)+'%</div>'
           + '<div class="push">▶ Đẩy nhanh để đạt: '+esc(c.ketQuaCanDat||c.ten)+'</div>'
-          + (gvLeft.length?'<div class="gvmini">GV còn lại: '+gvLeft.map(function(g){
-              var draft=!gvConfirmed(g.ma);
-              return '<span'+(draft?' style="opacity:.6;font-style:italic"':'')+'>'+esc(g.ma)+" "+esc(g.ten)+" ("+(g.tienDo||0)+"% · "+(draft?"gợi ý: ":"")+esc(g.nguoiNhan||"")+(draft?" · chưa giao chính thức":"")+")</span>";
-            }).join("; ")+'</div>':'')
+          + (gvLeft.length?'<div class="gvmini">GV còn lại: '+gvLeft.map(function(g){return esc(g.ma)+" "+esc(g.ten)+" ("+(g.tienDo||0)+"% · "+esc(g.nguoiNhan||"")+")";}).join("; ")+'</div>':'')
           + '</div>';
       }).join("") : '<div class="empty">✅ '+(who?esc(who)+' không có':'Không có')+' nội dung chậm tiến độ — đang bám đúng kế hoạch.</div>';
       G("khantruong-block").classList.toggle("has-urgent", urgent.length>0);
