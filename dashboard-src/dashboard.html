@@ -746,8 +746,6 @@
       <!-- Sync bar -->
       <div class="sop-sync-bar">
         <span class="sop-sync-status" id="sop-sync-status">💾 Lưu trình duyệt</span>
-        <button class="sop-sync-btn" onclick="sop_loadFromCloud()">⬇ Tải từ Drive</button>
-        <button class="sop-sync-btn" onclick="sop_syncToCloud()">☁ Đẩy lên Drive</button>
       </div>
 
       <!-- Tab bar nội bộ SOP -->
@@ -756,9 +754,19 @@
         <button class="sop-tabbtn" data-stab="extract" onclick="sop_switchTab('extract')">2 · Chiết mẫu <span class="spill">nhập số liệu</span></button>
       </div>
 
-      <!-- Quản lý mẻ mẫu (chung 2 tab) -->
+      <!-- Chọn / quản lý MẺ CHIẾT -->
+      <div class="sop-batch-box" id="sop-me-box">
+        <div class="bb-title">Mẻ chiết <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">— mỗi mẻ có mã dược liệu + số liệu + checklist riêng</span></div>
+        <div class="sop-bb-add">
+          <input id="sop-new-me" type="text" placeholder="Tên mẻ (để trống = tự đặt 'Mẻ chiết n') → Enter hoặc bấm Thêm">
+          <button onclick="sop_addBatch()">+ Thêm mẻ chiết</button>
+        </div>
+        <div class="sop-bb-chips" id="sop-me-chips"></div>
+      </div>
+
+      <!-- Mã dược liệu trong mẻ đang chọn -->
       <div class="sop-batch-box">
-        <div class="bb-title">Danh sách mẫu trong mẻ chiết</div>
+        <div class="bb-title">Mã dược liệu trong <span id="sop-me-label" style="color:var(--navy)">mẻ đang chọn</span></div>
         <div class="sop-bb-add">
           <input id="sop-new-ma" type="text" placeholder="Mã dược liệu (vd. BV-052) → Enter hoặc bấm Thêm">
           <button onclick="sop_addSample()">+ Thêm mẫu</button>
@@ -873,14 +881,12 @@
           <div class="sop-dc-grid">
             <div class="sop-dc-field"><label>Hàm ẩm bột (%)</label><input type="text" data-f="ham_am" inputmode="decimal" placeholder="vd. 8,20"></div>
             <div class="sop-dc-field"><label>m bột đem chiết (g)</label><input type="text" data-f="m_bot" inputmode="decimal" placeholder="≈ 5,00"></div>
-            <div class="sop-dc-field"><label>V dịch chiết tổng sau 3 lần (ml)</label><input type="text" data-f="v_dich" inputmode="decimal" placeholder="≈ 50"></div>
             <div class="sop-dc-field"><label>m cốc cô rỗng + nhãn (g)</label><input type="text" data-f="m_coc" inputmode="decimal" placeholder="cân phân tích 4 số"></div>
-            <div class="sop-dc-field"><label>m đũa thủy tinh (g, nếu có)</label><input type="text" data-f="m_dua" inputmode="decimal" placeholder="0 nếu không dùng"></div>
             <div class="sop-dc-field"><label>m cốc + cao sau sấy (g)</label><input type="text" data-f="m_coc_cao" inputmode="decimal" placeholder="cân phân tích 4 số"></div>
             <div class="sop-dc-field calc"><label>→ m cao khô (g)</label><input type="text" id="sop-calc-cao" readonly></div>
             <div class="sop-dc-field calc"><label>→ Hiệu suất / khối lượng khô (%)</label><input type="text" id="sop-calc-hs" readonly></div>
           </div>
-          <div class="sop-dc-formula">m<sub>cao khô</sub> = m<sub>cốc+cao</sub> − m<sub>cốc rỗng</sub> − m<sub>đũa</sub> &nbsp;·&nbsp; H(%) = m<sub>cao khô</sub> / [m<sub>bột</sub> × (1 − hàm ẩm/100)] × 100</div>
+          <div class="sop-dc-formula">m<sub>cao khô</sub> = m<sub>cốc+cao</sub> − m<sub>cốc rỗng</sub> &nbsp;·&nbsp; H(%) = m<sub>cao khô</sub> / [m<sub>bột</sub> × (1 − hàm ẩm/100)] × 100</div>
           <div class="sop-dc-grp">Lưu mẫu (ống Eppendorf 1,5 ml)</div>
           <div class="sop-dc-grid">
             <div class="sop-dc-field"><label>m ống rỗng (g)</label><input type="text" data-f="m_ong" inputmode="decimal" placeholder="cân phân tích"></div>
@@ -943,7 +949,7 @@
             <div class="sop-grp-title">Gộp dịch chiết 3 lần</div>
             <ul class="sop-cl">
               <li><input type="checkbox"><label>Lọc lại dịch gộp qua giấy lọc cho trong, hết cắn mịn</label></li>
-              <li><input type="checkbox"><label><b>Đo/ghi thể tích dịch chiết tổng ~50 ml</b> → điền ô "V dịch chiết tổng"</label></li>
+              <li><input type="checkbox"><label>Gộp dịch 3 lần lại (~50 ml) — cô toàn bộ, không cần đo thể tích</label></li>
             </ul>
           </div>
         </div>
@@ -962,7 +968,7 @@
               <li><input type="checkbox"><label>Chuyển toàn bộ ~50 ml dịch vào cốc; tráng lọ gộp bằng ít methanol, dồn vào cốc</label></li>
               <li><input type="checkbox"><label>Cô cách thủy ~80 °C (lót vải đáy, không sôi sùng sục) hoặc cô quay chân không ~40 °C</label></li>
               <li><input type="checkbox"><label>Còn ~2–5 ml/sền sệt → chuyển tủ sấy 60 °C đến khô hoàn toàn</label></li>
-              <li><input type="checkbox"><label>Quá sánh đặc: dùng đũa thủy tinh (đã cân) phết cao theo thành cốc; để đũa trong cốc (tính là bì) → ghi ô "m đũa"</label></li>
+              <li><input type="checkbox"><label>Quá sánh đặc: dùng đũa/thìa thủy tinh phết cao theo thành cốc, rồi lấy đũa ra (không để trong cốc, không tính vào bì)</label></li>
               <li><input type="checkbox"><label>Cô đến cao khô hoàn toàn: chênh lệch 2 lần cân liên tiếp ≤0,5 mg</label></li>
             </ul>
           </div>
@@ -2726,11 +2732,38 @@
 
 /* ===== SOP & Dữ liệu thực nghiệm ===== */
 (function(){
-  var SK='sop2-samples', AK='sop2-active', TK='sop2-tab';
-  var DATA_FIELDS=['ngay','nguoi','ham_am','m_bot','v_dich','m_coc','m_dua','m_coc_cao','m_ong','m_ong_cao','noi_luu','tt_invitro','ngay_gui','noi_nhan_invitro','ghichu'];
+  var SK='sop2-samples', AK='sop2-active', TK='sop2-tab', BK='sop2-batches', ABK='sop2-active-batch';
+  var DATA_FIELDS=['ngay','nguoi','ham_am','m_bot','m_coc','m_coc_cao','m_ong','m_ong_cao','noi_luu','tt_invitro','ngay_gui','noi_nhan_invitro','ghichu'];
+  // Ô GIÁ TRỊ bắt buộc điền + tính đủ để 1 mẫu coi là hoàn thành số liệu (dùng cho tiêu chí "mẻ hoàn thành")
+  var REQ_NUM_FIELDS=['ham_am','m_bot','m_coc','m_coc_cao','m_ong','m_ong_cao'];
 
-  function sop_getSamples(){ try{ return JSON.parse(localStorage.getItem(SK)||'[]'); }catch(e){ return []; } }
-  function sop_setSamples(a){ localStorage.setItem(SK,JSON.stringify(a)); }
+  /* ---------- MẺ CHIẾT: gom mẫu theo mẻ; mỗi mẻ có checklist "dùng chung" riêng ---------- */
+  function sop_getBatches(){ try{ var b=JSON.parse(localStorage.getItem(BK)||'[]'); return Array.isArray(b)?b:[]; }catch(e){ return []; } }
+  function sop_setBatches(b){ localStorage.setItem(BK,JSON.stringify(b)); }
+  function sop_getActiveBatch(){ return localStorage.getItem(ABK)||''; }
+  function sop_setActiveBatch(id){ localStorage.setItem(ABK,id); }
+  function sop_batchObj(id){ return sop_getBatches().filter(function(b){ return b.id===id; })[0]||null; }
+  function sop_nextBatchId(){ var bs=sop_getBatches(),n=1; while(bs.some(function(b){return b.id==='me'+n;})) n++; return 'me'+n; }
+  function sop_nextBatchName(){ var bs=sop_getBatches(),n=1; while(bs.some(function(b){return b.ten==='Mẻ chiết '+n;})) n++; return 'Mẻ chiết '+n; }
+  // Bảo đảm luôn có ≥1 mẻ + mẻ đang chọn hợp lệ; MIGRATE dữ liệu cũ (samples phẳng + global không mẻ) → Mẻ chiết 1
+  function sop_ensureBatch(){
+    var bs=sop_getBatches();
+    if(!bs.length){
+      var old=[]; try{ old=JSON.parse(localStorage.getItem(SK)||'[]'); }catch(e){}
+      bs=[{id:'me1',ten:'Mẻ chiết 1',samples:old}];
+      sop_setBatches(bs); sop_setActiveBatch('me1');
+      ['prep','extract'].forEach(function(proc){ [1,2,3,4,5,6].forEach(function(s){
+        var v=localStorage.getItem('sop2-global::'+proc+'::'+s);
+        if(v!==null && localStorage.getItem('sop2-global::me1::'+proc+'::'+s)===null) localStorage.setItem('sop2-global::me1::'+proc+'::'+s,v);
+      }); });
+    }
+    if(!sop_getActiveBatch()||!sop_batchObj(sop_getActiveBatch())) sop_setActiveBatch(bs[0].id);
+    return sop_getActiveBatch();
+  }
+
+  // samples được scope theo MẺ đang chọn
+  function sop_getSamples(){ var b=sop_batchObj(sop_getActiveBatch()); return b?(b.samples||[]).slice():[]; }
+  function sop_setSamples(a){ var bs=sop_getBatches(),id=sop_getActiveBatch(); bs.forEach(function(b){ if(b.id===id) b.samples=a; }); sop_setBatches(bs); }
   function sop_getActive(){ return localStorage.getItem(AK)||''; }
   function sop_setActive(ma){ localStorage.setItem(AK,ma); }
   function sop_currentProcess(){
@@ -2740,7 +2773,7 @@
   function sop_ckKey(ma,process){ return 'sop2-sample::'+process+'::'+ma; }
   function sop_fKey(ma){ return 'sop2-fields::'+ma; }
   function sop_photoKey(ma){ return 'sop2-photos::'+ma; }
-  function sop_globalKey(process){ return 'sop2-global::'+process; }
+  function sop_globalKey(process){ return 'sop2-global::'+sop_getActiveBatch()+'::'+process; }
 
   /* ---------- sample manager ---------- */
   window.sop_addSample = function(){
@@ -2748,6 +2781,7 @@
     if(!inp) return;
     var ma=(inp.value||'').trim().toUpperCase();
     if(!ma){ inp.focus(); return; }
+    sop_ensureBatch();
     var arr=sop_getSamples();
     if(arr.indexOf(ma)<0){ arr.push(ma); sop_setSamples(arr); }
     inp.value='';
@@ -2778,6 +2812,97 @@
     sop_updateAllProgress();
     sop_scheduleAutoSync();
   };
+
+  /* ---------- batch (mẻ chiết) manager ---------- */
+  function esc2(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  window.sop_addBatch = function(){
+    sop_ensureBatch();
+    var inp=document.getElementById('sop-new-me');
+    var nm=inp?(inp.value||'').trim():'';
+    if(!nm) nm=sop_nextBatchName();
+    var bs=sop_getBatches(), id=sop_nextBatchId();
+    bs.push({id:id,ten:nm,samples:[]}); sop_setBatches(bs);
+    sop_setActiveBatch(id); sop_setActive('');
+    if(inp) inp.value='';
+    sop_renderBatches(); sop_renderChips(); sop_loadActiveIntoForm(); sop_updateAllProgress();
+    sop_scheduleAutoSync();
+  };
+  window.sop_activateBatch = function(id){
+    sop_persistActiveSample();
+    sop_setActiveBatch(id);
+    var s=sop_getSamples(); sop_setActive(s.length?s[0]:'');
+    sop_renderBatches(); sop_renderChips(); sop_loadActiveIntoForm(); sop_updateAllProgress();
+    sop_scheduleAutoSync();
+  };
+  window.sop_renameBatch = function(id,e){
+    if(e){ e.stopPropagation(); }
+    var b=sop_batchObj(id); if(!b) return;
+    var nm=prompt('Đổi tên mẻ chiết:', b.ten); if(nm===null) return; nm=nm.trim(); if(!nm) return;
+    var bs=sop_getBatches(); bs.forEach(function(x){ if(x.id===id) x.ten=nm; }); sop_setBatches(bs);
+    sop_renderBatches(); sop_scheduleAutoSync();
+  };
+  window.sop_removeBatch = function(id,e){
+    if(e){ e.stopPropagation(); }
+    var bs=sop_getBatches();
+    if(bs.length<=1){ alert('Phải còn ít nhất 1 mẻ chiết.'); return; }
+    var b=sop_batchObj(id);
+    if(!confirm('Xóa '+(b?b.ten:'mẻ')+'? (Số liệu mẫu trong mẻ vẫn giữ trong trình duyệt.)')) return;
+    bs=bs.filter(function(x){ return x.id!==id; }); sop_setBatches(bs);
+    if(sop_getActiveBatch()===id){ sop_setActiveBatch(bs[0].id); var s=sop_getSamples(); sop_setActive(s.length?s[0]:''); }
+    sop_renderBatches(); sop_renderChips(); sop_loadActiveIntoForm(); sop_updateAllProgress();
+    sop_scheduleAutoSync();
+  };
+  // Mẫu hoàn thành số liệu: mọi ô REQ_NUM_FIELDS đã điền + m cao/hiệu suất/m lưu tính được
+  function sop_sampleDataComplete(ma){
+    var d={}; try{ d=JSON.parse(localStorage.getItem(sop_fKey(ma))||'{}'); }catch(e){}
+    if(!REQ_NUM_FIELDS.every(function(f){ return d[f]!==undefined && String(d[f]).trim()!==''; })) return false;
+    var p=function(v){ return parseFloat(String(v||'').replace(',','.')); };
+    var mcao=p(d.m_coc_cao)-p(d.m_coc);
+    var denom=p(d.m_bot)*(1-p(d.ham_am)/100);
+    var hs=denom>0?mcao/denom*100:NaN;
+    var mluu=p(d.m_ong_cao)-p(d.m_ong);
+    return isFinite(mcao)&&isFinite(hs)&&isFinite(mluu);
+  }
+  // Trạng thái 1 mẻ ở tab hiện tại: % checklist (global mẻ + per-sample mọi mẫu); ok = hoàn thành
+  function sop_batchStatus(id){
+    var b=sop_batchObj(id); if(!b) return {pct:0,ok:false,nSample:0};
+    var samples=b.samples||[], proc=sop_currentProcess();
+    var panel=document.querySelector('.sop-tab-panel[data-process="'+proc+'"]');
+    var total=0,done=0;
+    if(panel){
+      panel.querySelectorAll('.sop-step[data-scope="global"]').forEach(function(s){
+        var n=s.querySelectorAll('input[type=checkbox]').length, arr=[];
+        try{ arr=JSON.parse(localStorage.getItem('sop2-global::'+id+'::'+proc+'::'+s.getAttribute('data-step'))||'[]'); }catch(e){}
+        for(var i=0;i<n;i++){ total++; if(arr[i]) done++; }
+      });
+      panel.querySelectorAll('.sop-step:not([data-scope="global"])').forEach(function(s){
+        var n=s.querySelectorAll('input[type=checkbox]').length, stp=s.getAttribute('data-step');
+        samples.forEach(function(ma){ var arr=[]; try{ arr=JSON.parse(localStorage.getItem('sop2-sample::'+proc+'::'+ma+'::'+stp)||'[]'); }catch(e){}
+          for(var i=0;i<n;i++){ total++; if(arr[i]) done++; } });
+      });
+    }
+    var ckAll=total>0 && done===total;
+    var dataAll=samples.length>0 && samples.every(sop_sampleDataComplete);
+    var pct=total>0?Math.round(done/total*100):0;
+    // "Quy trình chiết hoàn thành" (tab extract) = đủ checklist + đủ số liệu; tab prep chỉ xét checklist
+    var ok=(proc==='extract') ? (samples.length>0 && ckAll && dataAll) : (samples.length>0 && ckAll);
+    return {pct:pct,ok:ok,nSample:samples.length};
+  }
+  function sop_renderBatches(){
+    var wrap=document.getElementById('sop-me-chips'); if(!wrap) return;
+    var active=sop_getActiveBatch();
+    wrap.innerHTML=sop_getBatches().map(function(b){
+      var st=sop_batchStatus(b.id);
+      var cls='sop-chip'+(b.id===active?' active':'')+(st.ok?' done':'');
+      var badge=st.ok?'✓ hoàn thành':(st.pct+'%');
+      return '<span class="'+cls+'" onclick="sop_activateBatch(\''+b.id+'\')">'
+        +'🧪 '+esc2(b.ten)+' <span class="sc-pct">'+badge+'</span>'
+        +'<span class="sc-x" title="Đổi tên mẻ" onclick="sop_renameBatch(\''+b.id+'\',event)">✎</span>'
+        +'<span class="sc-x" title="Xóa mẻ" onclick="sop_removeBatch(\''+b.id+'\',event)">✕</span></span>';
+    }).join('');
+    var lbl=document.getElementById('sop-me-label'), cur=sop_batchObj(active);
+    if(lbl) lbl.textContent=cur?cur.ten:'mẻ đang chọn';
+  }
 
   function sop_sampleProgress(ma,process){
     var scope = (process==='prep') ? 'non-global' : 'non-global';
@@ -2865,11 +2990,10 @@
     var ham_am=sop_parse(document.querySelector('#tab-sopdata [data-f="ham_am"]')?document.querySelector('#tab-sopdata [data-f="ham_am"]').value:'');
     var m_bot=sop_parse(document.querySelector('#tab-sopdata [data-f="m_bot"]')?document.querySelector('#tab-sopdata [data-f="m_bot"]').value:'');
     var m_coc=sop_parse(document.querySelector('#tab-sopdata [data-f="m_coc"]')?document.querySelector('#tab-sopdata [data-f="m_coc"]').value:'');
-    var m_dua=sop_parse(document.querySelector('#tab-sopdata [data-f="m_dua"]')?document.querySelector('#tab-sopdata [data-f="m_dua"]').value:'');
     var m_coc_cao=sop_parse(document.querySelector('#tab-sopdata [data-f="m_coc_cao"]')?document.querySelector('#tab-sopdata [data-f="m_coc_cao"]').value:'');
     var m_ong=sop_parse(document.querySelector('#tab-sopdata [data-f="m_ong"]')?document.querySelector('#tab-sopdata [data-f="m_ong"]').value:'');
     var m_ong_cao=sop_parse(document.querySelector('#tab-sopdata [data-f="m_ong_cao"]')?document.querySelector('#tab-sopdata [data-f="m_ong_cao"]').value:'');
-    var mcao=m_coc_cao-m_coc-(isFinite(m_dua)?m_dua:0);
+    var mcao=m_coc_cao-m_coc;
     var denom=m_bot*(1-ham_am/100);
     var hs=(isFinite(mcao)&&isFinite(denom)&&denom>0)?(mcao/denom*100):NaN;
     var mluu=m_ong_cao-m_ong;
@@ -2942,6 +3066,7 @@
     if(gb) gb.style.width=gpct+'%';
     if(gpEl) gpEl.textContent=gpct+'%';
     sop_renderChips();
+    sop_renderBatches();
   }
 
   /* ---------- step toggle ---------- */
@@ -3012,38 +3137,36 @@
   }
 
   function sop_getPayload(){
-    var samples=sop_getSamples();
-    var fields={};
-    var checks={};
-    samples.forEach(function(ma){
+    var batches=sop_getBatches();
+    var allSamples=[];
+    batches.forEach(function(b){ (b.samples||[]).forEach(function(ma){ if(allSamples.indexOf(ma)<0) allSamples.push(ma); }); });
+    var fields={}, checks={};
+    allSamples.forEach(function(ma){
       try{ fields[ma]=JSON.parse(localStorage.getItem('sop2-fields::'+ma)||'{}'); }catch(e){}
-      ['prep','extract'].forEach(function(proc){
-        [1,2,3,4,5,6].forEach(function(s){
-          var k='sop2-sample::'+proc+'::'+ma+'::'+s;
-          var v=localStorage.getItem(k);
-          if(v){ try{ checks[k]=JSON.parse(v); }catch(e){} }
-        });
-      });
-    });
-    ['prep','extract'].forEach(function(proc){
-      [1,2,3,4,5,6].forEach(function(s){
-        var k='sop2-global::'+proc+'::'+s;
-        var v=localStorage.getItem(k);
+      ['prep','extract'].forEach(function(proc){ [1,2,3,4,5,6].forEach(function(s){
+        var k='sop2-sample::'+proc+'::'+ma+'::'+s, v=localStorage.getItem(k);
         if(v){ try{ checks[k]=JSON.parse(v); }catch(e){} }
-      });
+      }); });
     });
-    return {type:'sop', samples:samples, fields:fields, checks:checks};
+    // Checklist "dùng chung" lưu theo TỪNG mẻ
+    batches.forEach(function(b){ ['prep','extract'].forEach(function(proc){ [1,2,3,4,5,6].forEach(function(s){
+      var k='sop2-global::'+b.id+'::'+proc+'::'+s, v=localStorage.getItem(k);
+      if(v){ try{ checks[k]=JSON.parse(v); }catch(e){} }
+    }); }); });
+    return {type:'sop', samples:allSamples, batches:batches, fields:fields, checks:checks};
   }
 
   function sop_applyStoreData(data){
-    if(!data||(!data.samples&&!data.fields&&!data.checks)) return;
-    if(data.samples) sop_setSamples(data.samples);
+    if(!data||(!data.samples&&!data.fields&&!data.checks&&!data.batches)) return;
+    if(data.batches && data.batches.length){ sop_setBatches(data.batches); }
+    else if(data.samples){ sop_ensureBatch(); sop_setSamples(data.samples); }  // payload cũ (không có mẻ) → dồn vào mẻ hiện hành
     Object.keys(data.fields||{}).forEach(function(ma){
       localStorage.setItem('sop2-fields::'+ma, JSON.stringify(data.fields[ma]));
     });
     Object.keys(data.checks||{}).forEach(function(k){
       localStorage.setItem(k, JSON.stringify(data.checks[k]));
     });
+    sop_ensureBatch();
   }
 
   window.sop_syncToCloud = function(){
@@ -3097,9 +3220,11 @@
     document.querySelectorAll('#tab-sopdata .sop-tabbtn').forEach(function(b){ b.classList.toggle('active',b.getAttribute('data-stab')===savedTab); });
     document.querySelectorAll('#tab-sopdata .sop-tab-panel').forEach(function(p){ p.classList.toggle('active',p.getAttribute('data-process')===savedTab); });
 
-    // Enter on input
+    // Enter on input (mã dược liệu + tên mẻ)
     var inp=document.getElementById('sop-new-ma');
     if(inp) inp.addEventListener('keydown',function(e){ if(e.key==='Enter') sop_addSample(); });
+    var inpMe=document.getElementById('sop-new-me');
+    if(inpMe) inpMe.addEventListener('keydown',function(e){ if(e.key==='Enter') sop_addBatch(); });
 
     // Photo input
     var phi=document.getElementById('sop-photo-input');
@@ -3143,6 +3268,8 @@
     });
 
     // Init render
+    sop_ensureBatch();
+    sop_renderBatches();
     sop_renderChips();
     sop_loadActiveIntoForm();
     sop_updateAllProgress();
