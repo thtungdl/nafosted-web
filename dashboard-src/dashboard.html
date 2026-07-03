@@ -2080,6 +2080,27 @@
       if(l<=7) return '<span style="color:var(--amber);font-size:.78rem">⏰ Còn '+l+' ngày</span>';
       return '<span style="color:var(--muted);font-size:.78rem">📅 '+esc(g.deadline||"—")+'</span>';
     }
+    // Dải trạng thái thời gian — đọc mức khẩn của nhiệm vụ ở 3 THANG QUY CHIẾU khác nhau.
+    // Mỗi thang có QUY ƯỚC MÀU RIÊNG (hue riêng, sáng = còn xa hạn → đậm = sát hạn):
+    //   Tháng = chàm/indigo · Tuần = hổ phách/amber · Ngày = đỏ. Quá hạn = đỏ thẫm ⚠ (cả ba).
+    function tempoTxtOn(hex){ var c=hex.replace('#',''); var r=parseInt(c.substr(0,2),16),gg=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16); return (0.299*r+0.587*gg+0.114*b)>150?'#1f2937':'#fff'; }
+    function tempoBar(g){
+      var dd=dleft(g); if(dd===null) return '';
+      var OVER='#991b1b';
+      function seg(label, stops){
+        var col, st;
+        if(dd<0){ col=OVER; st='⚠ Quá hạn '+Math.abs(dd)+' ngày'; }
+        else { col=stops[stops.length-1][1]; st=stops[stops.length-1][2];
+          for(var i=0;i<stops.length;i++){ if(dd>=stops[i][0]){ col=stops[i][1]; st=stops[i][2]; break; } } }
+        return '<div style="flex:1;min-width:0;padding:3px 6px;display:flex;flex-direction:column;align-items:center;line-height:1.2;background:'+col+';color:'+tempoTxtOn(col)+'" title="'+esc('Thang '+label+' — '+st+' (còn '+dd+' ngày tới hạn)')+'">'
+          +'<span style="font-size:.6rem;letter-spacing:.03em;opacity:.85;text-transform:uppercase">'+label+'</span>'
+          +'<span style="font-size:.72rem;font-weight:700;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis">'+st+'</span></div>';
+      }
+      var thang=seg('Tháng', [[60,'#c7d2fe','≥ 2 tháng'],[30,'#818cf8','1–2 tháng'],[0,'#4f46e5','trong tháng']]);
+      var tuan =seg('Tuần',  [[21,'#fde68a','≥ 3 tuần'],[14,'#fbbf24','2–3 tuần'],[7,'#f59e0b','1–2 tuần'],[0,'#b45309','trong tuần']]);
+      var ngay =seg('Ngày',  [[7,'#fecaca','≥ 7 ngày'],[3,'#f87171','3–6 ngày'],[1,'#ef4444','1–2 ngày'],[0,'#dc2626','hôm nay']]);
+      return '<div style="display:flex;gap:2px;margin:6px 0;border-radius:6px;overflow:hidden" title="Trạng thái nhiệm vụ đọc ở 3 thang thời gian: Tháng · Tuần · Ngày">'+thang+tuan+ngay+'</div>';
+    }
     function mcHTML(g){
       if(!g.minhChung||!g.minhChung.length) return '';
       return '<div style="font-size:.8rem;margin:4px 0">📎 Minh chứng: '+g.minhChung.map(function(m){
@@ -2180,6 +2201,7 @@
       h+='<div style="margin:5px 0">'+stageBar(g)+'</div>';
       h+='<div style="font-size:.8rem;color:var(--muted);margin-bottom:5px">'+esc(g.nguoiGiao||"—")+' → <b>'+esc(g.nguoiNhan||"?")+'</b></div>';
       if(g.ngayGiao||g.deadline) h+='<div style="font-size:.76rem;color:var(--muted);margin-bottom:5px">🗓 Giao: <b>'+esc(g.ngayGiao||"—")+'</b> · 📅 Hạn: <b>'+esc(g.deadline||"—")+'</b></div>';
+      h+=tempoBar(g);
       if(g.ketQuaCanDat) h+='<div style="font-size:.82rem;border-left:3px solid var(--orange);padding-left:8px;margin:5px 0;line-height:1.4">🎯 '+esc(g.ketQuaCanDat)+'</div>';
       if(g.duyet==="chuaDat"&&g.gopY) h+='<div style="font-size:.82rem;background:rgba(220,80,60,.12);border-radius:6px;padding:6px 8px;margin:5px 0">↩ <b>CNĐT trả lại:</b> '+esc(g.gopY)+'</div>';
       // Nhận xét tự động (digest từ thư mục Raw)
