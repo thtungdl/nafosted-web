@@ -2080,22 +2080,25 @@
       if(l<=7) return '<span style="color:var(--amber);font-size:.78rem">⏰ Còn '+l+' ngày</span>';
       return '<span style="color:var(--muted);font-size:.78rem">📅 '+esc(g.deadline||"—")+'</span>';
     }
-    // Dải trạng thái thời gian — MỘT dải duy nhất theo ĐƠN VỊ NGÀY còn lại tới hạn.
-    // Màu chuyển dần theo số ngày: xanh (còn xa) → vàng → cam → đỏ (sát hạn); quá hạn = đỏ thẫm ⚠.
-    function tempoTxtOn(hex){ var c=hex.replace('#',''); var r=parseInt(c.substr(0,2),16),gg=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16); return (0.299*r+0.587*gg+0.114*b)>150?'#1f2937':'#fff'; }
+    // Dải trạng thái thời gian — PROGRESS BAR đếm theo thời gian đã trôi (ngày giao → hạn).
+    // Fill lớn dần khi tới gần hạn; dải màu gradient lộ dần: xanh (đầu) → cam (gần cuối) → đỏ (sát/quá hạn).
     function tempoBar(g){
-      var dd=dleft(g); if(dd===null) return '';
-      var col, st;
-      if(dd<0){ col='#991b1b'; st='⚠ Quá hạn '+Math.abs(dd)+' ngày'; }
-      else if(dd===0){ col='#dc2626'; st='🔥 Hôm nay là hạn'; }
-      else {
-        // stops giảm dần theo ngày còn lại; nhãn kèm số ngày cụ thể
-        var stops=[[60,'#16a34a'],[30,'#65a30d'],[14,'#ca8a04'],[7,'#f59e0b'],[3,'#f97316'],[1,'#ef4444']];
-        col=stops[stops.length-1][1];
-        for(var i=0;i<stops.length;i++){ if(dd>=stops[i][0]){ col=stops[i][1]; break; } }
-        st='⏳ Còn '+dd+' ngày tới hạn';
-      }
-      return '<div style="margin:6px 0;padding:4px 10px;border-radius:6px;text-align:center;font-size:.76rem;font-weight:700;background:'+col+';color:'+tempoTxtOn(col)+'" title="'+esc(st+(dd>=0?'':'')+' — hạn '+(g.deadline||'—'))+'">'+st+'</div>';
+      var end=pd(g.deadline); if(!end) return '';
+      var dd=dleft(g), start=pd(g.ngayGiao), pct;
+      if(start && end>start){ pct=(today-start)/(end-start)*100; }
+      else { var HZ=90; pct=(HZ-dd)/HZ*100; }   // không có mốc giao hợp lệ → quy ước cửa sổ 90 ngày
+      pct=Math.max(0,Math.min(100,pct));
+      if(dd<0) pct=100;
+      // Gradient trải trên TOÀN dải; fill chỉ để lộ phần bên trái (reveal dần) nhờ background-size.
+      var grad='linear-gradient(90deg,#16a34a 0%,#84cc16 28%,#eab308 52%,#f97316 76%,#dc2626 100%)';
+      var fillBg = dd<0 ? '#991b1b' : grad;
+      var sizeX = (dd<0||pct<=0) ? 100 : (10000/pct);
+      var lbl = dd<0 ? ('⚠ Quá hạn '+Math.abs(dd)+' ngày') : (dd===0 ? '🔥 Hạn hôm nay' : ('⏳ Còn '+dd+' ngày'));
+      var lcol = dd<0?'#991b1b':dd<=2?'#dc2626':dd<=6?'#f97316':dd<=13?'#ca8a04':'#16a34a';
+      var fill='<div style="height:100%;width:'+pct.toFixed(1)+'%;'+(pct>0?'min-width:4px;':'')+'background:'+fillBg+';background-size:'+sizeX.toFixed(1)+'% 100%;background-position:left center;background-repeat:no-repeat"></div>';
+      return '<div style="display:flex;align-items:center;gap:8px;margin:6px 0" title="'+esc(lbl+' — đã trôi '+Math.round(pct)+'% thời gian (giao '+(g.ngayGiao||'—')+' → hạn '+(g.deadline||'—')+')')+'">'
+        + '<div style="position:relative;flex:1;height:14px;border-radius:7px;background:var(--line);overflow:hidden">'+fill+'</div>'
+        + '<span style="min-width:96px;text-align:right;font-size:.72rem;font-weight:700;color:'+lcol+'">'+lbl+'</span></div>';
     }
     function mcHTML(g){
       if(!g.minhChung||!g.minhChung.length) return '';
