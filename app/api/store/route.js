@@ -4,7 +4,7 @@ import { getStore, saveStore } from "../../../lib/drive";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED_TYPES = ["cong", "giaoviec", "sop", "tieuchi", "admin"];
+const ALLOWED_TYPES = ["cong", "giaoviec", "sop", "tieuchi", "admin", "wbs"];
 
 /**
  * GET /api/store?type=<type>
@@ -43,8 +43,8 @@ export async function POST(req) {
     const type = (body.type || "cong").replace("_state", "");
     if (!ALLOWED_TYPES.includes(type))
       return Response.json({ error: "invalid type" }, { status: 400 });
-    // Bộ tiêu chí ĐẠT + danh mục quản trị — CHỈ admin được sửa.
-    if ((type === "tieuchi" || type === "admin") && !session.user?.isAdmin)
+    // Bộ tiêu chí ĐẠT + danh mục quản trị + cây công việc WBS — CHỈ admin được sửa.
+    if ((type === "tieuchi" || type === "admin" || type === "wbs") && !session.user?.isAdmin)
       return Response.json({ error: "forbidden" }, { status: 403 });
 
     const editor = session.user?.email || session.user?.name || "?";

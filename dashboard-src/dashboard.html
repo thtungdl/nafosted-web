@@ -613,6 +613,11 @@
               <option value="">— Chọn công việc từ WBS —</option>
             </select>
             <div id="gv2-cv-suggest" style="display:none;margin-top:8px"></div>
+            <div id="gv2-wbs-tools" style="display:none;gap:6px;flex-wrap:wrap;margin-top:8px">
+              <button type="button" id="gv2-wbs-editbtn" class="btn-print" style="font-size:.8rem;padding:4px 12px;background:var(--grey)" disabled>✏️ Sửa công việc n.n.n</button>
+              <button type="button" id="gv2-wbs-newbtn" class="btn-print" style="font-size:.8rem;padding:4px 12px;background:var(--navy)">➕ Thêm công việc n.n.n</button>
+            </div>
+            <div id="gv2-wbs-editor" style="margin-top:8px"></div>
           </div>
           <div class="fld2">
             <div>
@@ -1037,6 +1042,11 @@
               <option value="">— Chọn công việc hành chính từ WBS —</option>
             </select>
             <div id="gv2-cv-suggestH" style="display:none;margin-top:8px"></div>
+            <div id="gv2-wbs-toolsH" style="display:none;gap:6px;flex-wrap:wrap;margin-top:8px">
+              <button type="button" id="gv2-wbs-editbtnH" class="btn-print" style="font-size:.8rem;padding:4px 12px;background:var(--grey)" disabled>✏️ Sửa công việc n.n.n</button>
+              <button type="button" id="gv2-wbs-newbtnH" class="btn-print" style="font-size:.8rem;padding:4px 12px;background:var(--navy)">➕ Thêm công việc n.n.n</button>
+            </div>
+            <div id="gv2-wbs-editorH" style="margin-top:8px"></div>
           </div>
           <div class="fld2">
             <div>
@@ -1204,7 +1214,8 @@
   var TC_OVERRIDES = {};
 
   /* ---------- DERIVE noiDung + congViec từ cây WBS (nguồn duy nhất) ---------- */
-  if(D.wbs){
+  function rebuildDerived(){
+    if(!D.wbs) return;
     D.noiDung = D.wbs.filter(function(m){return m.loai==="nc";}).map(function(m){
       return { ma:m.code, ten:m.ten, mucTieu:m.mucTieu,
         hoatDong:(m.hoatDong||[]).map(function(h){return {ten:h.ten, ketQua:h.ketQua};}),
@@ -1215,6 +1226,42 @@
     D.wbs.forEach(function(m){ (m.hoatDong||[]).forEach(function(h){ (h.congViec||[]).forEach(function(cv){
       D.congViec.push(Object.assign({}, cv, { nd:m.code, loai:cv.loai||m.loai, mucTieuMa:m.ma, hoatDongMa:h.ma, hoatDongTen:h.ten, mucTieu:cv.mucTieu||m.mucTieu, giaoViec:cv.giaoViec||[] }));
     }); }); });
+  }
+  rebuildDerived();
+
+  /* ---------- WBS n.n.n: sửa nội dung công việc + thêm công việc mới (chỉ admin) ----------
+     WBS_BASE = snapshot cây gốc (data.js) để "Khôi phục gốc". WBS_EDITS = ghi đè field theo mã;
+     WBS_ADDED = công việc n.n.n thêm mới. Lưu Drive qua /api/store?type=wbs (sidecar nafosted-wbs.js).
+     applyWbsOverrides() dựng lại D.wbs = base + overlay rồi rebuildDerived(). ---------- */
+  var WBS_BASE = D.wbs ? JSON.parse(JSON.stringify(D.wbs)) : null;
+  var WBS_EDITS = {};   // { "<mã n.n.n>": {ten,ketQuaCanDat,chuTri,hoTro,batDau,deadline,uuTien} }
+  var WBS_ADDED = [];   // [ {ma,ndCode,hoatDongMa,ten,chuTri,hoTro,batDau,deadline,uuTien,ketQuaCanDat} ]
+  function applyWbsOverrides(){
+    if(!WBS_BASE) return;
+    D.wbs = JSON.parse(JSON.stringify(WBS_BASE));
+    WBS_ADDED.forEach(function(a){
+      var nd=D.wbs.find(function(m){return m.code===a.ndCode;});
+      if(!nd||!nd.hoatDong||!nd.hoatDong.length) return;
+      var hd=nd.hoatDong.find(function(h){return h.ma===a.hoatDongMa;})||nd.hoatDong[0];
+      hd.congViec=hd.congViec||[];
+      if(hd.congViec.some(function(c){return c.ma===a.ma;})) return;
+      hd.congViec.push({ma:a.ma, ten:a.ten||"(Chưa đặt tên)", chuTri:a.chuTri||"", hoTro:a.hoTro||[],
+        batDau:a.batDau||"", deadline:a.deadline||"", tienDo:a.tienDo||0, trangThai:a.trangThai||"chuaBatDau",
+        vongDoi:"giao", uuTien:a.uuTien||"Trung bình", ketQuaCanDat:a.ketQuaCanDat||"", giaoViec:[], _wbsAdded:true});
+    });
+    Object.keys(WBS_EDITS).forEach(function(ma){
+      D.wbs.forEach(function(m){ (m.hoatDong||[]).forEach(function(h){ (h.congViec||[]).forEach(function(cv){
+        if(cv.ma===ma){ var e=WBS_EDITS[ma]; Object.keys(e).forEach(function(k){ if(e[k]!==undefined) cv[k]=e[k]; }); }
+      }); }); });
+    });
+    rebuildDerived();
+  }
+  function wbsNextMa(hoatDongMa){
+    var maxN=0;
+    D.wbs.forEach(function(m){ (m.hoatDong||[]).forEach(function(h){ if(h.ma===hoatDongMa){
+      (h.congViec||[]).forEach(function(cv){ var p=String(cv.ma).split("."); var n=parseInt(p[p.length-1],10); if(!isNaN(n)&&n>maxN)maxN=n; });
+    }}); });
+    return hoatDongMa+"."+(maxN+1);
   }
 
   var STT = { xong:"Xong", dangLam:"Đang làm", chuaBatDau:"Chưa bắt đầu", treHan:"Trễ hạn" };
@@ -1875,6 +1922,29 @@
 
     // chuẩn hóa "YYYY-MM" / "YYYY-MM-DD" → "YYYY-MM-DD" (input type=date cần đủ ngày)
     function toYMD(s){ if(!s) return ""; var p=String(s).split("-"); return p[0]+"-"+("0"+(p[1]||"1")).slice(-2)+"-"+("0"+(p[2]||"1")).slice(-2); }
+    // (re)populate dropdown "Công việc cần giao" của 1 phạm vi từ D.wbs — gọi lại sau khi sửa/thêm WBS
+    function populateCvSelect(sfx){
+      var isHC=(sfx==="H");
+      var selCV=document.getElementById("gv2-cv-select"+sfx); if(!selCV) return;
+      var cur=selCV.value;
+      [].slice.call(selCV.querySelectorAll("optgroup")).forEach(function(g){ g.remove(); });
+      D.wbs.filter(function(nd){ var hc=(nd.loai==="tc"||nd.loai==="ql"); return isHC?hc:!hc; }).forEach(function(nd){
+        var grp=document.createElement("optgroup");
+        grp.label=nd.code+" — "+nd.ten.slice(0,45);
+        (nd.hoatDong||[]).forEach(function(hd){
+          (hd.congViec||[]).forEach(function(cv){
+            var opt=document.createElement("option");
+            opt.value=cv.ma; opt.textContent="["+cv.ma+"] "+cv.ten.slice(0,55)+(cv._wbsAdded?"  ✚":"");
+            opt.dataset.kq=cv.ketQuaCanDat||""; opt.dataset.dl=cv.deadline||"";
+            opt.dataset.bd=cv.batDau||""; opt.dataset.ten=cv.ten; opt.dataset.nd=nd.code; opt.dataset.hd=hd.ma;
+            grp.appendChild(opt);
+          });
+        });
+        if(grp.children.length) selCV.appendChild(grp);
+      });
+      if(cur){ selCV.value=cur; }
+    }
+    function refreshCvSelects(){ populateCvSelect(""); populateCvSelect("H"); }
     // Thiết lập 1 phạm vi (dropdown + nút tạo + bộ lọc). isHC=true → chỉ WBS loai tc/ql
     function setupScope(sfx, isHC){
       var G=function(x){return document.getElementById(x+sfx);};
@@ -1890,23 +1960,17 @@
         nguoiList.forEach(function(p){ selWho.insertAdjacentHTML("beforeend","<option>"+esc(p)+"</option>"); });
       }
       var selCV=G("gv2-cv-select");
-      D.wbs.filter(function(nd){ var hc=(nd.loai==="tc"||nd.loai==="ql"); return isHC?hc:!hc; }).forEach(function(nd){
-        var grp=document.createElement("optgroup");
-        grp.label=nd.code+" — "+nd.ten.slice(0,45);
-        (nd.hoatDong||[]).forEach(function(hd){
-          (hd.congViec||[]).forEach(function(cv){
-            var opt=document.createElement("option");
-            opt.value=cv.ma; opt.textContent="["+cv.ma+"] "+cv.ten.slice(0,55);
-            opt.dataset.kq=cv.ketQuaCanDat||""; opt.dataset.dl=cv.deadline||"";
-            opt.dataset.bd=cv.batDau||""; opt.dataset.ten=cv.ten; opt.dataset.nd=nd.code;
-            grp.appendChild(opt);
-          });
-        });
-        if(grp.children.length) selCV.appendChild(grp);
-      });
+      populateCvSelect(sfx);
+      // Toolbar admin: ✏️ sửa / ➕ thêm công việc n.n.n (chỉ admin thấy)
+      var wbsTools=G("gv2-wbs-tools"), wbsEditBtn=G("gv2-wbs-editbtn"), wbsNewBtn=G("gv2-wbs-newbtn");
+      if(wbsTools) wbsTools.style.display=VIEWER_IS_ADMIN?"flex":"none";
+      if(wbsNewBtn) wbsNewBtn.addEventListener("click",function(){ wbs_openNew(sfx); });
+      if(wbsEditBtn) wbsEditBtn.addEventListener("click",function(){ var oo=selCV.options[selCV.selectedIndex]; if(oo&&oo.value) wbs_openEdit(sfx,oo.value); });
       var sugBox=G("gv2-cv-suggest");
       selCV.addEventListener("change",function(){
         var o=selCV.options[selCV.selectedIndex];
+        if(wbsEditBtn) wbsEditBtn.disabled=!(o&&o.value);
+        var _edb=G("gv2-wbs-editor"); if(_edb) _edb.innerHTML="";
         if(o&&o.value){ G("gv2-ketqua").value=o.dataset.kq||""; G("gv2-deadline").value=toYMD(o.dataset.dl); }
         // Gợi ý GV từ kế hoạch WBS cho công việc vừa chọn — bấm để điền nhanh người nhận + hạn (vẫn
         // phải tự bấm "📋 Giao việc" để tạo phiếu thật, không tự động tạo).
@@ -2598,6 +2662,118 @@
         try{ var ls=localStorage.getItem("nafosted_tieuchi_ovr"); if(ls) applyTC(JSON.parse(ls)); }catch(e){}
         var s=document.createElement("script"); s.src="nafosted-tieuchi.js?"+Date.now();
         s.onload=function(){ if(window.NAFOSTED_TIEUCHI && window.NAFOSTED_TIEUCHI.map) applyTC(window.NAFOSTED_TIEUCHI.map); };
+        s.onerror=function(){}; document.head.appendChild(s);
+      }
+    })();
+
+    /* ---------- EDITOR WBS n.n.n (chỉ admin) — sửa nội dung + thêm công việc, lưu Drive ---------- */
+    var WBS_IN='width:100%;padding:6px 9px;border:1px solid var(--line);border-radius:6px;font-size:.85rem;background:var(--card);color:var(--ink);box-sizing:border-box';
+    function wbsRow(lbl,inner){ return '<div style="margin-bottom:7px"><label class="gv2-lbl" style="font-size:.78rem">'+lbl+'</label>'+inner+'</div>'; }
+    function wbsPeopleOpts(sel){ return '<option value="">— chọn —</option>'+nguoiList.map(function(p){return '<option'+(p===sel?' selected':'')+'>'+esc(p)+'</option>';}).join(''); }
+    function wbsUtOpts(sel){ return ["Cao","Trung bình","Thấp"].map(function(u){return '<option'+(u===sel?' selected':'')+'>'+u+'</option>';}).join(''); }
+    function wbsParentOpts(sfx){
+      var isHC=(sfx==="H"); var out="";
+      D.wbs.filter(function(nd){ var hc=(nd.loai==="tc"||nd.loai==="ql"); return isHC?hc:!hc; }).forEach(function(nd){
+        (nd.hoatDong||[]).forEach(function(hd){
+          out+='<option value="'+esc(hd.ma)+'" data-nd="'+esc(nd.code)+'">'+esc(nd.code)+' · '+esc(hd.ma)+' — '+esc(hd.ten.slice(0,38))+'</option>';
+        });
+      });
+      return out;
+    }
+    function wbsFormHtml(sfx,o){
+      var isNew=(o.mode==="new"), cv=o.cv||{}, id=function(x){return x+sfx;};
+      var head=isNew?'➕ Thêm công việc mới ở cấp n.n.n':'✏️ Sửa công việc '+esc(o.ma);
+      var tag=o.added?' <span style="font-size:.72rem;color:var(--orange)">✚ việc thêm</span>':(o.isEdited?' <span style="font-size:.72rem;color:var(--muted)">• đã ghi đè</span>':'');
+      var h='<div style="border:1px solid var(--line);border-left:3px solid var(--orange);border-radius:8px;padding:10px 12px;background:var(--bg)">'
+        + '<div style="font-weight:700;font-size:.86rem;margin-bottom:8px">'+head+tag+'</div>';
+      if(isNew) h+=wbsRow('Thuộc hoạt động (cha)','<select id="'+id("gv2-wbs-parent")+'" style="'+WBS_IN+'">'+wbsParentOpts(sfx)+'</select>');
+      h+=wbsRow('Tên công việc','<input id="'+id("gv2-wbs-ten")+'" type="text" value="'+esc(cv.ten||"")+'" style="'+WBS_IN+'" placeholder="Nội dung công việc n.n.n">');
+      h+=wbsRow('🎯 Kết quả cần đạt','<textarea id="'+id("gv2-wbs-kq")+'" rows="2" style="'+WBS_IN+';resize:vertical">'+esc(cv.ketQuaCanDat||"")+'</textarea>');
+      h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+        + '<div>'+wbsRow('Chủ trì','<select id="'+id("gv2-wbs-chutri")+'" style="'+WBS_IN+'">'+wbsPeopleOpts(cv.chuTri||"")+'</select>')+'</div>'
+        + '<div>'+wbsRow('Ưu tiên','<select id="'+id("gv2-wbs-ut")+'" style="'+WBS_IN+'">'+wbsUtOpts(cv.uuTien||"Trung bình")+'</select>')+'</div></div>';
+      h+=wbsRow('Hỗ trợ (cách nhau dấu phẩy)','<input id="'+id("gv2-wbs-hotro")+'" type="text" value="'+esc((cv.hoTro||[]).join(", "))+'" style="'+WBS_IN+'" placeholder="Tên người hỗ trợ, cách nhau dấu phẩy">');
+      h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+        + '<div>'+wbsRow('Bắt đầu','<input id="'+id("gv2-wbs-bd")+'" type="month" value="'+esc((cv.batDau||"").slice(0,7))+'" style="'+WBS_IN+'">')+'</div>'
+        + '<div>'+wbsRow('Deadline','<input id="'+id("gv2-wbs-dl")+'" type="month" value="'+esc((cv.deadline||"").slice(0,7))+'" style="'+WBS_IN+'">')+'</div></div>';
+      h+='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px">'
+        + '<button type="button" class="btn-print" style="padding:5px 14px" onclick="wbs_save(\''+sfx+'\',\''+(isNew?"":esc(o.ma))+'\')">💾 Lưu</button>'
+        + '<button type="button" class="btn-print" style="padding:5px 12px;background:var(--grey)" onclick="wbs_close(\''+sfx+'\')">✕ Hủy</button>';
+      if(!isNew && o.added) h+='<button type="button" class="btn-print" style="padding:5px 12px;background:#b23b3b" onclick="wbs_delete(\''+sfx+'\',\''+esc(o.ma)+'\')">🗑 Xóa việc</button>';
+      else if(!isNew && o.isEdited) h+='<button type="button" class="btn-print" style="padding:5px 12px;background:var(--grey)" onclick="wbs_reset(\''+sfx+'\',\''+esc(o.ma)+'\')">♻ Khôi phục gốc</button>';
+      h+='<span id="'+id("gv2-wbs-st")+'" style="font-size:.78rem;color:var(--muted)"></span></div></div>';
+      return h;
+    }
+    function wbs_openNew(sfx){
+      var b=document.getElementById("gv2-wbs-editor"+sfx); if(!b) return;
+      b.innerHTML=wbsFormHtml(sfx,{mode:"new"});
+      // mặc định hoạt động cha = hoạt động của công việc đang chọn (thêm việc "anh em")
+      var sel=document.getElementById("gv2-cv-select"+sfx), p=document.getElementById("gv2-wbs-parent"+sfx);
+      if(sel&&p&&sel.selectedIndex>=0){ var hd=sel.options[sel.selectedIndex].dataset.hd; if(hd){ p.value=hd; } }
+    }
+    function wbs_openEdit(sfx,ma){
+      var b=document.getElementById("gv2-wbs-editor"+sfx); if(!b) return;
+      var cv=D.congViec.find(function(c){return c.ma===ma;}); if(!cv){ b.innerHTML=""; return; }
+      b.innerHTML=wbsFormHtml(sfx,{mode:"edit",ma:ma,cv:cv,isEdited:Object.prototype.hasOwnProperty.call(WBS_EDITS,ma),added:!!cv._wbsAdded});
+    }
+    window.wbs_close=function(sfx){ var b=document.getElementById("gv2-wbs-editor"+sfx); if(b) b.innerHTML=""; };
+    function wbs_setSt(sfx,msg){ var s=document.getElementById("gv2-wbs-st"+sfx); if(s) s.textContent=msg; }
+    function wbs_persist(sfx,after){
+      if(HOSTED_GV){
+        wbs_setSt(sfx,"⏳ Đang lưu Drive…");
+        fetch("/api/store",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"wbs",edits:WBS_EDITS,added:WBS_ADDED})})
+          .then(function(r){return r.json();})
+          .then(function(res){ if(res&&res.ok){ if(after)after(); } else { wbs_setSt(sfx,"⚠ "+((res&&res.error)||"lỗi lưu")); } })
+          .catch(function(){ wbs_setSt(sfx,"⚠ Lỗi mạng — chưa lưu Drive"); });
+      } else {
+        try{ localStorage.setItem("nafosted_wbs_ovr",JSON.stringify({edits:WBS_EDITS,added:WBS_ADDED})); }catch(e){}
+        if(after)after();
+      }
+    }
+    window.wbs_save=function(sfx,ma){
+      var g=function(x){return document.getElementById(x+sfx);};
+      var ten=((g("gv2-wbs-ten")||{}).value||"").trim();
+      if(!ten){ wbs_setSt(sfx,"⚠ Nhập tên công việc."); return; }
+      var kq=((g("gv2-wbs-kq")||{}).value||"").trim();
+      var chuTri=((g("gv2-wbs-chutri")||{}).value||"").trim();
+      var ut=((g("gv2-wbs-ut")||{}).value||"Trung bình");
+      var hoTro=((g("gv2-wbs-hotro")||{}).value||"").split(",").map(function(x){return x.trim();}).filter(Boolean);
+      var bd=((g("gv2-wbs-bd")||{}).value||"").trim();
+      var dl=((g("gv2-wbs-dl")||{}).value||"").trim();
+      var newMa=ma;
+      if(!ma){
+        var psel=g("gv2-wbs-parent"); if(!psel||!psel.value){ wbs_setSt(sfx,"⚠ Chọn hoạt động cha."); return; }
+        var opt=psel.options[psel.selectedIndex], hoatDongMa=psel.value, ndCode=opt.getAttribute("data-nd");
+        newMa=wbsNextMa(hoatDongMa);
+        WBS_ADDED.push({ma:newMa,ndCode:ndCode,hoatDongMa:hoatDongMa,ten:ten,ketQuaCanDat:kq,chuTri:chuTri,hoTro:hoTro,batDau:bd,deadline:dl,uuTien:ut});
+      } else {
+        WBS_EDITS[ma]={ten:ten,ketQuaCanDat:kq,chuTri:chuTri,hoTro:hoTro,batDau:bd,deadline:dl,uuTien:ut};
+      }
+      applyWbsOverrides(); refreshCvSelects();
+      wbs_persist(sfx,function(){
+        wbs_close(sfx);
+        var sel=document.getElementById("gv2-cv-select"+sfx);
+        if(sel){ sel.value=newMa; if(sel.value===newMa) sel.dispatchEvent(new Event("change")); }
+        render();
+      });
+    };
+    window.wbs_reset=function(sfx,ma){ delete WBS_EDITS[ma]; applyWbsOverrides(); refreshCvSelects(); wbs_persist(sfx,function(){ wbs_close(sfx); render(); }); };
+    window.wbs_delete=function(sfx,ma){
+      if(!confirm("Xóa công việc "+ma+" khỏi WBS?\n(Phiếu giao việc đã tạo cho việc này vẫn được giữ nguyên.)")) return;
+      WBS_ADDED=WBS_ADDED.filter(function(a){return a.ma!==ma;}); delete WBS_EDITS[ma];
+      applyWbsOverrides(); refreshCvSelects();
+      var sel=document.getElementById("gv2-cv-select"+sfx); if(sel) sel.value="";
+      wbs_persist(sfx,function(){ wbs_close(sfx); render(); });
+    };
+    // Nạp override WBS lúc mở trang: hosted → /api/store?type=wbs; offline → localStorage + sidecar nafosted-wbs.js.
+    (function(){
+      function applyW(d){ if(!d) return; if(d.edits&&typeof d.edits==="object") WBS_EDITS=d.edits; if(Array.isArray(d.added)) WBS_ADDED=d.added; applyWbsOverrides(); refreshCvSelects(); render(); }
+      if(HOSTED_GV){
+        fetch("/api/store?type=wbs").then(function(r){return r.json();}).then(applyW).catch(function(){});
+      } else {
+        try{ var ls=localStorage.getItem("nafosted_wbs_ovr"); if(ls) applyW(JSON.parse(ls)); }catch(e){}
+        var s=document.createElement("script"); s.src="nafosted-wbs.js?"+Date.now();
+        s.onload=function(){ if(window.NAFOSTED_WBS) applyW(window.NAFOSTED_WBS); };
         s.onerror=function(){}; document.head.appendChild(s);
       }
     })();

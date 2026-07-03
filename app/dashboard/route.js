@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../lib/authOptions";
-import { getAdminMembers } from "../../lib/drive";
+import { getAdminMembers, getStore } from "../../lib/drive";
 
 export const dynamic = "force-dynamic";
 
@@ -32,10 +32,13 @@ export async function GET() {
     isAdmin: isAdmin,
     perms: perms,
   });
-  // thay <script src="nafosted-progress-data.js"> bằng danh tính người xem + dữ liệu nhúng inline
+  // Override cây công việc WBS (admin sửa/thêm công việc) — nhúng để áp đồng bộ trước khi derive.
+  let wbsOverride = "{}";
+  try { const w = await getStore("wbs"); wbsOverride = JSON.stringify({ edits: w.edits || {}, added: w.added || [] }); } catch (e) { wbsOverride = "{}"; }
+  // thay <script src="nafosted-progress-data.js"> bằng danh tính người xem + override + dữ liệu nhúng inline
   html = html.replace(
     '<script src="nafosted-progress-data.js"></script>',
-    "<script>\nwindow.NAFOSTED_VIEWER=" + viewer + ";\n" + data + "\n</script>"
+    "<script>\nwindow.NAFOSTED_VIEWER=" + viewer + ";\nwindow.NAFOSTED_WBS_OVERRIDE=" + wbsOverride + ";\n" + data + "\n</script>"
   );
   return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
