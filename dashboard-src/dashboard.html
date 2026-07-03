@@ -2080,26 +2080,22 @@
       if(l<=7) return '<span style="color:var(--amber);font-size:.78rem">⏰ Còn '+l+' ngày</span>';
       return '<span style="color:var(--muted);font-size:.78rem">📅 '+esc(g.deadline||"—")+'</span>';
     }
-    // Dải trạng thái thời gian — đọc mức khẩn của nhiệm vụ ở 3 THANG QUY CHIẾU khác nhau.
-    // Mỗi thang có QUY ƯỚC MÀU RIÊNG (hue riêng, sáng = còn xa hạn → đậm = sát hạn):
-    //   Tháng = chàm/indigo · Tuần = hổ phách/amber · Ngày = đỏ. Quá hạn = đỏ thẫm ⚠ (cả ba).
+    // Dải trạng thái thời gian — MỘT dải duy nhất theo ĐƠN VỊ NGÀY còn lại tới hạn.
+    // Màu chuyển dần theo số ngày: xanh (còn xa) → vàng → cam → đỏ (sát hạn); quá hạn = đỏ thẫm ⚠.
     function tempoTxtOn(hex){ var c=hex.replace('#',''); var r=parseInt(c.substr(0,2),16),gg=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16); return (0.299*r+0.587*gg+0.114*b)>150?'#1f2937':'#fff'; }
     function tempoBar(g){
       var dd=dleft(g); if(dd===null) return '';
-      var OVER='#991b1b';
-      function seg(label, stops){
-        var col, st;
-        if(dd<0){ col=OVER; st='⚠ Quá hạn '+Math.abs(dd)+' ngày'; }
-        else { col=stops[stops.length-1][1]; st=stops[stops.length-1][2];
-          for(var i=0;i<stops.length;i++){ if(dd>=stops[i][0]){ col=stops[i][1]; st=stops[i][2]; break; } } }
-        return '<div style="flex:1;min-width:0;padding:3px 6px;display:flex;flex-direction:column;align-items:center;line-height:1.2;background:'+col+';color:'+tempoTxtOn(col)+'" title="'+esc('Thang '+label+' — '+st+' (còn '+dd+' ngày tới hạn)')+'">'
-          +'<span style="font-size:.6rem;letter-spacing:.03em;opacity:.85;text-transform:uppercase">'+label+'</span>'
-          +'<span style="font-size:.72rem;font-weight:700;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis">'+st+'</span></div>';
+      var col, st;
+      if(dd<0){ col='#991b1b'; st='⚠ Quá hạn '+Math.abs(dd)+' ngày'; }
+      else if(dd===0){ col='#dc2626'; st='🔥 Hôm nay là hạn'; }
+      else {
+        // stops giảm dần theo ngày còn lại; nhãn kèm số ngày cụ thể
+        var stops=[[60,'#16a34a'],[30,'#65a30d'],[14,'#ca8a04'],[7,'#f59e0b'],[3,'#f97316'],[1,'#ef4444']];
+        col=stops[stops.length-1][1];
+        for(var i=0;i<stops.length;i++){ if(dd>=stops[i][0]){ col=stops[i][1]; break; } }
+        st='⏳ Còn '+dd+' ngày tới hạn';
       }
-      var thang=seg('Tháng', [[60,'#c7d2fe','≥ 2 tháng'],[30,'#818cf8','1–2 tháng'],[0,'#4f46e5','trong tháng']]);
-      var tuan =seg('Tuần',  [[21,'#fde68a','≥ 3 tuần'],[14,'#fbbf24','2–3 tuần'],[7,'#f59e0b','1–2 tuần'],[0,'#b45309','trong tuần']]);
-      var ngay =seg('Ngày',  [[7,'#fecaca','≥ 7 ngày'],[3,'#f87171','3–6 ngày'],[1,'#ef4444','1–2 ngày'],[0,'#dc2626','hôm nay']]);
-      return '<div style="display:flex;gap:2px;margin:6px 0;border-radius:6px;overflow:hidden" title="Trạng thái nhiệm vụ đọc ở 3 thang thời gian: Tháng · Tuần · Ngày">'+thang+tuan+ngay+'</div>';
+      return '<div style="margin:6px 0;padding:4px 10px;border-radius:6px;text-align:center;font-size:.76rem;font-weight:700;background:'+col+';color:'+tempoTxtOn(col)+'" title="'+esc(st+(dd>=0?'':'')+' — hạn '+(g.deadline||'—'))+'">'+st+'</div>';
     }
     function mcHTML(g){
       if(!g.minhChung||!g.minhChung.length) return '';
