@@ -2080,25 +2080,28 @@
       if(l<=7) return '<span style="color:var(--amber);font-size:.78rem">⏰ Còn '+l+' ngày</span>';
       return '<span style="color:var(--muted);font-size:.78rem">📅 '+esc(g.deadline||"—")+'</span>';
     }
-    // Dải trạng thái thời gian — PROGRESS BAR đếm theo thời gian đã trôi (ngày giao → hạn).
-    // Fill lớn dần khi tới gần hạn; dải màu gradient lộ dần: xanh (đầu) → cam (gần cuối) → đỏ (sát/quá hạn).
+    // Dải trạng thái thời gian — PROGRESS BAR đổi màu theo TỶ LỆ % thời gian đã dùng so với
+    // TỔNG thời gian được giao (ngày giao → hạn), KHÔNG theo số ngày. Fill lớn dần; gradient lộ
+    // dần theo %: xanh (đầu) → cam (gần cuối) → đỏ (sát/quá hạn). Quá hạn = 100% đỏ thẫm.
     function tempoBar(g){
       var end=pd(g.deadline); if(!end) return '';
-      var dd=dleft(g), start=pd(g.ngayGiao), pct;
-      if(start && end>start){ pct=(today-start)/(end-start)*100; }
-      else { var HZ=90; pct=(HZ-dd)/HZ*100; }   // không có mốc giao hợp lệ → quy ước cửa sổ 90 ngày
-      pct=Math.max(0,Math.min(100,pct));
-      if(dd<0) pct=100;
-      // Gradient trải trên TOÀN dải; fill chỉ để lộ phần bên trái (reveal dần) nhờ background-size.
+      var start=pd(g.ngayGiao), dd=dleft(g), pctRaw;
+      if(start && end>start){ pctRaw=(today-start)/(end-start)*100; }
+      else { var HZ=90; pctRaw=(HZ-dd)/HZ*100; }   // thiếu mốc giao hợp lệ → quy ước cửa sổ 90 ngày
+      var over = pctRaw>100 || dd<0;               // đã dùng hết tổng thời gian giao = quá hạn
+      var pct = Math.max(0, Math.min(100, pctRaw));
+      var pctTxt = over?100:Math.round(pct);
+      // Gradient trải trên TOÀN dải; fill chỉ để lộ phần bên trái tương ứng % đã dùng (reveal dần).
       var grad='linear-gradient(90deg,#16a34a 0%,#84cc16 28%,#eab308 52%,#f97316 76%,#dc2626 100%)';
-      var fillBg = dd<0 ? '#991b1b' : grad;
-      var sizeX = (dd<0||pct<=0) ? 100 : (10000/pct);
-      var lbl = dd<0 ? ('⚠ Quá hạn '+Math.abs(dd)+' ngày') : (dd===0 ? '🔥 Hạn hôm nay' : ('⏳ Còn '+dd+' ngày'));
-      var lcol = dd<0?'#991b1b':dd<=2?'#dc2626':dd<=6?'#f97316':dd<=13?'#ca8a04':'#16a34a';
-      var fill='<div style="height:100%;width:'+pct.toFixed(1)+'%;'+(pct>0?'min-width:4px;':'')+'background:'+fillBg+';background-size:'+sizeX.toFixed(1)+'% 100%;background-position:left center;background-repeat:no-repeat"></div>';
-      return '<div style="display:flex;align-items:center;gap:8px;margin:6px 0" title="'+esc(lbl+' — đã trôi '+Math.round(pct)+'% thời gian (giao '+(g.ngayGiao||'—')+' → hạn '+(g.deadline||'—')+')')+'">'
+      var fillBg = over ? '#991b1b' : grad;
+      var sizeX = (over||pct<=0) ? 100 : (10000/pct);
+      var lbl = over ? '⚠ Quá hạn' : ('⏳ '+pctTxt+'%');
+      // màu nhãn theo % thời gian đã dùng (không theo ngày)
+      var lcol = over?'#991b1b':pct>=90?'#dc2626':pct>=75?'#f97316':pct>=50?'#ca8a04':'#16a34a';
+      var fill='<div style="height:100%;width:'+(over?100:pct).toFixed(1)+'%;'+((over||pct>0)?'min-width:4px;':'')+'background:'+fillBg+';background-size:'+sizeX.toFixed(1)+'% 100%;background-position:left center;background-repeat:no-repeat"></div>';
+      return '<div style="display:flex;align-items:center;gap:8px;margin:6px 0" title="'+esc('Đã dùng '+pctTxt+'% tổng thời gian được giao'+(over?(' (quá hạn '+Math.abs(dd)+' ngày)'):(dd>=0?(' · còn '+dd+' ngày'):''))+' · giao '+(g.ngayGiao||'—')+' → hạn '+(g.deadline||'—'))+'">'
         + '<div style="position:relative;flex:1;height:14px;border-radius:7px;background:var(--line);overflow:hidden">'+fill+'</div>'
-        + '<span style="min-width:96px;text-align:right;font-size:.72rem;font-weight:700;color:'+lcol+'">'+lbl+'</span></div>';
+        + '<span style="min-width:78px;text-align:right;font-size:.72rem;font-weight:700;color:'+lcol+'">'+lbl+'</span></div>';
     }
     function mcHTML(g){
       if(!g.minhChung||!g.minhChung.length) return '';
