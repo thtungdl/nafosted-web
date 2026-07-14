@@ -486,7 +486,200 @@
   .filters input,.filters select{border-radius:var(--rad-sm);border-color:var(--line)}
   .narrbox{border-radius:var(--rad-sm)}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ===== SKIN v2 — theo ảnh mẫu: sidebar đen, nền trắng, tiêu đề mục amber uppercase, hàng hairline ===== */
+  :root{--bg:#ffffff;--card:#ffffff;--surface:#f5f5f4;--ink:#141414;--muted:#8a8f98;--line:#ececec;--line-2:#d9d9d9;--hit:#fdeed3;
+    --navy:#223771;--navy-d:#16244c;--navy-700:#2c4684;--orange:#c9861f;--orange-d:#a86e12;
+    --green:#177d47;--green-bg:#e9f5ee;--amber:#b7770a;--amber-bg:#faf0d8;--grey:#8a8f98;--grey-bg:#f1f1f0;--red:#c0362f;--red-bg:#fbe9e7;
+    --shadow-sm:none;--shadow-md:none;--shadow-lg:none;--ring:0 0 0 3px rgba(34,55,113,.16);--rad:12px;--rad-sm:9px;--rad-lg:14px}
+  body{font-family:'Be Vietnam Pro',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;font-size:15px;background:var(--bg);margin-left:232px}
+  /* sidebar đen cố định */
+  .group-nav{position:fixed;top:0;left:0;bottom:0;width:232px;flex-direction:column;align-items:stretch;background:#16244c;border:0;border-bottom:0;border-radius:0;padding:20px 12px;margin:0;gap:4px;z-index:50;box-shadow:none;overflow-y:auto}
+  
+  .group-nav .tabbtn:not(.active){color:#a6b1d4;} .group-nav .tabbtn{color:#a6b1d4;text-align:left;border:0;border-bottom:0;border-radius:10px;padding:10px 12px;font-size:.9rem;font-weight:600;margin:0;transition:color .15s,background .15s}
+  .group-nav .tabbtn:hover{color:#fff;background:rgba(255,255,255,.07)}
+  .group-nav .tabbtn.active{color:#fff;background:#2c4684;border-bottom:0}
+  .grp-badge{background:var(--orange);box-shadow:none}
+  /* header trong vùng nội dung */
+  header{background:transparent;color:var(--ink);box-shadow:none;border-bottom:0;padding:42px 0 6px}
+  header::before,header::after{content:none}
+  header .wrap{padding:0 36px}
+  header h1{font-size:1.85rem;font-weight:800;letter-spacing:-.02em;color:var(--navy)}
+  header .sub{color:var(--muted);opacity:1;font-size:.88rem}
+  header a{color:var(--ink);text-decoration:none}
+  header a:hover{text-decoration:underline}
+  .wrap{padding:0 36px 90px}
+  /* hero: số liệu trần, không hộp */
+  .hero{gap:40px;margin-top:22px;flex-wrap:wrap}
+  .hero .box{background:transparent;border:0;border-radius:0;padding:0;min-width:0;flex:0 0 auto;backdrop-filter:none;box-shadow:none}
+  .hero .big{font-size:1.85rem;font-weight:800;color:var(--navy)}
+  .hero .lbl{color:var(--muted);opacity:1;letter-spacing:.08em;margin-top:4px}
+  .hbar{width:130px;height:4px;border-radius:2px;background:var(--surface);margin-top:9px}
+  .hbar > i{background:var(--navy);border-radius:2px}
+  .varsw{margin-top:18px}
+  .varsw .vl{color:var(--muted);opacity:1}
+  .varsw a{color:var(--ink);background:transparent;border:1px solid var(--line-2);border-radius:20px}
+  .varsw a:hover{background:var(--surface)}
+  .varsw a.on{background:var(--navy);border-color:var(--navy);color:#fff;font-weight:600}
+  /* sub-tab = chip tròn như ảnh */
+  .tabnav{border-bottom:0}
+  .sub-tabnav{background:transparent;border:0;border-radius:0;box-shadow:none;padding:16px 0 0;margin:0 0 4px;gap:8px}
+  .sub-tabnav .tabbtn{border:1px solid var(--line-2);border-bottom:1px solid var(--line-2);border-radius:20px;padding:7px 16px;font-size:.85rem;font-weight:600;color:var(--ink);margin-bottom:0}
+  .sub-tabnav .tabbtn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .sub-tabnav .tabbtn:hover:not(.active){background:var(--surface)}
+  /* khối = mục trần, tiêu đề amber uppercase */
+  section.block{border:0;background:transparent;padding:0;margin:38px 0;box-shadow:none;border-radius:0}
+  h2{color:var(--navy);font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.14em;border-left:0;padding-left:0;margin:.2em 0 1em}
+  section.block > h2:first-child{margin:0 0 16px;padding:0;border:0;background:transparent;color:var(--navy);font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;border-radius:0}
+  section.block > h2:first-child::before{content:none}
+  h2 .note{text-transform:none;letter-spacing:0;font-size:.78rem}
+  .subh{color:var(--navy)}
+  /* thẻ hairline phẳng */
+  .kpi,.nd,.person,.gv2-card,.gv,.tcwork,.wbs-mt,.pub,.ovnd,.narrbox,.sop-dc-card,.sop-step,.sop-batch-box,.sop-sample-box,.sop-prog{box-shadow:none;background:var(--card);border-color:var(--line)}
+  .kpi:hover,.nd:hover,.person:hover,.gv2-card:hover{transform:none;box-shadow:none;border-color:var(--line-2)}
+  .kpi,.nd,.person{background:var(--card)}
+  .nd .ma{background:var(--surface);border-radius:7px}
+  .person.new{box-shadow:inset 3px 0 0 var(--orange)}
+  .gv2-draftcard{background:var(--surface)}
+  .pub{background:var(--card);border-left-width:3px}
+  .narrbox{background:var(--surface);border-left-width:3px}
+  .gtrack{background:var(--surface);border-color:var(--line)}
+  .gbar{box-shadow:none}
+  .bar,.mini{background:var(--surface)}
+  .gst-banner{background:var(--card);color:var(--ink);box-shadow:none;border:1px solid var(--line)}
+  .gst-banner .sub{color:var(--muted);opacity:1}
+  .gst-banner .chip{background:var(--surface);border:1px solid var(--line)}
+  .wbs-mt{overflow:hidden}
+  .wbs-mt-h{background:var(--surface);color:var(--ink);border-bottom:1px solid var(--line)}
+  .wbs-mt-h .num{color:var(--navy)}
+  .pct,.kpi .t,.nd .ten,.person .nm,.gv .gvto,.pub .pt,.urg .utt,.gst-banner .big,.hdkq b,.inforow b,strong,b{color:var(--navy);font-weight:700}
+  td b,li b{color:var(--navy)}
+  .sop-tabbar{background:transparent;border-bottom:1px solid var(--line);border-radius:0}
+  .sop-tabbtn{color:var(--muted)}
+  .sop-tabbtn:hover{color:var(--ink)}
+  .sop-tabbtn.active{color:var(--navy);border-bottom-color:var(--navy);background:transparent}
+  .sop-tabbtn .spill{background:var(--surface);color:var(--muted)}
+  .sop-tabbtn.active[data-stab="extract"] .spill{background:var(--navy);color:#fff}
+  .sop-step-head{background:var(--surface);color:var(--ink)}
+  .sop-tab-panel[data-process="extract"] .sop-step-head{background:var(--surface)}
+  .sop-step-head .snum{background:var(--navy)}
+  .sop-step-head .scope-badge{background:var(--line);color:var(--muted)}
+  .sop-step-count,.sop-chevron{color:var(--muted)}
+  .sop-step-minibar{background:var(--line)}
+  .sop-tab-panel[data-process="extract"] .sop-step-minibar{background:var(--line)}
+  .sop-step-minibar .fill{background:var(--orange)}
+  .sop-sync-bar{border-radius:0 0 var(--rad-sm) var(--rad-sm)}
+  /* nút = pill đen */
+  .btn-print,.tcadd button,.sop-bb-add button,.sop-sync-btn,.tcdat-savebtn,.gv .btn-print,.sop-photo-btn{background:var(--navy);color:#fff;border-radius:20px;box-shadow:none}
+  .btn-print:hover,.tcadd button:hover,.sop-bb-add button:hover,.sop-sync-btn:hover{background:var(--navy-700);box-shadow:none}
+  .gv2-chip,.sop-chip,.sop-cv-btn,.gv2-view{border-radius:20px}
+  .gv2-chip.active,.gv2-view.active,.sop-chip.active,.sop-cv-btn.active{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:none}
+  .filters input,.filters select{border-width:1px;border-radius:20px;padding:9px 16px}
+  th{font-size:.7rem;letter-spacing:.1em}
+  a{color:var(--navy);text-decoration:underline;text-underline-offset:2px}
+  a:hover{color:var(--orange-d)}
+  .tag-nd{border-radius:20px}
+  @media(max-width:900px){
+    body{margin-left:0}
+    .group-nav{position:static;width:auto;flex-direction:row;align-items:center;padding:8px 10px;overflow-x:auto;overflow-y:hidden}
+    .side-brand{display:none}
+    header{padding-top:22px}
+    header .wrap,.wrap{padding-left:18px;padding-right:18px}
+    .hero{gap:22px}
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#111114;--card:#111114;--surface:#1d1d21;--ink:#ececf0;--muted:#8f939e;--line:#26262b;--line-2:#37373d;--hit:#4a2c12;
+      --navy:#8fa4e8;--navy-d:#7288d0;--navy-700:#a5b6ef;--orange:#d9a23f;--orange-d:#e3b258;
+      --green:#46c483;--green-bg:#143226;--amber:#e0a13a;--amber-bg:#3a2c12;--grey:#9aa3bb;--grey-bg:#222227;--red:#e96a6a;--red-bg:#3a1c1c;
+      --shadow-sm:none;--shadow-md:none;--shadow-lg:none;--ring:0 0 0 3px rgba(236,236,240,.14)}
+    .group-nav{background:#101a35}
+    .hbar > i{background:var(--navy)}
+    .gv2-card{background:var(--card);box-shadow:none}
+    .gv2-card:hover{box-shadow:none}
+    .btn-print,.tcadd button,.sop-bb-add button,.sop-sync-btn,.tcdat-savebtn,.gv .btn-print,.sop-photo-btn{color:#111}
+    .btn-print:hover,.tcadd button:hover,.sop-bb-add button:hover,.sop-sync-btn:hover{background:#d6d6db}
+    .sub-tabnav .tabbtn.active,.gv2-chip.active,.gv2-view.active,.sop-chip.active,.sop-cv-btn.active,.varsw a.on{color:#111}
+    .sop-tabbtn.active[data-stab="extract"] .spill,.sop-step-head .snum{color:#111}
+    .tcdat-n{color:#111}
+    .wbs-mt-h .num{color:var(--navy)}
+  .pct,.kpi .t,.nd .ten,.person .nm,.gv .gvto,.pub .pt,.urg .utt,.gst-banner .big,.hdkq b,.inforow b,strong,b{color:var(--navy);font-weight:700}
+  td b,li b{color:var(--navy)}
+    .grp-badge,.chip-new,.cvtag,.pub .q{color:#111}
+    .gvmark.on{color:var(--green)}
+  }
+</style>
+<style>
+  /* brand + logo */
+  .side-brand{display:flex;align-items:center;gap:10px;padding:2px 4px 20px}
+  .side-brand .logo-card{background:#fff;border-radius:10px;padding:6px 10px;flex:1;display:flex;align-items:center;justify-content:center}
+  .side-brand .logo-card img{display:block;width:100%;max-width:150px;height:auto}
+  .nav-toggle{background:transparent;border:0;color:#a6b1d4;font-size:1.05rem;cursor:pointer;padding:6px 8px;border-radius:8px;line-height:1}
+  .nav-toggle:hover{color:#fff;background:rgba(255,255,255,.08)}
+  /* sub-item dọc */
+  .side-sub{display:block;width:100%;text-align:left;background:transparent;border:0;color:#8fa0cf;font:inherit;font-size:.84rem;font-weight:500;padding:7px 12px 7px 30px;border-radius:8px;cursor:pointer;position:relative;transition:color .15s,background .15s}
+  .side-sub::before{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;border-radius:50%;background:currentColor;transform:translateY(-50%);opacity:.6}
+  .side-sub:hover{color:#fff;background:rgba(255,255,255,.06)}
+  .side-sub.active{color:#fff;background:rgba(255,255,255,.10)}
+  /* ẩn 4 sub-tab ngang đã chuyển vào sidebar */
+  #subnav-chuyenmon,#subnav-hanhchinh,.groupbtn[data-group="hanhchinh"],.groupbtn[data-group="chuyenmon"]{display:none!important}
+  .side-sub{display:none!important}
+  .group-nav .side-top{color:#a6b1d4;text-align:left;border:0;border-radius:10px;padding:10px 12px;font-size:.9rem;font-weight:600;margin:0}
+  .group-nav .side-top:hover{color:#fff;background:rgba(255,255,255,.07)}
+  .group-nav .side-top.active{color:#fff;background:#2c4684}
+  #subnav-chuyenmon .subbtn[data-tab="giaoviec"],#subnav-chuyenmon .subbtn[data-tab="tiendoCN"],
+  #subnav-hanhchinh .subbtn[data-tab="giaoviecHC"],#subnav-hanhchinh .subbtn[data-tab="tiendoCNHC"]{display:none!important}
+  /* settings ghim đáy */
+  #groupbtn-admin{margin-top:auto;border-top:1px solid rgba(255,255,255,.12);border-radius:0;padding-top:14px}
+  /* đóng/mở sidebar */
+  .group-nav{transition:transform .22s ease}
+  body{transition:margin-left .22s ease}
+  body.nav-collapsed{margin-left:0}
+  body.nav-collapsed .group-nav{transform:translateX(-100%)}
+  .nav-fab{position:fixed;top:14px;left:14px;z-index:60;background:#16244c;color:#fff;border:0;border-radius:10px;width:38px;height:38px;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center}
+  body.nav-collapsed .nav-fab{display:flex}
+  @media(max-width:900px){
+    body.nav-collapsed{margin-left:0}
+    body.nav-collapsed .group-nav{transform:none}
+    .nav-fab{display:none!important}
+  }
+</style>
 </head>
+<style>
+  /* brand + logo */
+  .side-brand{display:flex;align-items:center;gap:10px;padding:2px 4px 20px}
+  .side-brand .logo-card{background:#fff;border-radius:10px;padding:6px 10px;flex:1;display:flex;align-items:center;justify-content:center}
+  .side-brand .logo-card img{display:block;width:100%;max-width:150px;height:auto}
+  .nav-toggle{background:transparent;border:0;color:#a6b1d4;font-size:1.05rem;cursor:pointer;padding:6px 8px;border-radius:8px;line-height:1}
+  .nav-toggle:hover{color:#fff;background:rgba(255,255,255,.08)}
+  /* sub-item dọc */
+  .side-sub{display:block;width:100%;text-align:left;background:transparent;border:0;color:#8fa0cf;font:inherit;font-size:.84rem;font-weight:500;padding:7px 12px 7px 30px;border-radius:8px;cursor:pointer;position:relative;transition:color .15s,background .15s}
+  .side-sub::before{content:"";position:absolute;left:16px;top:50%;width:5px;height:5px;border-radius:50%;background:currentColor;transform:translateY(-50%);opacity:.6}
+  .side-sub:hover{color:#fff;background:rgba(255,255,255,.06)}
+  .side-sub.active{color:#fff;background:rgba(255,255,255,.10)}
+  /* ẩn 4 sub-tab ngang đã chuyển vào sidebar */
+  #subnav-chuyenmon,#subnav-hanhchinh,.groupbtn[data-group="hanhchinh"],.groupbtn[data-group="chuyenmon"]{display:none!important}
+  .side-sub{display:none!important}
+  .group-nav .side-top{color:#a6b1d4;text-align:left;border:0;border-radius:10px;padding:10px 12px;font-size:.9rem;font-weight:600;margin:0}
+  .group-nav .side-top:hover{color:#fff;background:rgba(255,255,255,.07)}
+  .group-nav .side-top.active{color:#fff;background:#2c4684}
+  #subnav-chuyenmon .subbtn[data-tab="giaoviec"],#subnav-chuyenmon .subbtn[data-tab="tiendoCN"],
+  #subnav-hanhchinh .subbtn[data-tab="giaoviecHC"],#subnav-hanhchinh .subbtn[data-tab="tiendoCNHC"]{display:none!important}
+  /* settings ghim đáy */
+  #groupbtn-admin{margin-top:auto;border-top:1px solid rgba(255,255,255,.12);border-radius:0;padding-top:14px}
+  /* đóng/mở sidebar */
+  .group-nav{transition:transform .22s ease}
+  body{transition:margin-left .22s ease}
+  body.nav-collapsed{margin-left:0}
+  body.nav-collapsed .group-nav{transform:translateX(-100%)}
+  .nav-fab{position:fixed;top:14px;left:14px;z-index:60;background:#16244c;color:#fff;border:0;border-radius:10px;width:38px;height:38px;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center}
+  body.nav-collapsed .nav-fab{display:flex}
+  @media(max-width:900px){
+    body.nav-collapsed{margin-left:0}
+    body.nav-collapsed .group-nav{transform:none}
+    .nav-fab{display:none!important}
+  }
+</style>
 <body>
 <header>
   <div class="wrap">
@@ -498,33 +691,33 @@
       <div class="box"><div class="big" id="h-nd">–</div><div class="lbl">Nội dung đã hoàn thành</div></div>
       <div class="box"><div class="big" id="h-sp">–</div><div class="lbl">Sản phẩm đang/đã đạt</div></div>
     </div>
-    <div class="sub" style="margin-top:14px"><a id="h-bando" href="#">↩ Bản đồ bộ nhớ NAFOSTED</a> · Cập nhật: <span id="h-capnhat"></span></div>
+    <div class="sub" style="margin-top:14px"><a id="h-bando" href="#">Bản đồ bộ nhớ NAFOSTED</a> · Cập nhật: <span id="h-capnhat"></span></div>
   </div>
 </header>
 
 <div class="wrap">
   <div class="tabnav group-nav">
-    <button class="tabbtn groupbtn" data-group="hanhchinh">🗂 Hành chính<span class="grp-badge" id="badge-hc" title="Việc chậm tiến độ cần thúc đẩy"></span></button>
-    <button class="tabbtn groupbtn active" data-group="chuyenmon">🔬 Chuyên môn<span class="grp-badge" id="badge-cm" title="Việc chậm tiến độ cần thúc đẩy"></span></button>
-    <button class="tabbtn groupbtn" data-group="sop">🧪 SOP &amp; Thực nghiệm</button>
-    <button class="tabbtn groupbtn" data-group="tinhcong" id="groupbtn-tinhcong">💰 Tính công</button>
-    <button class="tabbtn groupbtn" data-group="admin" id="groupbtn-admin">🛠 Quản trị</button>
+    <button class="tabbtn groupbtn" data-group="hanhchinh">Hành chính<span class="grp-badge" id="badge-hc" title="Việc chậm tiến độ cần thúc đẩy"></span></button>
+    <button class="tabbtn groupbtn active" data-group="chuyenmon">Chuyên môn<span class="grp-badge" id="badge-cm" title="Việc chậm tiến độ cần thúc đẩy"></span></button>
+    <button class="tabbtn groupbtn" data-group="sop">SOP &amp; Thực nghiệm</button>
+    <button class="tabbtn groupbtn" data-group="tinhcong" id="groupbtn-tinhcong">Tính công</button>
+    <button class="tabbtn groupbtn" data-group="admin" id="groupbtn-admin">Quản trị</button>
   </div>
   <div class="tabnav sub-tabnav" id="subnav-chuyenmon">
-    <button class="tabbtn subbtn active" data-tab="tongquan">📌 Tổng quan</button>
-    <button class="tabbtn subbtn" data-tab="trienkhai">📊 Triển khai</button>
-    <button class="tabbtn subbtn" data-tab="giaoviec">📋 Giao việc</button>
-    <button class="tabbtn subbtn" data-tab="tiendoCN">👤 Tiến độ cá nhân</button>
+    <button class="tabbtn subbtn active" data-tab="tongquan">Tổng quan</button>
+    <button class="tabbtn subbtn" data-tab="trienkhai">Triển khai</button>
+    <button class="tabbtn subbtn" data-tab="giaoviec">Giao việc</button>
+    <button class="tabbtn subbtn" data-tab="tiendoCN">Tiến độ cá nhân</button>
   </div>
   <div class="tabnav sub-tabnav hide" id="subnav-sop">
-    <button class="tabbtn subbtn sopviewbtn active" data-sopview="sop">🧪 SOP</button>
-    <button class="tabbtn subbtn sopviewbtn" data-sopview="ketqua">📊 Kết quả thực nghiệm</button>
+    <button class="tabbtn subbtn sopviewbtn active" data-sopview="sop">SOP</button>
+    <button class="tabbtn subbtn sopviewbtn" data-sopview="ketqua">Kết quả thực nghiệm</button>
   </div>
   <div class="tabnav sub-tabnav hide" id="subnav-hanhchinh">
-    <button class="tabbtn subbtn active" data-tab="giaoviecHC">📋 Giao việc</button>
-    <button class="tabbtn subbtn" data-tab="tiendoCNHC">👤 Tiến độ cá nhân</button>
-    <button class="tabbtn subbtn" data-tab="hosothutu">📁 Hồ sơ thủ tục</button>
-    <button class="tabbtn subbtn" data-tab="taichinhtongho">📈 Tài chính</button>
+    <button class="tabbtn subbtn active" data-tab="giaoviecHC">Giao việc</button>
+    <button class="tabbtn subbtn" data-tab="tiendoCNHC">Tiến độ cá nhân</button>
+    <button class="tabbtn subbtn" data-tab="hosothutu">Hồ sơ thủ tục</button>
+    <button class="tabbtn subbtn" data-tab="taichinhtongho">Tài chính</button>
   </div>
 
   <div id="tab-tongquan" class="tabpane">
@@ -535,7 +728,7 @@
 
   <div id="tab-trienkhai" class="tabpane hide">
   <section class="block" id="giamsat-block">
-    <h2>🧠 Giám sát tiến độ</h2>
+    <h2>Giám sát tiến độ</h2>
     <div class="kpis" id="gs-kpi"></div>
     <div id="gs-list"></div>
   </section>
@@ -564,7 +757,7 @@
   <section class="block">
     <h2>Bảng công việc — cây WBS</h2>
     <div class="filters">
-      <input id="q" type="search" placeholder="🔍 Tìm nhanh (không dấu)…" autocomplete="off">
+      <input id="q" type="search" placeholder="Tìm nhanh (không dấu)…" autocomplete="off">
       <select id="f-who"><option value="">Mọi người</option></select>
       <select id="f-nd"><option value="">Mọi mục tiêu</option></select>
       <select id="f-status">
@@ -600,7 +793,7 @@
   <div id="tab-giaoviec" class="tabpane hide">
     <!-- Tạo phiếu giao việc (tab này CHỈ để giao việc) -->
     <section class="block">
-      <div class="narrbox" style="margin-bottom:12px">📋 <b>Giao việc</b> — tạo và giao phiếu công việc cho thành viên (chọn từ cây WBS hoặc nhập tự do). Phần <b>theo dõi tiến độ · duyệt kết quả · giám sát tuần</b> nằm ở tab <b>👤 Tiến độ cá nhân</b>.</div>
+      <div class="narrbox" style="margin-bottom:12px"><b>Giao việc</b> — tạo và giao phiếu công việc cho thành viên (chọn từ cây WBS hoặc nhập tự do). Phần <b>theo dõi tiến độ · duyệt kết quả · giám sát tuần</b> nằm ở tab <b>Tiến độ cá nhân</b>.</div>
       <div style="font-size:.78rem;color:var(--muted);margin:-4px 0 12px" id="gv-syncstatus">💾 Lưu trình duyệt</div>
       <details id="gv2-create-panel" open>
         <summary style="cursor:pointer;font-size:.95rem;font-weight:700;padding:4px 0;user-select:none">
@@ -608,7 +801,7 @@
         </summary>
         <div style="margin-top:12px;display:grid;gap:10px">
           <div>
-            <label class="gv2-lbl">📌 Công việc cần giao</label>
+            <label class="gv2-lbl">Công việc cần giao</label>
             <select id="gv2-cv-select" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem">
               <option value="">— Chọn công việc từ WBS —</option>
             </select>
@@ -621,11 +814,11 @@
           </div>
           <div class="fld2">
             <div>
-              <label class="gv2-lbl">👤 Người giao</label>
+              <label class="gv2-lbl">Người giao</label>
               <input id="gv2-nguoigiao" type="text" value="TS. Phạm Hà Thanh Tùng" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;box-sizing:border-box">
             </div>
             <div>
-              <label class="gv2-lbl">👤 Người nhận</label>
+              <label class="gv2-lbl">Người nhận</label>
               <select id="gv2-nguoinhan" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem">
                 <option value="">— Chọn người nhận —</option>
               </select>
@@ -651,14 +844,14 @@
             <div id="gv2-tm-rows"></div>
             <button type="button" id="gv2-tm-addrow" class="btn-print" style="font-size:.82rem;padding:4px 12px;background:var(--grey)">＋ Thêm tiểu mục</button>
           </div>
-          <button id="gv2-create-btn" class="btn-print" style="width:100%;padding:9px">📋 Giao việc</button>
+          <button id="gv2-create-btn" class="btn-print" style="width:100%;padding:9px">Giao việc</button>
           <div id="gv2-create-status" class="tcunit"></div>
         </div>
       </details>
     </section>
 
     <section class="block" id="gv2-phieu-section">
-      <h2>🗂 Phiếu đã giao — sửa tiểu mục</h2>
+      <h2>Phiếu đã giao — sửa tiểu mục</h2>
       <select id="gv2-phieu-select" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;margin-bottom:10px"><option value="">— Chọn công việc để sửa tiểu mục —</option></select>
       <div id="gv2-phieu-editor"></div>
     </section>
@@ -668,10 +861,10 @@
   <div id="tab-tiendoCN" class="tabpane hide">
     <!-- Bộ lọc theo cá nhân (trên cùng) -->
     <section class="block">
-      <h2>👤 Theo dõi tiến độ cá nhân <span class="note" id="gv2-week-label"></span></h2>
+      <h2>Theo dõi tiến độ cá nhân <span class="note" id="gv2-week-label"></span></h2>
       <div style="display:flex;gap:4px;margin-bottom:10px">
-        <button class="gv2-view active" data-sfx="" data-view="nguoi">👤 Theo người</button>
-        <button class="gv2-view" data-sfx="" data-view="hoatdong">🔬 Theo hoạt động nghiên cứu</button>
+        <button class="gv2-view active" data-sfx="" data-view="nguoi">Theo người</button>
+        <button class="gv2-view" data-sfx="" data-view="hoatdong">Theo hoạt động nghiên cứu</button>
       </div>
       <div id="gv2-personfilter" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <select id="gv2-filter-who" style="padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.85rem">
@@ -695,7 +888,7 @@
 
     <!-- Công việc đang triển khai (gộp: đang tiến độ + đã nộp chờ duyệt) -->
     <section class="block">
-      <h2>📋 Công việc đang triển khai</h2>
+      <h2>Công việc đang triển khai</h2>
       <div id="gv2-active"></div>
     </section>
 
@@ -720,7 +913,7 @@
 
   <div id="tab-tinhcong" class="tabpane hide">
     <section class="block">
-      <h2>💰 Tính công theo nhân sự</h2>
+      <h2>Tính công theo nhân sự</h2>
       <div id="tc-tomtat" class="narrbox"></div>
       <div id="tc-rollup"></div>
       <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -738,7 +931,7 @@
     </section>
     <section class="block">
       <h2>Chi tiết công theo công việc</h2>
-      <div class="filters"><input id="tc-q" type="search" placeholder="🔍 Tìm công việc / người…" autocomplete="off"></div>
+      <div class="filters"><input id="tc-q" type="search" placeholder="Tìm công việc / người…" autocomplete="off"></div>
       <div id="tc-detail"></div>
     </section>
   </div><!-- /tab-tinhcong -->
@@ -746,13 +939,13 @@
   <!-- ===== SOP & Dữ liệu thực nghiệm ===== -->
   <div id="tab-sopdata" class="tabpane hide" data-sopview="sop">
   <section class="block">
-    <h2>🧪 SOP & Dữ liệu thực nghiệm</h2>
+    <h2>SOP & Dữ liệu thực nghiệm</h2>
     <div class="sop-pane">
 
       <!-- Sync bar -->
       <div class="sop-sync-bar">
         <span class="sop-sync-status" id="sop-sync-status">💾 Lưu trình duyệt</span>
-        <button class="sop-sync-btn" onclick="sop_exportExcel()">📊 Xuất Excel</button>
+        <button class="sop-sync-btn" onclick="sop_exportExcel()">Xuất Excel</button>
       </div>
 
       <!-- Nút chọn công việc (SOP + kết quả theo từng công việc) -->
@@ -1030,14 +1223,14 @@
   <!-- ===== HÀNH CHÍNH: Giao việc (tài chính & quản lý) ===== -->
   <div id="tab-giaoviecHC" class="tabpane hide">
     <section class="block">
-      <div class="narrbox" style="margin-bottom:12px">📋 <b>Giao việc hành chính</b> — tạo & giao phiếu cho công việc <b>tài chính · quản lý · thủ tục</b> (mục 9 / việc tự do). Theo dõi · duyệt kết quả ở tab <b>👤 Tiến độ cá nhân</b> (Hành chính).</div>
+      <div class="narrbox" style="margin-bottom:12px"><b>Giao việc hành chính</b> — tạo & giao phiếu cho công việc <b>tài chính · quản lý · thủ tục</b> (mục 9 / việc tự do). Theo dõi · duyệt kết quả ở tab <b>Tiến độ cá nhân</b> (Hành chính).</div>
       <details id="gv2-create-panelH" open>
         <summary style="cursor:pointer;font-size:.95rem;font-weight:700;padding:4px 0;user-select:none">
           ➕ Tạo phiếu giao việc mới <span class="note" style="font-size:.8rem;font-weight:400;margin-left:6px">chọn từ WBS hành chính hoặc nhập tự do</span>
         </summary>
         <div style="margin-top:12px;display:grid;gap:10px">
           <div>
-            <label class="gv2-lbl">📌 Công việc cần giao</label>
+            <label class="gv2-lbl">Công việc cần giao</label>
             <select id="gv2-cv-selectH" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem">
               <option value="">— Chọn công việc hành chính từ WBS —</option>
             </select>
@@ -1050,11 +1243,11 @@
           </div>
           <div class="fld2">
             <div>
-              <label class="gv2-lbl">👤 Người giao</label>
+              <label class="gv2-lbl">Người giao</label>
               <input id="gv2-nguoigiaoH" type="text" value="TS. Phạm Hà Thanh Tùng" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;box-sizing:border-box">
             </div>
             <div>
-              <label class="gv2-lbl">👤 Người nhận</label>
+              <label class="gv2-lbl">Người nhận</label>
               <select id="gv2-nguoinhanH" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem">
                 <option value="">— Chọn người nhận —</option>
               </select>
@@ -1079,14 +1272,14 @@
             <div id="gv2-tm-rowsH"></div>
             <button type="button" id="gv2-tm-addrowH" class="btn-print" style="font-size:.82rem;padding:4px 12px;background:var(--grey)">＋ Thêm tiểu mục</button>
           </div>
-          <button id="gv2-create-btnH" class="btn-print" style="width:100%;padding:9px">📋 Giao việc</button>
+          <button id="gv2-create-btnH" class="btn-print" style="width:100%;padding:9px">Giao việc</button>
           <div id="gv2-create-statusH" class="tcunit"></div>
         </div>
       </details>
     </section>
 
     <section class="block" id="gv2-phieu-sectionH">
-      <h2>🗂 Phiếu đã giao — sửa tiểu mục</h2>
+      <h2>Phiếu đã giao — sửa tiểu mục</h2>
       <select id="gv2-phieu-selectH" style="width:100%;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.88rem;margin-bottom:10px"><option value="">— Chọn công việc để sửa tiểu mục —</option></select>
       <div id="gv2-phieu-editorH"></div>
     </section>
@@ -1095,10 +1288,10 @@
   <!-- ===== HÀNH CHÍNH: Tiến độ cá nhân ===== -->
   <div id="tab-tiendoCNHC" class="tabpane hide">
     <section class="block">
-      <h2>👤 Theo dõi tiến độ cá nhân — Hành chính <span class="note" id="gv2-week-labelH"></span></h2>
+      <h2>Theo dõi tiến độ cá nhân — Hành chính <span class="note" id="gv2-week-labelH"></span></h2>
       <div style="display:flex;gap:4px;margin-bottom:10px">
-        <button class="gv2-view active" data-sfx="H" data-view="nguoi">👤 Theo người</button>
-        <button class="gv2-view" data-sfx="H" data-view="hoatdong">🗂 Theo hoạt động</button>
+        <button class="gv2-view active" data-sfx="H" data-view="nguoi">Theo người</button>
+        <button class="gv2-view" data-sfx="H" data-view="hoatdong">Theo hoạt động</button>
       </div>
       <div id="gv2-personfilterH" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <select id="gv2-filter-whoH" style="padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:.85rem">
@@ -1119,7 +1312,7 @@
     </section>
 
     <section class="block">
-      <h2>📋 Công việc đang triển khai</h2>
+      <h2>Công việc đang triển khai</h2>
       <div id="gv2-activeH"></div>
     </section>
 
@@ -1140,7 +1333,7 @@
 
   <div id="tab-hosothutu" class="tabpane hide">
     <section class="block">
-      <h2>📁 Hồ sơ thủ tục giải ngân</h2>
+      <h2>Hồ sơ thủ tục giải ngân</h2>
       <div id="hoso-tomtat" class="narrbox" style="margin-bottom:12px"></div>
       <div id="hoso-list"></div>
     </section>
@@ -1148,7 +1341,7 @@
 
   <div id="tab-taichinhtongho" class="tabpane hide">
     <section class="block">
-      <h2>📈 Tài chính tổng hợp</h2>
+      <h2>Tài chính tổng hợp</h2>
       <div class="kpis" id="tc2-kpis" style="margin-bottom:14px"></div>
       <div id="tc2-stacked" style="margin:10px 0 16px"></div>
     </section>
@@ -1169,7 +1362,7 @@
   <!-- ===== QUẢN TRỊ (chỉ admin) ===== -->
   <div id="tab-admin" class="tabpane hide">
     <section class="block">
-      <h2>🛠 Quản trị — thành viên &amp; quyền truy cập</h2>
+      <h2>Quản trị — thành viên &amp; quyền truy cập</h2>
       <div class="narrbox" style="margin-bottom:12px">Chỉ <b>thtungdl@gmail.com</b> quản lý. Thêm <b>email</b> để cấp quyền <b>đăng nhập bằng Google</b>; tick <b>nội dung được xem</b> cho từng người. Email trong cấu hình gốc (env) và tài khoản admin luôn đăng nhập được. Quản trị viên xem toàn bộ.</div>
       <div id="adm-list"></div>
       <div class="adm-addrow">
@@ -1380,7 +1573,7 @@
       + '<div class="lab">Hoạt động ↔ Kết quả</div>'
       + '<table class="hdkq"><tbody>'+ n.hoatDong.map(function(h){ var ten=(typeof h==="string")?h:h.ten, kq=(typeof h==="object"&&h.ketQua)?h.ketQua:""; return '<tr><td>'+esc(ten)+'</td><td>'+esc(kq||"—")+'</td></tr>'; }).join("") +'</tbody></table>'
       + '<div class="lab">Kết quả chung</div><div class="mt" style="margin-bottom:0">'+esc(n.ketQua)+'</div>'
-      + '<div class="foot"><span>👤 '+esc(n.phuTrach)+'</span><span>hạn '+esc(n.han)+' · <span class="pct">'+(n.tienDo||0)+'%</span> <span class="badge s-'+st+'">'+STT[st]+'</span></span></div>'
+      + '<div class="foot"><span>'+esc(n.phuTrach)+'</span><span>hạn '+esc(n.han)+' · <span class="pct">'+(n.tienDo||0)+'%</span> <span class="badge s-'+st+'">'+STT[st]+'</span></span></div>'
       + '<div class="bar" style="margin-top:8px"><i class="fill-'+st+'" style="width:'+(n.tienDo||0)+'%"></i></div></div>';
   }).join("");
 
@@ -1449,7 +1642,7 @@
                  : '<div class="tcdat-empty">Chưa có tiêu chí — bấm ✏️ để thêm.</div>';
     var adm=VIEWER_IS_ADMIN
       ? '<div class="tcdat-adm"><button type="button" class="tcdat-edit" onclick="tc_edit(\''+esc(cv.ma)+'\')">✏️ Sửa tiêu chí</button>'
-        + (overridden?'<span class="tcdat-ovr">✎ đã tùy chỉnh</span><button type="button" class="tcdat-reset" onclick="tc_reset(\''+esc(cv.ma)+'\')">↩ Khôi phục mặc định</button>':'')
+        + (overridden?'<span class="tcdat-ovr">✎ đã tùy chỉnh</span><button type="button" class="tcdat-reset" onclick="tc_reset(\''+esc(cv.ma)+'\')">Khôi phục mặc định</button>':'')
         + '</div>'
       : '';
     return '<details class="tcdat-wrap'+(overridden?' is-ovr':'')+'" id="tc-wrap-'+tcSafe(cv.ma)+'"'+((VIEWER_IS_ADMIN&&!has)?' open':'')+'>'
@@ -1461,7 +1654,7 @@
     var st=effStatus(cv), who=nguoiText(cv);
     var gv=(cv.giaoViec||[]).map(gvMark).join("");
     return '<div class="wbs-cv"><div class="wbs-cv-h"><span class="num">'+esc(cv.ma)+'</span><span class="cvtag">CV</span> <b>'+esc(cv.ten)+'</b>'
-      + '<div class="wbs-cv-m">👤 '+esc(who)+' · 🗓 '+esc(cv.deadline)+' · <span class="badge s-'+st+'">'+STT[st]+' '+(cv.tienDo||0)+'%</span></div>'
+      + '<div class="wbs-cv-m">'+esc(who)+' · 🗓 '+esc(cv.deadline)+' · <span class="badge s-'+st+'">'+STT[st]+' '+(cv.tienDo||0)+'%</span></div>'
       + '<div class="bar" style="margin-top:4px"><i class="fill-'+st+'" style="width:'+(cv.tienDo||0)+'%"></i></div></div>'
       + tieuChiHTML(cv)
       + (gv?'<div class="wbs-gvwrap">'+gv+'</div>':'') + '</div>';
@@ -1810,7 +2003,7 @@
     function digestBadge(g){
       var d=digestOf(g.ma); if(!d) return "";
       var kl=d.ketLuan||d.kl||"", nx=d.nhanXet||d.nx||"", ng=d.ngay||"";
-      var map={dat:["✅ Đạt","s-xong"], chuaDat:["↩ Chưa đạt","s-treHan"], dangXem:["⏳ Đang xem","s-dangLam"]};
+      var map={dat:["✅ Đạt","s-xong"], chuaDat:["Chưa đạt","s-treHan"], dangXem:["⏳ Đang xem","s-dangLam"]};
       var m=map[kl]||["• "+esc(kl),"s-dangLam"];
       return '<div style="font-size:.8rem;margin:5px 0;padding:6px 8px;border-radius:6px;background:var(--bg);border:1px solid var(--line)">'
         + '<span class="badge '+m[1]+'">'+m[0]+'</span>'+(d.diem!=null?' <b>'+esc(String(d.diem))+'</b>':'')
@@ -1954,7 +2147,7 @@
       nguoiList.forEach(function(p){ selNhan.insertAdjacentHTML("beforeend","<option>"+esc(p)+"</option>"); });
       if(LOCK_WHO && selWho){
         // Không phải admin: khóa cứng bộ lọc "theo người" về đúng người đăng nhập — không xem được người khác
-        selWho.innerHTML='<option value="'+esc(LOCK_WHO)+'">👤 '+esc(LOCK_WHO)+' (chỉ xem việc của bạn)</option>';
+        selWho.innerHTML='<option value="'+esc(LOCK_WHO)+'">'+esc(LOCK_WHO)+' (chỉ xem việc của bạn)</option>';
         selWho.value=LOCK_WHO; selWho.disabled=true;
       } else if(selWho){
         nguoiList.forEach(function(p){ selWho.insertAdjacentHTML("beforeend","<option>"+esc(p)+"</option>"); });
@@ -1973,7 +2166,7 @@
         var _edb=G("gv2-wbs-editor"); if(_edb) _edb.innerHTML="";
         if(o&&o.value){ G("gv2-ketqua").value=o.dataset.kq||""; G("gv2-deadline").value=toYMD(o.dataset.dl); }
         // Gợi ý GV từ kế hoạch WBS cho công việc vừa chọn — bấm để điền nhanh người nhận + hạn (vẫn
-        // phải tự bấm "📋 Giao việc" để tạo phiếu thật, không tự động tạo).
+        // phải tự bấm "Giao việc" để tạo phiếu thật, không tự động tạo).
         if(!sugBox) return;
         var cv=o&&o.value?D.congViec.find(function(c){return c.ma===o.value;}):null;
         var gvList=(cv&&cv.giaoViec)||[];
@@ -2017,7 +2210,7 @@
           s0[ma]=Object.assign(s0[ma]||{},{tieuMuc:tmLines.map(function(t){return {ten:t,xong:false};}),khongTieuMuc:false});
           saveState(s0);
         }
-        stat.innerHTML="✅ Đã giao cho <b>"+esc(nguoiNhan)+"</b>"+(tmLines.length?(" · "+tmLines.length+" tiểu mục"):"")+" — theo dõi ở tab 👤 Tiến độ cá nhân"+(isHC?" (Hành chính)":"")+".";
+        stat.innerHTML="✅ Đã giao cho <b>"+esc(nguoiNhan)+"</b>"+(tmLines.length?(" · "+tmLines.length+" tiểu mục"):"")+" — theo dõi ở tab Tiến độ cá nhân"+(isHC?" (Hành chính)":"")+".";
         setTimeout(function(){stat.textContent="";},3500);
         selCV.value=""; G("gv2-ketqua").value=""; G("gv2-deadline").value="";
         if(rowsBox){ rowsBox.innerHTML=""; sop_gvAddTmRow(sfx); }
@@ -2145,7 +2338,7 @@
       if(t.duyet) h+='<span class="badge s-xong">🟢 Đã duyệt</span>';
       else if(t.xong) h+='<span class="badge s-dangLam">🟡 Chờ duyệt</span>';
       if(canApprove){
-        if(t.duyet) h+='<button class="gv2-tmduyet" data-ma="'+esc(g.ma)+'" data-i="'+i+'" data-on="0" title="Bỏ duyệt" style="border:0;background:var(--grey);color:#fff;border-radius:6px;cursor:pointer;font-size:.74rem;padding:2px 7px">↩</button>';
+        if(t.duyet) h+='<button class="gv2-tmduyet" data-ma="'+esc(g.ma)+'" data-i="'+i+'" data-on="0" title="Bỏ duyệt" style="border:0;background:var(--grey);color:#fff;border-radius:6px;cursor:pointer;font-size:.74rem;padding:2px 7px"></button>';
         else h+='<button class="gv2-tmduyet gv2-btn-dat" data-ma="'+esc(g.ma)+'" data-i="'+i+'" data-on="1" title="Duyệt hoàn thành tiểu mục" style="border:0;border-radius:6px;cursor:pointer;font-size:.74rem;padding:2px 8px">✓ Duyệt</button>';
       }
       if(canEdit) h+='<button class="gv2-tmdel" data-ma="'+esc(g.ma)+'" data-i="'+i+'" title="Xóa tiểu mục" style="border:0;background:none;color:var(--muted);cursor:pointer;font-size:.9rem;line-height:1">✕</button>';
@@ -2205,14 +2398,14 @@
       if(g.ngayGiao||g.deadline) h+='<div style="font-size:.76rem;color:var(--muted);margin-bottom:5px">🗓 Giao: <b>'+esc(g.ngayGiao||"—")+'</b> · 📅 Hạn: <b>'+esc(g.deadline||"—")+'</b></div>';
       h+=tempoBar(g);
       if(g.ketQuaCanDat) h+='<div style="font-size:.82rem;border-left:3px solid var(--orange);padding-left:8px;margin:5px 0;line-height:1.4">🎯 '+esc(g.ketQuaCanDat)+'</div>';
-      if(g.duyet==="chuaDat"&&g.gopY) h+='<div style="font-size:.82rem;background:rgba(220,80,60,.12);border-radius:6px;padding:6px 8px;margin:5px 0">↩ <b>CNĐT trả lại:</b> '+esc(g.gopY)+'</div>';
+      if(g.duyet==="chuaDat"&&g.gopY) h+='<div style="font-size:.82rem;background:rgba(220,80,60,.12);border-radius:6px;padding:6px 8px;margin:5px 0"><b>CNĐT trả lại:</b> '+esc(g.gopY)+'</div>';
       // Nhận xét tự động (digest từ thư mục Raw)
       h+=digestBadge(g);
       // Tiểu mục công việc — Tiến độ cá nhân CHỈ tích ✓ (báo đã làm). Sửa cấu trúc ở tab Giao việc.
       h+='<div class="gv2-tm" style="margin:8px 0;padding:8px 10px;border:1px dashed var(--line);border-radius:8px;background:var(--bg)">';
       h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">';
       h+='<span class="gv2-lbl" style="margin:0">🧩 Tiểu mục công việc</span>';
-      h+='<span style="font-size:.72rem;color:var(--muted)">✏️ sửa ở tab 📋 Giao việc</span>';
+      h+='<span style="font-size:.72rem;color:var(--muted)">✏️ sửa ở tab Giao việc</span>';
       h+='</div>';
       if(g.khongTieuMuc){
         h+='<div style="font-size:.78rem;color:var(--muted)">▶ Việc này không chia tiểu mục — hoàn thành việc là đủ.</div>';
@@ -2220,7 +2413,7 @@
         h+='<div style="font-size:.76rem;color:var(--muted);margin-bottom:4px">🟢 Đã duyệt <b>'+stt.duyet+'/'+stt.n+'</b>'+(stt.xong>stt.duyet?' · 🟡 '+(stt.xong-stt.duyet)+' chờ duyệt':'')+(stt.duyet===stt.n?' · <b style="color:var(--green)">hoàn thành ✓</b>':'')+' · tích ✓ ô đã làm xong</div>';
         tmList.forEach(function(t,i){ h+=tmRowHTML(g,t,i,false,false); });
       } else {
-        h+='<div style="font-size:.78rem;color:var(--muted)">Chưa có tiểu mục — thêm ở tab 📋 Giao việc (hoặc đánh dấu "Không cần chia" ở đó).</div>';
+        h+='<div style="font-size:.78rem;color:var(--muted)">Chưa có tiểu mục — thêm ở tab Giao việc (hoặc đánh dấu "Không cần chia" ở đó).</div>';
       }
       h+='</div>';
       // Cập nhật % tiến độ
@@ -2283,7 +2476,7 @@
       h+='<div style="margin-top:8px"><textarea id="gv2gy-'+esc(g.ma)+'" rows="1" placeholder="Góp ý (nếu trả lại)…" style="width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:6px;font-size:.82rem;background:var(--card);color:var(--ink);box-sizing:border-box">'+esc(g.gopY||"")+'</textarea></div>';
       h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
       h+='<button class="gv2-dat-btn btn-print gv2-btn-dat" data-ma="'+esc(g.ma)+'" style="font-size:.83rem;padding:6px 16px" title="Duyệt hoàn thành công việc">✅ Đạt — hoàn thành chính thức</button>';
-      h+='<button class="gv2-reject-btn btn-print gv2-btn-reject" data-ma="'+esc(g.ma)+'" style="font-size:.83rem;padding:6px 14px">↩ Chưa đạt — trả lại</button>';
+      h+='<button class="gv2-reject-btn btn-print gv2-btn-reject" data-ma="'+esc(g.ma)+'" style="font-size:.83rem;padding:6px 14px">Chưa đạt — trả lại</button>';
       h+='</div></div>';
       return h;
     }
@@ -2373,7 +2566,7 @@
         var html="";
         if(!live.length) html='<div class="empty">Không có việc nào'+(stt.chip!=="all"?" với bộ lọc này":"")+'.</div>';
         Object.keys(byP).sort().forEach(function(p){
-          html+='<div class="tcwork"><div class="wh"><span class="num">👤 '+esc(p)+'</span></div>';
+          html+='<div class="tcwork"><div class="wh"><span class="num">'+esc(p)+'</span></div>';
           byP[p].sort(function(a,b){
             var ra=a.duyet==="cho"?0:1, rb=b.duyet==="cho"?0:1;   // việc chờ duyệt lên trước
             if(ra!==rb) return ra-rb;
@@ -2444,7 +2637,7 @@
       document.querySelectorAll(".gv2-tmadd").forEach(function(inp){
         inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); addTM(inp.dataset.ma,inp.value); } });
       });
-      // ✓ Duyệt / ↩ bỏ duyệt 1 tiểu mục (chốt cuối cấp tiểu mục → 🟢)
+      // ✓ Duyệt / bỏ duyệt 1 tiểu mục (chốt cuối cấp tiểu mục → 🟢)
       document.querySelectorAll(".gv2-tmduyet").forEach(function(b){
         b.addEventListener("click",function(){
           var s=loadState(), ma=b.dataset.ma, i=+b.dataset.i, on=b.dataset.on==="1";
@@ -2889,7 +3082,7 @@
         buckets[bi].items.push(c);
       });
       var nWeek=buckets[1].items.length;
-      var whoLbl = who ? ' · 👤 lọc theo '+esc(who) : '';
+      var whoLbl = who ? ' · lọc theo '+esc(who) : '';
 
       G("gst-tuan").innerHTML = '<div class="gst-banner"><div class="big">Tuần '+weekNum+'/'+totWk+' · '+fmtD(mon)+'–'+fmtD(sun)+'/'+sun.getFullYear()+'</div>'
         + '<div class="sub">Còn '+dDeadline+' ngày tới nghiệm thu (08/2027) · cập nhật: '+esc(D.capNhat)+whoLbl+'</div>'
@@ -2901,7 +3094,7 @@
       G("gst-urgent").innerHTML = urgent.length ? urgent.map(function(c){
         var cls=c._r.lv==="behind"?"behind":"";
         return '<div class="urg '+cls+'"><div class="uth"><span class="utt"><span class="num">'+esc(c.ma)+'</span> '+esc(c.ten)+'</span><span class="rs">'+esc(c._r.rs)+'</span></div>'
-          + '<div class="meta"><span class="tag-nd">'+esc(c.nd)+'</span> · 👤 '+esc(nguoiText(c))+' · 🗓 hạn '+esc(c.deadline)+' · '+(c.tienDo||0)+'%</div>'
+          + '<div class="meta"><span class="tag-nd">'+esc(c.nd)+'</span> · '+esc(nguoiText(c))+' · 🗓 hạn '+esc(c.deadline)+' · '+(c.tienDo||0)+'%</div>'
           + '<div class="push">▶ Đẩy nhanh để đạt: '+esc(c.ketQuaCanDat||c.ten)+'</div>'
           + '</div>';
       }).join("") : '<div class="empty">✅ '+(who?esc(who)+' không có':'Không có')+' nội dung chậm tiến độ — đang bám đúng kế hoạch.</div>';
@@ -3215,7 +3408,7 @@
     wrap.innerHTML=sop_getBatches().map(function(b){
       var cls='sop-chip'+(b.id===active?' active':'');
       return '<span class="'+cls+'" onclick="sop_activateBatch(\''+b.id+'\')">'
-        +'🧪 '+esc2(b.ten)
+        +''+esc2(b.ten)
         +'<span class="sc-x" title="Đổi tên mẻ" onclick="sop_renameBatch(\''+b.id+'\',event)">✎</span>'
         +'<span class="sc-x" title="Xóa mẻ" onclick="sop_removeBatch(\''+b.id+'\',event)">✕</span></span>';
     }).join('');
@@ -3851,6 +4044,51 @@
     });
     load();
   });
+})();
+</script>
+
+<script>
+(function(){
+  var nav=document.querySelector('.group-nav'); if(!nav||document.querySelector('.side-brand')) return;
+  var brand=document.createElement('div'); brand.className='side-brand';
+  brand.innerHTML='<span class="logo-card"><img src="/nafostedlogo.png" alt="NAFOSTED"></span><button class="nav-toggle" title="Thu gọn menu">☰</button>';
+  nav.insertBefore(brand, nav.firstChild);
+  var fab=document.createElement('button'); fab.className='nav-fab'; fab.title='Mở menu'; fab.textContent='☰';
+  document.body.appendChild(fab);
+  function setCollapsed(v){ document.body.classList.toggle('nav-collapsed', v); try{localStorage.setItem('naf_nav_collapsed', v?'1':'0');}catch(x){} }
+  brand.querySelector('.nav-toggle').addEventListener('click', function(){ setCollapsed(true); });
+  fab.addEventListener('click', function(){ setCollapsed(false); });
+  try{ if(localStorage.getItem('naf_nav_collapsed')==='1') setCollapsed(true); }catch(x){}
+  // chuyển nội dung Tài chính / giải ngân vào Tổng quan
+  var fin=document.getElementById('tab-taichinhtongho'), tq=document.getElementById('tab-tongquan');
+  if(fin && tq){ while(fin.firstChild){ tq.appendChild(fin.firstChild); } }
+  // Tổng quan + Triển khai: mục cấp 1
+  var gCM=nav.querySelector('.groupbtn[data-group="chuyenmon"]');
+  var suppress=false, topBtns=[], anchorTop=brand;
+  [['tongquan','Tổng quan'],['trienkhai','Triển khai'],['giaoviec','Giao việc'],['tiendoCN','Tiến độ cá nhân']].forEach(function(t){
+    var orig=document.querySelector('#subnav-chuyenmon .subbtn[data-tab="'+t[0]+'"]');
+    if(!orig || orig.style.display==='none' || !gCM) return;
+    var b=document.createElement('button'); b.className='tabbtn side-top'; b.textContent=t[1]; b.dataset.tab=t[0];
+    b.addEventListener('click', function(){ suppress=true; gCM.click(); orig.click(); suppress=false; sync(); });
+    anchorTop.insertAdjacentElement('afterend', b); anchorTop=b; topBtns.push(b);
+  });
+  var adm=document.getElementById('groupbtn-admin');
+  if(adm && adm.style.display!=='none' && adm.textContent.indexOf('Cài đặt')<0){ adm.insertBefore(document.createTextNode('Cài đặt · '), adm.firstChild); }
+  function paneVisible(id){ var p=document.getElementById('tab-'+id); return p && !p.classList.contains('hide'); }
+  function sync(){
+    var topActive=false;
+    topBtns.forEach(function(b){ var on=paneVisible(b.dataset.tab); b.classList.toggle('active', on); if(on) topActive=true; });
+    if(topActive){ document.querySelectorAll('.groupbtn').forEach(function(x){x.classList.remove('active');}); }
+  }
+  document.querySelectorAll('.groupbtn,.subbtn').forEach(function(x){ x.addEventListener('click', function(){ setTimeout(sync,0); }); });
+  // Mặc định mở Tổng quan. Phần khởi tạo phân quyền của dashboard gốc tự click "nhóm/subtab hợp lệ
+  // đầu tiên" ở nhánh async, chạy SAU script này và ghi đè lựa chọn mặc định — nên phải đặt lại sau
+  // khi init lắng xuống. isTrusted phân biệt click thật của người dùng với click do code phát ra.
+  var touched=false;
+  nav.addEventListener('click', function(e){ if(e.isTrusted) touched=true; }, true);
+  function applyDefault(){ if(touched) return; if(topBtns[0]) topBtns[0].click(); else sync(); }
+  applyDefault();
+  window.addEventListener('load', function(){ applyDefault(); setTimeout(applyDefault, 0); });
 })();
 </script>
 </body>
