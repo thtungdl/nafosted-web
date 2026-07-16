@@ -898,9 +898,6 @@
       </div>
     </section>
 
-    <!-- Nhắc nhở nếu chậm nộp báo cáo tuần (tính theo người đang lọc) -->
-    <div id="bct-reminder"></div>
-
     <!-- Giám sát tuần (banner tóm tắt theo bộ lọc) -->
     <div id="gst-tuan"></div>
 
@@ -4288,7 +4285,7 @@
         if(!confirm('Xóa báo cáo tuần này? File phụ lục trên Drive sẽ chuyển vào thùng rác.')) return;
         var r=reports.find(function(x){return x.id===id;});
         reports=reports.filter(function(x){return x.id!==id;});
-        renderHistory(); renderWeekSelect(); renderReminder();
+        renderHistory(); renderWeekSelect();
         saveReportsToServer(function(){});
         if(HOSTED_BCT && r && Array.isArray(r.phuLuc)){
           r.phuLuc.forEach(function(f){ if(f.id) fetch('/api/upload',{method:'DELETE',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:f.id})}).catch(function(){}); });
@@ -4400,28 +4397,11 @@
     }
   }
 
-  // Nhắc nhở chậm nộp — hiển thị ở tab "Tiến độ cá nhân" (#bct-reminder), tính theo người đang lọc ở
-  // đó (#gv2-filter-who) hoặc VIEWER_NAME nếu không phải admin. Độc lập với currentWho của tab này.
-  function renderReminder(){
-    var box=document.getElementById('bct-reminder'); if(!box) return;
-    var sel=document.getElementById('gv2-filter-who');
-    var who=(sel && sel.value) || VIEWER_NAME || '';
-    if(!who){ box.innerHTML=''; return; }
-    var overdue=weekList().filter(function(n){ return weekDeadline(n)<=today && !findReport(who,n); });
-    if(!overdue.length){ box.innerHTML=''; return; }
-    box.innerHTML = '<div class="narrbox" style="border-left-color:var(--red);background:var(--red-bg);color:var(--red)">'
-      + '⚠ Chậm nộp báo cáo tuần: '+overdue.map(function(n){return 'Tuần '+n;}).join(', ')
-      + ' (hạn 9h sáng Thứ 2). Vào tab <b>Báo cáo tuần</b> để nộp.</div>';
-  }
-  var whoFilterSel=document.getElementById('gv2-filter-who');
-  if(whoFilterSel) whoFilterSel.addEventListener('change', renderReminder);
-
   function renderAll(){
     renderWho();
     renderWeekSelect();
     loadFormForWeek();
     renderHistory();
-    renderReminder();
   }
 
   var tuanSel=$('bct-tuan');
@@ -4458,7 +4438,7 @@
     else { reports.push(rpt); }
     setStatus('⏳ Đang lưu…');
     saveReportsToServer(function(ok){ setStatus(ok ? '✅ Đã gửi báo cáo tuần '+currentWeek+'.' : '⚠ Lỗi lưu — kiểm tra đăng nhập.'); });
-    renderWeekSelect(); renderHistory(); renderReminder();
+    renderWeekSelect(); renderHistory();
   });
 
   loadReports(renderAll);
