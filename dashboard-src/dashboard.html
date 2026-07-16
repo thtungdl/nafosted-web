@@ -670,10 +670,6 @@
   .gform-report .meta{font-size:.78rem;color:var(--muted);margin-bottom:6px}
   .gform-report .body-txt{font-size:.85rem;white-space:pre-wrap;margin:4px 0}
   .gform-report .del{margin-top:8px}
-  .gform-gstable{width:100%;border-collapse:collapse;font-size:.82rem}
-  .gform-gstable th,.gform-gstable td{border:1px solid var(--line);padding:7px 9px}
-  .gform-gstable th{background:var(--surface);color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
-  .gform-gstable td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
   .gform-checklist{display:flex;flex-direction:column;gap:7px}
   .gform-checklist label{display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer}
   .gform-checklist input[type="text"]{margin-top:4px}
@@ -990,10 +986,6 @@
       <div class="gform-status" id="bct-status"></div>
     </section>
 
-    <section class="block" id="bct-giamsat-wrap" style="display:none">
-      <h2>Giám sát nộp báo cáo tuần</h2>
-      <div id="bct-giamsat"></div>
-    </section>
   </div><!-- /tab-baocaotuan -->
 
 
@@ -4308,7 +4300,7 @@
         if(!confirm('Xóa báo cáo tuần này? File phụ lục trên Drive sẽ chuyển vào thùng rác.')) return;
         var r=reports.find(function(x){return x.id===id;});
         reports=reports.filter(function(x){return x.id!==id;});
-        renderHistory(); renderWeekSelect(); renderGiamSat(); renderReminder();
+        renderHistory(); renderWeekSelect(); renderReminder();
         saveReportsToServer(function(){});
         if(HOSTED_BCT && r && Array.isArray(r.phuLuc)){
           r.phuLuc.forEach(function(f){ if(f.id) fetch('/api/upload',{method:'DELETE',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:f.id})}).catch(function(){}); });
@@ -4398,33 +4390,6 @@
     renderWeekStatus();
   }
 
-  function renderGiamSat(){
-    var wrap=$('bct-giamsat-wrap'), box=$('bct-giamsat'); if(!wrap||!box) return;
-    if(!IS_ADMIN || !FULLTIME.length){ wrap.style.display='none'; return; }
-    wrap.style.display='';
-    // CHỈ xét các tuần ĐÃ BẮT ĐẦU — tuần tương lai (chưa xuất hiện) không đánh dấu, không đếm.
-    var weeks=weekList().filter(function(n){ return weekRange(n).start<=today; }).slice(0,8).reverse(); // cũ→mới
-    var missingByWho={}; // {tên: [số tuần thiếu...]} — chỉ tuần ĐÃ QUÁ HẠN (9h Thứ 2) mà chưa nộp
-    var head='<tr><th>Thành viên</th>'+weeks.map(function(n){var r=weekRange(n);return '<th>Tuần '+n+'<br><span style="font-weight:400">'+fmtD(r.start)+'–'+fmtD(r.end)+'</span></th>';}).join('')+'</tr>';
-    var rows=FULLTIME.map(function(m){
-      var cells=weeks.map(function(n){
-        var done=!!findReport(m.ten,n);
-        if(done) return '<td style="color:var(--green);font-weight:700;text-align:center">✓</td>';
-        if(weekDeadline(n)<=today){ (missingByWho[m.ten]=missingByWho[m.ten]||[]).push(n); return '<td style="color:var(--red);font-weight:700;text-align:center">✗</td>'; }
-        return '<td style="color:var(--muted);text-align:center">—</td>'; // tuần hiện tại, chưa tới hạn
-      }).join('');
-      return '<tr><td>'+esc(m.ten)+'</td>'+cells+'</tr>';
-    }).join('');
-    // Cảnh báo dạng text CHỈ khi có tuần thiếu; đủ rồi → không hiện banner nào.
-    var names=Object.keys(missingByWho);
-    var warn='';
-    if(names.length){
-      var lines=names.map(function(t){ return '<b>'+esc(t)+'</b>: Tuần '+missingByWho[t].join(', '); });
-      warn='<div class="narrbox" style="border-left-color:var(--red);background:var(--red-bg);color:var(--red);margin-bottom:10px">⚠ Thiếu báo cáo tuần (đã quá hạn 9h Thứ 2) — '+lines.join(' · ')+'</div>';
-    }
-    box.innerHTML = warn + '<div style="overflow-x:auto"><table class="gform-gstable"><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div>';
-  }
-
   // Gộp "Xem/nộp hộ theo người" + "Họ và tên" thành 1 khối: admin → dropdown chọn người (giá trị
   // dropdown CHÍNH LÀ họ tên, không cần ô readonly riêng nữa); người thường → chỉ hiện tên mình, đọc.
   function renderWho(){
@@ -4468,7 +4433,6 @@
     renderWeekSelect();
     loadFormForWeek();
     renderHistory();
-    renderGiamSat();
     renderReminder();
   }
 
@@ -4506,7 +4470,7 @@
     else { reports.push(rpt); }
     setStatus('⏳ Đang lưu…');
     saveReportsToServer(function(ok){ setStatus(ok ? '✅ Đã gửi báo cáo tuần '+currentWeek+'.' : '⚠ Lỗi lưu — kiểm tra đăng nhập.'); });
-    renderWeekSelect(); renderHistory(); renderGiamSat(); renderReminder();
+    renderWeekSelect(); renderHistory(); renderReminder();
   });
 
   loadReports(renderAll);
