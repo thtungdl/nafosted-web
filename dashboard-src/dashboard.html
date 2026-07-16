@@ -664,6 +664,10 @@
   .gform-report .meta{font-size:.78rem;color:var(--muted);margin-bottom:6px}
   .gform-report .body-txt{font-size:.85rem;white-space:pre-wrap;margin:4px 0}
   .gform-report .del{margin-top:8px}
+  .gform-gstable{width:100%;border-collapse:collapse;font-size:.82rem}
+  .gform-gstable th,.gform-gstable td{border:1px solid var(--line);padding:7px 9px}
+  .gform-gstable th{background:var(--surface);color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+  .gform-gstable td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -719,6 +723,7 @@
     <button class="tabbtn subbtn" data-tab="trienkhai">Triển khai</button>
     <button class="tabbtn subbtn" data-tab="giaoviec">Giao việc</button>
     <button class="tabbtn subbtn" data-tab="tiendoCN">Tiến độ cá nhân</button>
+    <button class="tabbtn subbtn" data-tab="baocaotuan">Báo cáo tuần</button>
   </div>
   <div class="tabnav sub-tabnav hide" id="subnav-sop">
     <button class="tabbtn subbtn sopviewbtn active" data-sopview="sop">SOP</button>
@@ -888,10 +893,54 @@
       </div>
     </section>
 
-    <!-- Form báo cáo tiến độ tuần (theo mẫu Word chuẩn) — chỉ hiện khi đã lọc về 1 người cụ thể -->
-    <section class="block" id="baocaotuan-section" style="display:none">
+    <!-- Giám sát tuần (banner tóm tắt theo bộ lọc) -->
+    <div id="gst-tuan"></div>
+
+    <!-- Công việc chậm tiến độ -->
+    <section class="block" id="khantruong-block">
+      <h2>⚠️ Cần khẩn trương — công việc chậm tiến độ</h2>
+      <div id="gst-urgent"></div>
+    </section>
+
+    <!-- Công việc đang triển khai (gộp: đang tiến độ + đã nộp chờ duyệt) -->
+    <section class="block">
+      <h2>Công việc đang triển khai</h2>
+      <div id="gv2-active"></div>
+    </section>
+
+    <!-- Lịch công việc theo tuần -->
+    <details style="margin:0 0 14px">
+      <summary style="cursor:pointer;padding:6px 4px;font-size:.9rem;font-weight:600;color:var(--muted);user-select:none">🗓 Lịch công việc theo tuần</summary>
+      <section class="block" style="margin-top:6px"><div id="gst-weeks"></div></section>
+    </details>
+
+    <!-- Đã hoàn thành -->
+    <section class="block">
+      <details id="gv2-done-panel">
+        <summary style="cursor:pointer;font-weight:700;padding:4px 0;user-select:none">
+          ✅ Đã hoàn thành (<span id="gv2-done-count">0</span> việc)
+        </summary>
+        <div id="gv2-done" style="margin-top:8px"></div>
+      </details>
+    </section>
+
+  </div><!-- /tab-tiendoCN -->
+
+  <div id="tab-baocaotuan" class="tabpane hide">
+    <section class="block">
       <h2>Báo cáo tiến độ tuần</h2>
-      <div class="narrbox" style="margin-bottom:12px">Điền theo mẫu báo cáo tiến độ tuần chuẩn của đề tài. Có thể đính kèm file phụ lục.</div>
+      <div class="narrbox" style="margin-bottom:12px">Điền theo mẫu báo cáo tiến độ tuần chuẩn của đề tài. Chọn đúng tuần ở dropdown — nộp xong tuần đó sẽ được đánh dấu hoàn thành. Có thể đính kèm file phụ lục.</div>
+
+      <div class="gform-q" id="bct-whowrap" style="display:none">
+        <div class="gform-label">Xem / nộp hộ theo người</div>
+        <select class="gform-input" id="bct-who"></select>
+      </div>
+
+      <div class="gform-q">
+        <div class="gform-label">Chọn tuần báo cáo</div>
+        <select class="gform-input" id="bct-tuan"></select>
+        <div class="gform-hint" id="bct-tuan-status" style="margin-top:6px"></div>
+      </div>
 
       <div class="gform-q">
         <div class="gform-label">Họ và tên</div>
@@ -901,13 +950,6 @@
         <div class="gform-label">Vai trò / Nội dung phụ trách</div>
         <div class="gform-hint">VD: ND2 – sàng lọc AChE</div>
         <input class="gform-input" id="bct-vaitro" type="text">
-      </div>
-      <div class="gform-q">
-        <div class="gform-label">Tuần báo cáo</div>
-        <div class="gform-row">
-          <div><div class="gform-sub">Từ ngày</div><input class="gform-input" id="bct-tungay" type="date"></div>
-          <div><div class="gform-sub">Đến ngày</div><input class="gform-input" id="bct-denngay" type="date"></div>
-        </div>
       </div>
       <div class="gform-q">
         <div class="gform-label">Ngày lập báo cáo</div>
@@ -941,45 +983,18 @@
 
       <button class="btn-print" id="bct-submit" type="button">Gửi báo cáo</button>
       <div class="gform-status" id="bct-status"></div>
-
-      <div style="margin-top:22px">
-        <h2 style="font-size:.74rem">Báo cáo đã nộp</h2>
-        <div id="bct-history"></div>
-      </div>
     </section>
 
-    <!-- Giám sát tuần (banner tóm tắt theo bộ lọc) -->
-    <div id="gst-tuan"></div>
-
-    <!-- Công việc chậm tiến độ -->
-    <section class="block" id="khantruong-block">
-      <h2>⚠️ Cần khẩn trương — công việc chậm tiến độ</h2>
-      <div id="gst-urgent"></div>
-    </section>
-
-    <!-- Công việc đang triển khai (gộp: đang tiến độ + đã nộp chờ duyệt) -->
     <section class="block">
-      <h2>Công việc đang triển khai</h2>
-      <div id="gv2-active"></div>
+      <h2>Báo cáo đã nộp</h2>
+      <div id="bct-history"></div>
     </section>
 
-    <!-- Lịch công việc theo tuần -->
-    <details style="margin:0 0 14px">
-      <summary style="cursor:pointer;padding:6px 4px;font-size:.9rem;font-weight:600;color:var(--muted);user-select:none">🗓 Lịch công việc theo tuần</summary>
-      <section class="block" style="margin-top:6px"><div id="gst-weeks"></div></section>
-    </details>
-
-    <!-- Đã hoàn thành -->
-    <section class="block">
-      <details id="gv2-done-panel">
-        <summary style="cursor:pointer;font-weight:700;padding:4px 0;user-select:none">
-          ✅ Đã hoàn thành (<span id="gv2-done-count">0</span> việc)
-        </summary>
-        <div id="gv2-done" style="margin-top:8px"></div>
-      </details>
+    <section class="block" id="bct-giamsat-wrap" style="display:none">
+      <h2>Giám sát nộp báo cáo tuần</h2>
+      <div id="bct-giamsat"></div>
     </section>
-
-  </div><!-- /tab-tiendoCN -->
+  </div><!-- /tab-baocaotuan -->
 
 
   <div id="tab-tinhcong" class="tabpane hide">
@@ -1929,7 +1944,7 @@
   }).join("");
 
   /* ---------- Chuyển tab 2 cấp (Nhóm + Sub) ---------- */
-  var ALL_PANES=["tongquan","trienkhai","giaoviec","tiendoCN","tinhcong","sopdata","giaoviecHC","tiendoCNHC","hosothutu","taichinhtongho","admin"];
+  var ALL_PANES=["tongquan","trienkhai","giaoviec","tiendoCN","baocaotuan","tinhcong","sopdata","giaoviecHC","tiendoCNHC","hosothutu","taichinhtongho","admin"];
   var activeGroup="chuyenmon";
   var activeSub={chuyenmon:"tongquan",hanhchinh:"giaoviecHC",sop:"sopdata",tinhcong:"tinhcong",admin:"admin"};
   function showPane(id){ALL_PANES.forEach(function(p){var e=document.getElementById("tab-"+p);if(e)e.classList.toggle("hide",p!==id);});}
@@ -1944,6 +1959,7 @@
     {key:"trienkhai",grp:"chuyenmon",label:"Triển khai"},
     {key:"giaoviec",grp:"chuyenmon",label:"Giao việc (chuyên môn)"},
     {key:"tiendoCN",grp:"chuyenmon",label:"Tiến độ cá nhân (chuyên môn)"},
+    {key:"baocaotuan",grp:"chuyenmon",label:"Báo cáo tuần"},
     {key:"sopdata",grp:"sop",label:"SOP & Thực nghiệm"},
     {key:"giaoviecHC",grp:"hanhchinh",label:"Giao việc (hành chính)"},
     {key:"tiendoCNHC",grp:"hanhchinh",label:"Tiến độ cá nhân (hành chính)"},
@@ -4149,11 +4165,31 @@
 
 <script>
 (function(){
-  // Form báo cáo tiến độ tuần (theo mẫu Word) — độc lập, không đụng render()/setupScope() gốc.
-  // Hiện/ẩn theo bộ lọc "theo người" sẵn có (#gv2-filter-who) — hosted lưu qua /api/store
-  // (type "baocaotuan") + /api/upload cho phụ lục; offline chỉ lưu localStorage, không upload thật.
+  // Tab "Báo cáo tuần" — độc lập, không đụng render()/setupScope() gốc. Chọn tuần bằng dropdown
+  // (đúng quy ước đánh số tuần đã dùng ở banner "Giám sát tuần": tuần N = t0 + (N-1)*7 ngày), nộp
+  // xong đánh dấu hoàn thành (upsert theo cặp hoTen+tuanSo, không tạo bản trùng khi nộp lại).
+  // Hosted lưu qua /api/store (type "baocaotuan") + /api/upload cho phụ lục; offline chỉ localStorage.
   var HOSTED_BCT=/^https?:$/.test(location.protocol);
-  var reports=[], pendingFiles=[];
+  var D=window.NAFOSTED_PROGRESS||{};
+  var VIEWER=window.NAFOSTED_VIEWER||{email:null,isAdmin:true};
+  var IS_ADMIN=!!VIEWER.isAdmin;
+  var VIEWER_NAME=(function(){
+    if(!VIEWER.email) return null;
+    var p=(D.nhanSu||[]).find(function(n){return n.email && n.email.toLowerCase()===VIEWER.email.toLowerCase();});
+    return p ? p.ten : null;
+  })();
+  var FULLTIME=(D.nhanSu||[]).filter(function(n){return /FULLTIME/i.test(n.vaiTro||'');});
+
+  function pd(s){ if(!s) return null; var p=String(s).split('-'); return new Date(+p[0],(+p[1]||1)-1,(+p[2]||1)); }
+  var today=new Date(); today.setHours(0,0,0,0);
+  var t0=pd(D.moc&&D.moc.batDau)||today, t1=pd(D.moc&&D.moc.ketThuc)||today;
+  var DAY=86400000;
+  var curWeek=Math.floor((today-t0)/(7*DAY))+1, totWk=Math.floor((t1-t0)/(7*DAY));
+  function weekRange(n){ var s=new Date(t0); s.setDate(s.getDate()+(n-1)*7); var e=new Date(s); e.setDate(s.getDate()+6); return {start:s,end:e}; }
+  function fmtD(d){ return (d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1); }
+  function ymd(d){ return d.getFullYear()+'-'+((d.getMonth()+1)<10?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate(); }
+
+  var reports=[], pendingFiles=[], currentWho='', currentWeek=curWeek;
 
   function $(id){ return document.getElementById(id); }
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
@@ -4161,6 +4197,7 @@
   function pad2(n){ return (n<10?'0':'')+n; }
   function nowDBCT(){ var d=new Date(); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
   function nowTBCT(){ var d=new Date(); return pad2(d.getHours())+':'+pad2(d.getMinutes()); }
+  function findReport(who,wn){ return reports.find(function(r){return r.hoTen===who && r.tuanSo===wn;}); }
 
   function saveReportsToServer(cb){
     if(HOSTED_BCT){
@@ -4174,15 +4211,15 @@
     }
   }
 
-  function loadReports(){
-    function apply(d){ if(d && Array.isArray(d.reports)) reports=d.reports; renderHistory(); }
+  function loadReports(cb){
+    function apply(d){ if(d && Array.isArray(d.reports)) reports=d.reports; if(cb) cb(); }
     if(HOSTED_BCT){
-      fetch('/api/store?type=baocaotuan',{credentials:'same-origin'}).then(function(r){return r.json();}).then(apply).catch(function(){});
+      fetch('/api/store?type=baocaotuan',{credentials:'same-origin'}).then(function(r){return r.json();}).then(apply).catch(function(){ if(cb) cb(); });
     } else {
       try{ var ls=localStorage.getItem('nafosted_baocaotuan'); if(ls) apply({reports:JSON.parse(ls)}); }catch(e){}
       var s=document.createElement('script'); s.src='nafosted-baocaotuan.js?'+Date.now();
-      s.onload=function(){ if(window.NAFOSTED_BAOCAOTUAN) apply(window.NAFOSTED_BAOCAOTUAN); };
-      s.onerror=function(){}; document.head.appendChild(s);
+      s.onload=function(){ if(window.NAFOSTED_BAOCAOTUAN) apply(window.NAFOSTED_BAOCAOTUAN); else if(cb) cb(); };
+      s.onerror=function(){ if(cb) cb(); }; document.head.appendChild(s);
     }
   }
 
@@ -4204,14 +4241,14 @@
 
   function uploadFiles(fileList){
     if(!HOSTED_BCT){ setStatus('⚠ Đính kèm file chỉ khả dụng trên bản web (đã đăng nhập).'); return; }
-    var who=($('bct-hoten').value||'').trim(); if(!who) return;
+    if(!currentWho) return;
     var files=[].slice.call(fileList);
     (function next(k){
       if(k>=files.length){ setStatus(''); return; }
       var f=files[k];
       setStatus('⏳ Đang tải lên '+f.name+'…');
       var fd=new FormData();
-      fd.append('file', f); fd.append('tenChuan', f.name); fd.append('nd','Bao cao tuan'); fd.append('cvMa', who); fd.append('cvTen','');
+      fd.append('file', f); fd.append('tenChuan', f.name); fd.append('nd','Bao cao tuan'); fd.append('cvMa', currentWho); fd.append('cvTen','');
       fetch('/api/upload',{method:'POST',credentials:'same-origin',body:fd})
         .then(function(r){return r.json();})
         .then(function(j){
@@ -4225,13 +4262,12 @@
 
   function renderHistory(){
     var box=$('bct-history'); if(!box) return;
-    var who=($('bct-hoten')&&$('bct-hoten').value||'').trim();
-    var mine=reports.filter(function(r){return r.hoTen===who;}).slice().sort(function(a,b){return (b.ngayNop||'').localeCompare(a.ngayNop||'');});
+    var mine=reports.filter(function(r){return r.hoTen===currentWho;}).slice().sort(function(a,b){return b.tuanSo-a.tuanSo;});
     if(!mine.length){ box.innerHTML='<div class="gform-hint">Chưa có báo cáo nào.</div>'; return; }
     box.innerHTML = mine.map(function(r){
       var files=(r.phuLuc||[]).map(function(f){ return f.link?('<a href="'+esc(f.link)+'" target="_blank" rel="noopener">'+esc(f.tenChuan)+'</a>'):esc(f.tenChuan); }).join(' · ');
       return '<div class="gform-report" data-id="'+esc(r.id)+'">'
-        + '<h4>Tuần '+esc(r.tuNgay||'?')+' – '+esc(r.denNgay||'?')+'</h4>'
+        + '<h4>Tuần '+r.tuanSo+' ('+esc(r.tuNgay||'?')+' – '+esc(r.denNgay||'?')+')</h4>'
         + '<div class="meta">Nộp lúc '+esc(r.ngayNop||'')+(r.vaiTro?(' · '+esc(r.vaiTro)):'')+'</div>'
         + (r.congViecHoanThanh?('<div class="body-txt"><b>Đã hoàn thành:</b> '+esc(r.congViecHoanThanh)+'</div>'):'')
         + (r.khoKhan?('<div class="body-txt"><b>Khó khăn:</b> '+esc(r.khoKhan)+'</div>'):'')
@@ -4246,7 +4282,7 @@
         if(!confirm('Xóa báo cáo tuần này? File phụ lục trên Drive sẽ chuyển vào thùng rác.')) return;
         var r=reports.find(function(x){return x.id===id;});
         reports=reports.filter(function(x){return x.id!==id;});
-        renderHistory();
+        renderHistory(); renderWeekSelect(); renderGiamSat();
         saveReportsToServer(function(){});
         if(HOSTED_BCT && r && Array.isArray(r.phuLuc)){
           r.phuLuc.forEach(function(f){ if(f.id) fetch('/api/upload',{method:'DELETE',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:f.id})}).catch(function(){}); });
@@ -4255,24 +4291,104 @@
     });
   }
 
-  function sync(){
-    var sel=document.getElementById('gv2-filter-who');
-    var sec=$('baocaotuan-section');
-    if(!sel || !sec) return;
-    var who=sel.value;
-    if(who){
-      sec.style.display='';
-      $('bct-hoten').value=who;
-      if(!$('bct-nguoibaocao').value) $('bct-nguoibaocao').value=who;
-      pendingFiles=[]; renderPending();
-      renderHistory();
+  // Danh sách tuần: 12 tuần gần nhất tính đến tuần hiện tại (mới nhất trước), kẹp trong [1,totWk]
+  function weekList(){
+    var lo=Math.max(1,curWeek-11), hi=Math.min(totWk||curWeek,curWeek);
+    var out=[]; for(var n=hi;n>=lo;n--) out.push(n); return out;
+  }
+
+  function renderWeekSelect(){
+    var sel=$('bct-tuan'); if(!sel) return;
+    var keep=+sel.value||currentWeek;
+    sel.innerHTML = weekList().map(function(n){
+      var r=weekRange(n), done=!!findReport(currentWho,n);
+      var lbl='Tuần '+n+' ('+fmtD(r.start)+'–'+fmtD(r.end)+')'+(done?' — ✓ Đã nộp':'');
+      return '<option value="'+n+'">'+esc(lbl)+'</option>';
+    }).join('');
+    if(weekList().indexOf(keep)>=0) sel.value=keep; else sel.value=curWeek;
+    currentWeek=+sel.value;
+    renderWeekStatus();
+  }
+
+  function renderWeekStatus(){
+    var st=$('bct-tuan-status'); if(!st) return;
+    var r=findReport(currentWho,currentWeek);
+    st.textContent = r ? ('✓ Đã nộp lúc '+(r.ngayNop||'')+' — nộp lại sẽ ghi đè bản cũ.') : 'Chưa nộp cho tuần này.';
+  }
+
+  // Nạp form theo tuần đang chọn: có báo cáo cũ → điền lại để xem/sửa; chưa có → để trống
+  function loadFormForWeek(){
+    var r=findReport(currentWho,currentWeek);
+    var wr=weekRange(currentWeek);
+    $('bct-hoten').value=currentWho;
+    if(r){
+      $('bct-vaitro').value=r.vaiTro||'';
+      $('bct-ngaylap').value=r.ngayLap||nowDBCT();
+      $('bct-hoanthanh').value=r.congViecHoanThanh||'';
+      $('bct-khokhan').value=r.khoKhan||'';
+      $('bct-kehoach').value=r.keHoachTuanToi||'';
+      $('bct-nguoibaocao').value=r.nguoiBaoCao||currentWho;
+      pendingFiles=(r.phuLuc||[]).slice();
     } else {
-      sec.style.display='none';
+      $('bct-vaitro').value='';
+      $('bct-ngaylap').value=nowDBCT();
+      $('bct-hoanthanh').value=''; $('bct-khokhan').value=''; $('bct-kehoach').value='';
+      $('bct-nguoibaocao').value=currentWho;
+      pendingFiles=[];
+    }
+    renderPending();
+    renderWeekStatus();
+    void wr;
+  }
+
+  function renderGiamSat(){
+    var wrap=$('bct-giamsat-wrap'), box=$('bct-giamsat'); if(!wrap||!box) return;
+    if(!IS_ADMIN || !FULLTIME.length){ wrap.style.display='none'; return; }
+    wrap.style.display='';
+    var weeks=weekList().slice(0,8).reverse(); // 8 tuần gần nhất, cũ→mới
+    var missing=0;
+    var head='<tr><th>Thành viên</th>'+weeks.map(function(n){var r=weekRange(n);return '<th>Tuần '+n+'<br><span style="font-weight:400">'+fmtD(r.start)+'–'+fmtD(r.end)+'</span></th>';}).join('')+'</tr>';
+    var rows=FULLTIME.map(function(m){
+      var cells=weeks.map(function(n){
+        var r=weekRange(n), done=!!findReport(m.ten,n);
+        if(done) return '<td style="color:var(--green);font-weight:700;text-align:center">✓</td>';
+        if(r.end<today){ missing++; return '<td style="color:var(--red);font-weight:700;text-align:center">✗</td>'; }
+        return '<td style="color:var(--muted);text-align:center">—</td>';
+      }).join('');
+      return '<tr><td>'+esc(m.ten)+'</td>'+cells+'</tr>';
+    }).join('');
+    var warn = missing>0 ? ('<div class="narrbox" style="border-left-color:var(--red);background:var(--red-bg);color:var(--red);margin-bottom:10px">⚠ '+missing+' báo cáo tuần còn thiếu (tuần đã qua nhưng chưa nộp)</div>') : '<div class="narrbox" style="border-left-color:var(--green);margin-bottom:10px">✓ Không có báo cáo tuần nào bị thiếu trong '+weeks.length+' tuần gần nhất.</div>';
+    box.innerHTML = warn + '<div style="overflow-x:auto"><table class="gform-gstable"><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div>';
+  }
+
+  function renderWho(){
+    var wrap=$('bct-whowrap'), sel=$('bct-who'); if(!wrap||!sel) return;
+    if(IS_ADMIN){
+      wrap.style.display='';
+      if(!sel.options.length){
+        sel.innerHTML = FULLTIME.map(function(m){ return '<option value="'+esc(m.ten)+'">'+esc(m.ten)+'</option>'; }).join('');
+      }
+      currentWho = sel.value || (FULLTIME[0] && FULLTIME[0].ten) || '';
+      sel.value=currentWho;
+    } else {
+      wrap.style.display='none';
+      currentWho = VIEWER_NAME || '';
     }
   }
 
-  var sel0=document.getElementById('gv2-filter-who');
-  if(sel0) sel0.addEventListener('change', sync);
+  function renderAll(){
+    renderWho();
+    renderWeekSelect();
+    loadFormForWeek();
+    renderHistory();
+    renderGiamSat();
+  }
+
+  var whoSel=$('bct-who');
+  if(whoSel) whoSel.addEventListener('change', function(){ currentWho=whoSel.value; renderWeekSelect(); loadFormForWeek(); renderHistory(); });
+  var tuanSel=$('bct-tuan');
+  if(tuanSel) tuanSel.addEventListener('change', function(){ currentWeek=+tuanSel.value; loadFormForWeek(); });
+
   var dz=$('bct-drop'), fi=$('bct-fileinput');
   if(dz && fi){
     dz.addEventListener('click', function(){ fi.click(); });
@@ -4281,37 +4397,34 @@
     dz.addEventListener('drop', function(e){ e.preventDefault(); dz.classList.remove('drag'); if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files); });
     fi.addEventListener('change', function(){ if(fi.files.length) uploadFiles(fi.files); fi.value=''; });
   }
-  if($('bct-ngaylap') && !$('bct-ngaylap').value) $('bct-ngaylap').value=nowDBCT();
+
   var submitBtn=$('bct-submit');
   if(submitBtn) submitBtn.addEventListener('click', function(){
-    var who=($('bct-hoten').value||'').trim();
-    if(!who){ setStatus('⚠ Chưa xác định người báo cáo.'); return; }
-    var tu=$('bct-tungay').value, den=$('bct-denngay').value;
-    if(!tu || !den){ setStatus('⚠ Chọn đủ khoảng "Tuần báo cáo".'); return; }
+    if(!currentWho){ setStatus('⚠ Chưa xác định người báo cáo.'); return; }
+    var wr=weekRange(currentWeek);
+    var existing=findReport(currentWho,currentWeek);
     var rpt={
-      id:'BCT-'+Date.now().toString().slice(-8),
-      hoTen:who,
+      id: existing ? existing.id : 'BCT-'+Date.now().toString().slice(-8),
+      hoTen:currentWho,
+      tuanSo:currentWeek,
       vaiTro:($('bct-vaitro').value||'').trim(),
-      tuNgay:tu, denNgay:den,
+      tuNgay:ymd(wr.start), denNgay:ymd(wr.end),
       ngayLap:$('bct-ngaylap').value,
       congViecHoanThanh:($('bct-hoanthanh').value||'').trim(),
       khoKhan:($('bct-khokhan').value||'').trim(),
       keHoachTuanToi:($('bct-kehoach').value||'').trim(),
-      nguoiBaoCao:($('bct-nguoibaocao').value||who).trim(),
+      nguoiBaoCao:($('bct-nguoibaocao').value||currentWho).trim(),
       phuLuc:pendingFiles.slice(),
       ngayNop:nowDBCT()+' '+nowTBCT()
     };
-    reports.push(rpt);
+    if(existing){ reports=reports.map(function(r){return r.id===existing.id?rpt:r;}); }
+    else { reports.push(rpt); }
     setStatus('⏳ Đang lưu…');
-    saveReportsToServer(function(ok){ setStatus(ok ? '✅ Đã gửi báo cáo tuần.' : '⚠ Lỗi lưu — kiểm tra đăng nhập.'); });
-    $('bct-vaitro').value=''; $('bct-tungay').value=''; $('bct-denngay').value='';
-    $('bct-hoanthanh').value=''; $('bct-khokhan').value=''; $('bct-kehoach').value='';
-    pendingFiles=[]; renderPending();
-    renderHistory();
+    saveReportsToServer(function(ok){ setStatus(ok ? '✅ Đã gửi báo cáo tuần '+currentWeek+'.' : '⚠ Lỗi lưu — kiểm tra đăng nhập.'); });
+    renderWeekSelect(); renderHistory(); renderGiamSat();
   });
 
-  loadReports();
-  sync();
+  loadReports(renderAll);
 })();
 </script>
 
@@ -4371,6 +4484,15 @@
       anchorTop.insertAdjacentElement('afterend', pb); anchorTop=pb; personBtns.push(pb);
     });
   }
+  // "Báo cáo tuần" — mục cấp 1 riêng, ngang hàng "Tiến độ cá nhân" (không phải admin-only, ai xem
+  // được "Tiến độ cá nhân" thì xem được tab này — đúng model phân quyền SECTIONS chung).
+  (function(){
+    var origBct=document.querySelector('#subnav-chuyenmon .subbtn[data-tab="baocaotuan"]');
+    if(!origBct || origBct.style.display==='none' || !gCM) return;
+    var b=document.createElement('button'); b.className='tabbtn side-top'; b.textContent='Báo cáo tuần'; b.dataset.tab='baocaotuan';
+    b.addEventListener('click', function(){ suppress=true; gCM.click(); origBct.click(); suppress=false; sync(); });
+    anchorTop.insertAdjacentElement('afterend', b); anchorTop=b; topBtns.push(b);
+  })();
   var adm=document.getElementById('groupbtn-admin');
   if(adm && adm.style.display!=='none' && adm.textContent.indexOf('Cài đặt')<0){ adm.insertBefore(document.createTextNode('Cài đặt · '), adm.firstChild); }
   function paneVisible(id){ var p=document.getElementById('tab-'+id); return p && !p.classList.contains('hide'); }
