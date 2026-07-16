@@ -635,6 +635,12 @@
   body.nav-collapsed .group-nav{transform:translateX(-100%)}
   .nav-fab{position:fixed;top:14px;left:14px;z-index:60;background:var(--sidebar-bg);color:#fff;border:0;border-radius:10px;width:38px;height:38px;font-size:1.1rem;cursor:pointer;display:none;align-items:center;justify-content:center}
   body.nav-collapsed .nav-fab{display:flex}
+  /* Nút ☰ nổi (14–52px) đè lên chữ cột trái khi sidebar thu gọn — nới lề trái/phải đối xứng để nút
+     nằm gọn trong khoảng trắng, không chèn lên nội dung. Chỉ áp dụng khi thu gọn + màn hình rộng
+     (mobile ẩn hẳn nút này, xem @media bên dưới). */
+  @media(min-width:901px){
+    body.nav-collapsed .wrap,body.nav-collapsed header .wrap{padding-left:64px;padding-right:64px}
+  }
   @media(max-width:900px){
     body.nav-collapsed{margin-left:0}
     body.nav-collapsed .group-nav{transform:none}
@@ -668,6 +674,9 @@
   .gform-gstable th,.gform-gstable td{border:1px solid var(--line);padding:7px 9px}
   .gform-gstable th{background:var(--surface);color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
   .gform-gstable td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
+  .gform-checklist{display:flex;flex-direction:column;gap:7px}
+  .gform-checklist label{display:flex;align-items:center;gap:8px;font-size:.85rem;cursor:pointer}
+  .gform-checklist input[type="text"]{margin-top:4px}
 </style>
 </head>
 <body>
@@ -893,6 +902,9 @@
       </div>
     </section>
 
+    <!-- Nhắc nhở nếu chậm nộp báo cáo tuần (tính theo người đang lọc) -->
+    <div id="bct-reminder"></div>
+
     <!-- Giám sát tuần (banner tóm tắt theo bộ lọc) -->
     <div id="gst-tuan"></div>
 
@@ -931,9 +943,10 @@
       <h2>Báo cáo tiến độ tuần</h2>
       <div class="narrbox" style="margin-bottom:12px">Điền theo mẫu báo cáo tiến độ tuần chuẩn của đề tài. Chọn đúng tuần ở dropdown — nộp xong tuần đó sẽ được đánh dấu hoàn thành. Có thể đính kèm file phụ lục.</div>
 
-      <div class="gform-q" id="bct-whowrap" style="display:none">
-        <div class="gform-label">Xem / nộp hộ theo người</div>
-        <select class="gform-input" id="bct-who"></select>
+      <div class="gform-q">
+        <div class="gform-label">Họ và tên</div>
+        <div class="gform-hint" id="bct-who-hint" style="display:none">Admin — chọn người để xem/nộp hộ</div>
+        <div id="bct-who-wrap"></div>
       </div>
 
       <div class="gform-q">
@@ -943,13 +956,9 @@
       </div>
 
       <div class="gform-q">
-        <div class="gform-label">Họ và tên</div>
-        <input class="gform-input" id="bct-hoten" type="text" readonly>
-      </div>
-      <div class="gform-q">
         <div class="gform-label">Vai trò / Nội dung phụ trách</div>
-        <div class="gform-hint">VD: ND2 – sàng lọc AChE</div>
-        <input class="gform-input" id="bct-vaitro" type="text">
+        <div class="gform-hint">Chọn 1 hoặc nhiều công việc đang được giao (đúng như ở tab Tiến độ cá nhân) — tick "Việc khác" nếu chưa có trong danh sách</div>
+        <div class="gform-checklist" id="bct-vaitro-list"></div>
       </div>
       <div class="gform-q">
         <div class="gform-label">Ngày lập báo cáo</div>
@@ -971,10 +980,6 @@
         <textarea class="gform-textarea" id="bct-kehoach"></textarea>
       </div>
       <div class="gform-q">
-        <div class="gform-label">Người báo cáo (ký, ghi rõ họ tên)</div>
-        <input class="gform-input" id="bct-nguoibaocao" type="text">
-      </div>
-      <div class="gform-q">
         <div class="gform-label">Phụ lục kèm theo</div>
         <div class="gform-drop" id="bct-drop">📎 Kéo &amp; thả file vào đây, hoặc <b>bấm để chọn</b> (chọn được nhiều file)</div>
         <input type="file" multiple id="bct-fileinput" style="display:none">
@@ -983,11 +988,6 @@
 
       <button class="btn-print" id="bct-submit" type="button">Gửi báo cáo</button>
       <div class="gform-status" id="bct-status"></div>
-    </section>
-
-    <section class="block">
-      <h2>Báo cáo đã nộp</h2>
-      <div id="bct-history"></div>
     </section>
 
     <section class="block" id="bct-giamsat-wrap" style="display:none">
@@ -2062,6 +2062,9 @@
     function saveCustom(a){localStorage.setItem(LS_CUSTOM,JSON.stringify(a)); pushSync();}
     function loadState(){try{return JSON.parse(localStorage.getItem(LS_STATE)||"{}");}catch(e){return {};}}
     function saveState(s){localStorage.setItem(LS_STATE,JSON.stringify(s)); pushSync();}
+    // Expose cho module "Gia hạn deadline" (script riêng cuối trang) tái dùng đúng cơ chế lưu/đồng bộ
+    // sẵn có — tránh viết lại logic pushSync (payload /api/store) ở nơi khác, dễ lệch khi sửa sau này.
+    window.NAF_loadGvState=loadState; window.NAF_saveGvState=saveState;
     function gvSetStatus(t){ var e=document.getElementById('gv-syncstatus'); if(e) e.textContent=t; }
     // Đồng bộ TỰ ĐỘNG mỗi lần đổi trạng thái HOẶC tạo/xóa phiếu: hosted (Vercel) → /api/store (đăng nhập, ghi Drive ngay);
     // offline → Apps Script nếu đã cấu hình URL ở tab Tính công. Gửi CẢ state (tiến độ/duyệt theo mã) LẪN
@@ -2132,6 +2135,7 @@
     function applyState(gv,st){
       var s=st[gv.ma]||{};
       var tienDo=s.tienDo!==undefined?s.tienDo:gv.tienDo;
+      var deadline=s.deadline!==undefined?s.deadline:gv.deadline;
       var tieuMuc=s.tieuMuc || gv.tieuMuc || [];
       var khongTieuMuc=s.khongTieuMuc!==undefined ? s.khongTieuMuc : !!gv.khongTieuMuc;
       // duyet: "" | "cho" (chờ duyệt · 🟡) | "dat" (hoàn thành · 🟢) | "chuaDat" (trả lại)
@@ -2145,6 +2149,7 @@
       }
       return Object.assign({},gv,{
         tienDo:tienDo,
+        deadline:deadline,
         minhChung:s.minhChung||[],
         ketQuaNop:s.ketQuaNop||"",
         ngayNop:s.ngayNop||"",
@@ -2155,7 +2160,10 @@
         tieuMuc: tieuMuc,
         khongTieuMuc: khongTieuMuc,
         // báo cáo đã thả lên thư mục Raw: MẢNG [{tenChuan, ngay, link}] (tương thích bản cũ dạng object đơn)
-        baoCao: Array.isArray(s.baoCao) ? s.baoCao : (s.baoCao ? [s.baoCao] : [])
+        baoCao: Array.isArray(s.baoCao) ? s.baoCao : (s.baoCao ? [s.baoCao] : []),
+        // Gia hạn deadline khi có vấn đề phát sinh: đề xuất chờ CNĐT duyệt + lịch sử đã duyệt
+        giaHanDeXuat: s.giaHanDeXuat || null,
+        lichSuGiaHan: s.lichSuGiaHan || []
       });
     }
     // GV gợi ý từ WBS (_src:"data", chưa qua form "Tạo phiếu giao việc mới") không tính là việc
@@ -2529,6 +2537,7 @@
       h+='<div class="gv2-upstatus" data-ma="'+esc(g.ma)+'" style="font-size:.76rem;color:var(--muted);margin-top:4px"></div>';
       h+=baoCaoHTML(g, true);
       h+='</div>';
+      h+=(window.NAF_giaHanBlock?window.NAF_giaHanBlock(g):'');
       // Hành động
       h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
       if(g.duyet!=="cho" && !useTM){
@@ -2557,11 +2566,11 @@
       if(hasTM){
         var st2=tmStats(g);
         h+='<div style="margin:8px 0;padding:8px 10px;border:1px dashed var(--line);border-radius:8px;background:var(--bg)">';
-        h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px"><span class="gv2-lbl" style="margin:0">🧩 Duyệt tiểu mục <span style="font-weight:400;color:var(--muted)">(click ô = duyệt)</span></span>';
-        h+='<span style="font-size:.76rem;color:var(--muted)">🟢 '+st2.duyet+'/'+st2.n+(st2.duyet<st2.n?' · <button class="gv2-tmduyetall btn-print gv2-btn-dat" data-ma="'+esc(g.ma)+'" style="font-size:.72rem;padding:2px 8px;margin-left:4px">✓ Duyệt tất cả</button>':' <b style="color:var(--green)">✓ đủ</b>')+'</span></div>';
+        h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px"><span class="gv2-lbl" style="margin:0">🧩 Duyệt tiểu mục '+(VIEWER_IS_ADMIN?'<span style="font-weight:400;color:var(--muted)">(click ô = duyệt)</span>':'')+'</span>';
+        h+='<span style="font-size:.76rem;color:var(--muted)">🟢 '+st2.duyet+'/'+st2.n+((VIEWER_IS_ADMIN&&st2.duyet<st2.n)?' · <button class="gv2-tmduyetall btn-print gv2-btn-dat" data-ma="'+esc(g.ma)+'" style="font-size:.72rem;padding:2px 8px;margin-left:4px">✓ Duyệt tất cả</button>':(st2.duyet===st2.n?' <b style="color:var(--green)">✓ đủ</b>':''))+'</span></div>';
         tm.forEach(function(t,i){
           h+='<div style="display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:6px;'+(t.duyet?'background:var(--green-bg);':(t.xong?'background:var(--amber-bg);':''))+'">';
-          h+='<input type="checkbox" class="gv2-tmapprove" data-ma="'+esc(g.ma)+'" data-i="'+i+'"'+(t.duyet?' checked':'')+' title="Click để duyệt tiểu mục">';
+          h+='<input type="checkbox" class="gv2-tmapprove" data-ma="'+esc(g.ma)+'" data-i="'+i+'"'+(t.duyet?' checked':'')+(VIEWER_IS_ADMIN?'':' disabled')+' title="'+(VIEWER_IS_ADMIN?'Click để duyệt tiểu mục':'Chỉ CNĐT được duyệt')+'">';
           h+='<span class="gv2-tmnum">'+esc(tmNo(g,i))+'</span>';
           h+='<span style="font-size:.83rem;flex:1'+(t.duyet?';color:var(--green)':'')+'">'+esc(t.ten)+'</span>';
           h+=(t.duyet?'<span class="badge s-xong">🟢 Đã duyệt</span>':(t.xong?'<span class="badge s-dangLam">🟡 Đã làm</span>':''));
@@ -2569,10 +2578,16 @@
         });
         h+='</div>';
       }
-      h+='<div style="margin-top:8px"><textarea id="gv2gy-'+esc(g.ma)+'" rows="1" placeholder="Góp ý (nếu trả lại)…" style="width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:6px;font-size:.82rem;background:var(--card);color:var(--ink);box-sizing:border-box">'+esc(g.gopY||"")+'</textarea></div>';
-      h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
-      h+='<button class="gv2-dat-btn btn-print gv2-btn-dat" data-ma="'+esc(g.ma)+'" style="font-size:.83rem;padding:6px 16px" title="Duyệt hoàn thành công việc">✅ Đạt — hoàn thành chính thức</button>';
-      h+='<button class="gv2-reject-btn btn-print gv2-btn-reject" data-ma="'+esc(g.ma)+'" style="font-size:.83rem;padding:6px 14px">↩ Chưa đạt — trả lại</button>';
+      if(VIEWER_IS_ADMIN){
+        h+='<div style="margin-top:8px"><textarea id="gv2gy-'+esc(g.ma)+'" rows="1" placeholder="Góp ý (nếu trả lại)…" style="width:100%;padding:5px 8px;border:1px solid var(--line);border-radius:6px;font-size:.82rem;background:var(--card);color:var(--ink);box-sizing:border-box">'+esc(g.gopY||"")+'</textarea></div>';
+        h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
+        h+='<button class="gv2-dat-btn btn-print gv2-btn-dat" data-ma="'+esc(g.ma)+'" style="font-size:.83rem;padding:6px 16px" title="Duyệt hoàn thành công việc">✅ Đạt — hoàn thành chính thức</button>';
+        h+='<button class="gv2-reject-btn btn-print gv2-btn-reject" data-ma="'+esc(g.ma)+'" style="font-size:.83rem;padding:6px 14px">↩ Chưa đạt — trả lại</button>';
+        h+='</div>';
+      } else {
+        h+='<div style="margin-top:8px;font-size:.82rem;color:var(--muted)">⏳ Đã nộp — đang chờ CNĐT duyệt.</div>';
+      }
+      h+=(window.NAF_giaHanBlock?window.NAF_giaHanBlock(g):'');
       h+='</div></div>';
       return h;
     }
@@ -2615,6 +2630,8 @@
       bindEvents(st);
       updateBadges();
     }
+    // Expose cho module "Gia hạn deadline" gọi vẽ lại thẻ công việc sau khi đổi state
+    window.NAF_renderGV=render;
 
     // Render 1 phạm vi vào bộ container tương ứng (sfx "" hoặc "H")
     function renderInto(sfx, itemsAll){
@@ -2745,6 +2762,7 @@
       // ✓ Duyệt tất cả tiểu mục
       document.querySelectorAll(".gv2-tmduyetall").forEach(function(b){
         b.addEventListener("click",function(){
+          if(!VIEWER_IS_ADMIN) return;
           var s=loadState(), ma=b.dataset.ma;
           var tm=(s[ma]&&s[ma].tieuMuc)?s[ma].tieuMuc.slice():[];
           tm=tm.map(function(t){return Object.assign({},t,{xong:true,duyet:true});});
@@ -2754,6 +2772,7 @@
       // ☑ CLICK Ô = duyệt/bỏ duyệt 1 tiểu mục (phần duyệt) — không cần thao tác 2 bước
       document.querySelectorAll(".gv2-tmapprove").forEach(function(cb){
         cb.addEventListener("change",function(){
+          if(!VIEWER_IS_ADMIN) return;
           var s=loadState(), ma=cb.dataset.ma, i=+cb.dataset.i, on=cb.checked;
           var tm=(s[ma]&&s[ma].tieuMuc)?s[ma].tieuMuc.slice():[];
           if(tm[i]) tm[i]=Object.assign({},tm[i],{duyet:on, xong:on?true:tm[i].xong});
@@ -2855,6 +2874,7 @@
       // CNĐT duyệt Đạt (chốt cuối cấp công việc) — gate: phải duyệt hết tiểu mục trước
       document.querySelectorAll(".gv2-dat-btn").forEach(function(btn){
         btn.addEventListener("click",function(){
+          if(!VIEWER_IS_ADMIN) return;
           var ma=btn.dataset.ma;
           var s=loadState();
           var st0=s[ma]||{}, tm=(st0.tieuMuc||[]);
@@ -2867,6 +2887,7 @@
       // CNĐT trả lại
       document.querySelectorAll(".gv2-reject-btn").forEach(function(btn){
         btn.addEventListener("click",function(){
+          if(!VIEWER_IS_ADMIN) return;
           var gy=(document.getElementById("gv2gy-"+btn.dataset.ma)||{value:""}).value.trim();
           var s=loadState();
           s[btn.dataset.ma]=Object.assign(s[btn.dataset.ma]||{},{duyet:"chuaDat",gopY:gy||"Cần bổ sung minh chứng / hoàn thiện kết quả."});
@@ -4165,10 +4186,14 @@
 
 <script>
 (function(){
-  // Tab "Báo cáo tuần" — độc lập, không đụng render()/setupScope() gốc. Chọn tuần bằng dropdown
-  // (đúng quy ước đánh số tuần đã dùng ở banner "Giám sát tuần": tuần N = t0 + (N-1)*7 ngày), nộp
-  // xong đánh dấu hoàn thành (upsert theo cặp hoTen+tuanSo, không tạo bản trùng khi nộp lại).
+  // Tab "Báo cáo tuần" — độc lập, không đụng render()/setupScope() gốc. Chọn tuần bằng dropdown,
+  // nộp xong đánh dấu hoàn thành (upsert theo cặp hoTen+tuanSo, không tạo bản trùng khi nộp lại).
   // Hosted lưu qua /api/store (type "baocaotuan") + /api/upload cho phụ lục; offline chỉ localStorage.
+  //
+  // Mốc tuần: KHÔNG dùng ngày bắt đầu đề tài (t0) nữa — tự đặt mốc riêng cho báo cáo tuần, Tuần 103 =
+  // Thứ 7 13/06/2026 → Thứ 6 19/06/2026 (tuần Bảy→Sáu), là tuần ĐẦU TIÊN được theo dõi (trước đó không
+  // tính, tránh báo "thiếu" giả cho các tuần trước khi có tính năng này). Hạn nộp = trước 9h sáng Thứ 2
+  // kế tiếp (Bảy→Sáu, nghỉ cuối tuần, nộp trước giờ làm việc Thứ 2).
   var HOSTED_BCT=/^https?:$/.test(location.protocol);
   var D=window.NAFOSTED_PROGRESS||{};
   var VIEWER=window.NAFOSTED_VIEWER||{email:null,isAdmin:true};
@@ -4180,12 +4205,13 @@
   })();
   var FULLTIME=(D.nhanSu||[]).filter(function(n){return /FULLTIME/i.test(n.vaiTro||'');});
 
-  function pd(s){ if(!s) return null; var p=String(s).split('-'); return new Date(+p[0],(+p[1]||1)-1,(+p[2]||1)); }
-  var today=new Date(); today.setHours(0,0,0,0);
-  var t0=pd(D.moc&&D.moc.batDau)||today, t1=pd(D.moc&&D.moc.ketThuc)||today;
   var DAY=86400000;
-  var curWeek=Math.floor((today-t0)/(7*DAY))+1, totWk=Math.floor((t1-t0)/(7*DAY));
-  function weekRange(n){ var s=new Date(t0); s.setDate(s.getDate()+(n-1)*7); var e=new Date(s); e.setDate(s.getDate()+6); return {start:s,end:e}; }
+  var WEEK_EPOCH=103, WEEK_EPOCH_START=new Date(2026,5,13);
+  var today=new Date();
+  function weekRange(n){ var s=new Date(WEEK_EPOCH_START); s.setDate(s.getDate()+(n-WEEK_EPOCH)*7); var e=new Date(s); e.setDate(s.getDate()+6); return {start:s,end:e}; }
+  function weekDeadline(n){ var r=weekRange(n); var d=new Date(r.end); d.setDate(r.end.getDate()+3); d.setHours(9,0,0,0); return d; }
+  function weekOf(d){ return WEEK_EPOCH + Math.floor((d-WEEK_EPOCH_START)/(7*DAY)); }
+  var curWeek=weekOf(today);
   function fmtD(d){ return (d.getDate()<10?'0':'')+d.getDate()+'/'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1); }
   function ymd(d){ return d.getFullYear()+'-'+((d.getMonth()+1)<10?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate(); }
 
@@ -4282,7 +4308,7 @@
         if(!confirm('Xóa báo cáo tuần này? File phụ lục trên Drive sẽ chuyển vào thùng rác.')) return;
         var r=reports.find(function(x){return x.id===id;});
         reports=reports.filter(function(x){return x.id!==id;});
-        renderHistory(); renderWeekSelect(); renderGiamSat();
+        renderHistory(); renderWeekSelect(); renderGiamSat(); renderReminder();
         saveReportsToServer(function(){});
         if(HOSTED_BCT && r && Array.isArray(r.phuLuc)){
           r.phuLuc.forEach(function(f){ if(f.id) fetch('/api/upload',{method:'DELETE',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:f.id})}).catch(function(){}); });
@@ -4291,9 +4317,10 @@
     });
   }
 
-  // Danh sách tuần: 12 tuần gần nhất tính đến tuần hiện tại (mới nhất trước), kẹp trong [1,totWk]
+  // Danh sách tuần: từ tuần 103 (mốc bắt đầu theo dõi) đến tuần hiện tại, tối đa 20 tuần gần nhất
+  // (mới nhất trước) để dropdown không phình to theo thời gian.
   function weekList(){
-    var lo=Math.max(1,curWeek-11), hi=Math.min(totWk||curWeek,curWeek);
+    var lo=Math.max(WEEK_EPOCH,curWeek-19), hi=curWeek;
     var out=[]; for(var n=hi;n>=lo;n--) out.push(n); return out;
   }
 
@@ -4317,64 +4344,124 @@
   }
 
   // Nạp form theo tuần đang chọn: có báo cáo cũ → điền lại để xem/sửa; chưa có → để trống
+  // Danh sách công việc đang được giao cho 1 người (đúng dữ liệu tab Giao việc/Tiến độ cá nhân —
+  // localStorage key "nafosted_gv_custom" dùng chung, đọc trực tiếp không cần đụng code gốc).
+  function assignedTasks(who){
+    try{
+      var custom=JSON.parse(localStorage.getItem('nafosted_gv_custom')||'[]');
+      return custom.filter(function(c){ return c && c.nguoiNhan===who; });
+    }catch(e){ return []; }
+  }
+  function renderVaiTroList(selected){
+    var box=$('bct-vaitro-list'); if(!box) return;
+    var tasks=assignedTasks(currentWho);
+    var taskLabels=tasks.map(function(t){ return t.ten||t.ma||''; });
+    var selSet={}; (selected||[]).forEach(function(s){ selSet[s]=1; });
+    var otherVals=(selected||[]).filter(function(s){ return taskLabels.indexOf(s)<0; });
+    var html=tasks.map(function(t){
+      var val=t.ten||t.ma||'';
+      var lbl=(t.cvMa?('['+esc(t.cvMa)+'] '):'')+esc(val);
+      return '<label><input type="checkbox" class="bct-vt-ck" value="'+esc(val)+'"'+(selSet[val]?' checked':'')+'> '+lbl+'</label>';
+    }).join('');
+    var otherOn=otherVals.length>0;
+    html += '<label><input type="checkbox" id="bct-vt-other-ck"'+(otherOn?' checked':'')+'> Việc khác (ghi rõ)</label>'
+      + '<input type="text" class="gform-input" id="bct-vt-other-txt" style="display:'+(otherOn?'block':'none')+'" placeholder="Mô tả việc khác…" value="'+esc(otherVals.join('; '))+'">';
+    if(!tasks.length && !otherOn) html = '<div class="gform-hint">Chưa có công việc nào đang được giao — dùng "Việc khác" bên dưới.</div>' + html;
+    box.innerHTML=html;
+    var otherCk=$('bct-vt-other-ck'), otherTxt=$('bct-vt-other-txt');
+    if(otherCk && otherTxt) otherCk.addEventListener('change', function(){ otherTxt.style.display=otherCk.checked?'block':'none'; });
+  }
+  function currentVaiTroValue(){
+    var box=$('bct-vaitro-list'); if(!box) return '';
+    var vals=[].slice.call(box.querySelectorAll('.bct-vt-ck:checked')).map(function(c){ return c.value; });
+    var otherCk=$('bct-vt-other-ck'), otherTxt=$('bct-vt-other-txt');
+    if(otherCk && otherCk.checked && otherTxt && otherTxt.value.trim()) vals.push(otherTxt.value.trim());
+    return vals.join('; ');
+  }
+
   function loadFormForWeek(){
     var r=findReport(currentWho,currentWeek);
-    var wr=weekRange(currentWeek);
-    $('bct-hoten').value=currentWho;
     if(r){
-      $('bct-vaitro').value=r.vaiTro||'';
+      renderVaiTroList((r.vaiTro||'').split('; ').filter(Boolean));
       $('bct-ngaylap').value=r.ngayLap||nowDBCT();
       $('bct-hoanthanh').value=r.congViecHoanThanh||'';
       $('bct-khokhan').value=r.khoKhan||'';
       $('bct-kehoach').value=r.keHoachTuanToi||'';
-      $('bct-nguoibaocao').value=r.nguoiBaoCao||currentWho;
       pendingFiles=(r.phuLuc||[]).slice();
     } else {
-      $('bct-vaitro').value='';
+      renderVaiTroList([]);
       $('bct-ngaylap').value=nowDBCT();
       $('bct-hoanthanh').value=''; $('bct-khokhan').value=''; $('bct-kehoach').value='';
-      $('bct-nguoibaocao').value=currentWho;
       pendingFiles=[];
     }
     renderPending();
     renderWeekStatus();
-    void wr;
   }
 
   function renderGiamSat(){
     var wrap=$('bct-giamsat-wrap'), box=$('bct-giamsat'); if(!wrap||!box) return;
     if(!IS_ADMIN || !FULLTIME.length){ wrap.style.display='none'; return; }
     wrap.style.display='';
-    var weeks=weekList().slice(0,8).reverse(); // 8 tuần gần nhất, cũ→mới
-    var missing=0;
+    // CHỈ xét các tuần ĐÃ BẮT ĐẦU — tuần tương lai (chưa xuất hiện) không đánh dấu, không đếm.
+    var weeks=weekList().filter(function(n){ return weekRange(n).start<=today; }).slice(0,8).reverse(); // cũ→mới
+    var missingByWho={}; // {tên: [số tuần thiếu...]} — chỉ tuần ĐÃ QUÁ HẠN (9h Thứ 2) mà chưa nộp
     var head='<tr><th>Thành viên</th>'+weeks.map(function(n){var r=weekRange(n);return '<th>Tuần '+n+'<br><span style="font-weight:400">'+fmtD(r.start)+'–'+fmtD(r.end)+'</span></th>';}).join('')+'</tr>';
     var rows=FULLTIME.map(function(m){
       var cells=weeks.map(function(n){
-        var r=weekRange(n), done=!!findReport(m.ten,n);
+        var done=!!findReport(m.ten,n);
         if(done) return '<td style="color:var(--green);font-weight:700;text-align:center">✓</td>';
-        if(r.end<today){ missing++; return '<td style="color:var(--red);font-weight:700;text-align:center">✗</td>'; }
-        return '<td style="color:var(--muted);text-align:center">—</td>';
+        if(weekDeadline(n)<=today){ (missingByWho[m.ten]=missingByWho[m.ten]||[]).push(n); return '<td style="color:var(--red);font-weight:700;text-align:center">✗</td>'; }
+        return '<td style="color:var(--muted);text-align:center">—</td>'; // tuần hiện tại, chưa tới hạn
       }).join('');
       return '<tr><td>'+esc(m.ten)+'</td>'+cells+'</tr>';
     }).join('');
-    var warn = missing>0 ? ('<div class="narrbox" style="border-left-color:var(--red);background:var(--red-bg);color:var(--red);margin-bottom:10px">⚠ '+missing+' báo cáo tuần còn thiếu (tuần đã qua nhưng chưa nộp)</div>') : '<div class="narrbox" style="border-left-color:var(--green);margin-bottom:10px">✓ Không có báo cáo tuần nào bị thiếu trong '+weeks.length+' tuần gần nhất.</div>';
+    // Cảnh báo dạng text CHỈ khi có tuần thiếu; đủ rồi → không hiện banner nào.
+    var names=Object.keys(missingByWho);
+    var warn='';
+    if(names.length){
+      var lines=names.map(function(t){ return '<b>'+esc(t)+'</b>: Tuần '+missingByWho[t].join(', '); });
+      warn='<div class="narrbox" style="border-left-color:var(--red);background:var(--red-bg);color:var(--red);margin-bottom:10px">⚠ Thiếu báo cáo tuần (đã quá hạn 9h Thứ 2) — '+lines.join(' · ')+'</div>';
+    }
     box.innerHTML = warn + '<div style="overflow-x:auto"><table class="gform-gstable"><thead>'+head+'</thead><tbody>'+rows+'</tbody></table></div>';
   }
 
+  // Gộp "Xem/nộp hộ theo người" + "Họ và tên" thành 1 khối: admin → dropdown chọn người (giá trị
+  // dropdown CHÍNH LÀ họ tên, không cần ô readonly riêng nữa); người thường → chỉ hiện tên mình, đọc.
   function renderWho(){
-    var wrap=$('bct-whowrap'), sel=$('bct-who'); if(!wrap||!sel) return;
+    var wrap=$('bct-who-wrap'), hint=$('bct-who-hint'); if(!wrap) return;
     if(IS_ADMIN){
-      wrap.style.display='';
-      if(!sel.options.length){
+      if(hint) hint.style.display='';
+      var sel=wrap.querySelector('select');
+      if(!sel){
+        wrap.innerHTML='<select class="gform-input" id="bct-who"></select>';
+        sel=wrap.querySelector('select');
         sel.innerHTML = FULLTIME.map(function(m){ return '<option value="'+esc(m.ten)+'">'+esc(m.ten)+'</option>'; }).join('');
+        sel.addEventListener('change', function(){ currentWho=sel.value; renderWeekSelect(); loadFormForWeek(); renderHistory(); });
       }
       currentWho = sel.value || (FULLTIME[0] && FULLTIME[0].ten) || '';
       sel.value=currentWho;
     } else {
-      wrap.style.display='none';
+      if(hint) hint.style.display='none';
       currentWho = VIEWER_NAME || '';
+      wrap.innerHTML='<input class="gform-input" type="text" readonly value="'+esc(currentWho)+'">';
     }
   }
+
+  // Nhắc nhở chậm nộp — hiển thị ở tab "Tiến độ cá nhân" (#bct-reminder), tính theo người đang lọc ở
+  // đó (#gv2-filter-who) hoặc VIEWER_NAME nếu không phải admin. Độc lập với currentWho của tab này.
+  function renderReminder(){
+    var box=document.getElementById('bct-reminder'); if(!box) return;
+    var sel=document.getElementById('gv2-filter-who');
+    var who=(sel && sel.value) || VIEWER_NAME || '';
+    if(!who){ box.innerHTML=''; return; }
+    var overdue=weekList().filter(function(n){ return weekDeadline(n)<=today && !findReport(who,n); });
+    if(!overdue.length){ box.innerHTML=''; return; }
+    box.innerHTML = '<div class="narrbox" style="border-left-color:var(--red);background:var(--red-bg);color:var(--red)">'
+      + '⚠ Chậm nộp báo cáo tuần: '+overdue.map(function(n){return 'Tuần '+n;}).join(', ')
+      + ' (hạn 9h sáng Thứ 2). Vào tab <b>Báo cáo tuần</b> để nộp.</div>';
+  }
+  var whoFilterSel=document.getElementById('gv2-filter-who');
+  if(whoFilterSel) whoFilterSel.addEventListener('change', renderReminder);
 
   function renderAll(){
     renderWho();
@@ -4382,10 +4469,9 @@
     loadFormForWeek();
     renderHistory();
     renderGiamSat();
+    renderReminder();
   }
 
-  var whoSel=$('bct-who');
-  if(whoSel) whoSel.addEventListener('change', function(){ currentWho=whoSel.value; renderWeekSelect(); loadFormForWeek(); renderHistory(); });
   var tuanSel=$('bct-tuan');
   if(tuanSel) tuanSel.addEventListener('change', function(){ currentWeek=+tuanSel.value; loadFormForWeek(); });
 
@@ -4407,13 +4493,12 @@
       id: existing ? existing.id : 'BCT-'+Date.now().toString().slice(-8),
       hoTen:currentWho,
       tuanSo:currentWeek,
-      vaiTro:($('bct-vaitro').value||'').trim(),
+      vaiTro:currentVaiTroValue(),
       tuNgay:ymd(wr.start), denNgay:ymd(wr.end),
       ngayLap:$('bct-ngaylap').value,
       congViecHoanThanh:($('bct-hoanthanh').value||'').trim(),
       khoKhan:($('bct-khokhan').value||'').trim(),
       keHoachTuanToi:($('bct-kehoach').value||'').trim(),
-      nguoiBaoCao:($('bct-nguoibaocao').value||currentWho).trim(),
       phuLuc:pendingFiles.slice(),
       ngayNop:nowDBCT()+' '+nowTBCT()
     };
@@ -4421,10 +4506,101 @@
     else { reports.push(rpt); }
     setStatus('⏳ Đang lưu…');
     saveReportsToServer(function(ok){ setStatus(ok ? '✅ Đã gửi báo cáo tuần '+currentWeek+'.' : '⚠ Lỗi lưu — kiểm tra đăng nhập.'); });
-    renderWeekSelect(); renderHistory(); renderGiamSat();
+    renderWeekSelect(); renderHistory(); renderGiamSat(); renderReminder();
   });
 
   loadReports(renderAll);
+})();
+</script>
+
+<script>
+(function(){
+  // Gia hạn deadline khi có vấn đề phát sinh — độc lập, không đụng render()/card()/approveCard()
+  // ngoài 1 điểm chèn window.NAF_giaHanBlock(g) đã có sẵn ở 2 hàm đó. Người nhận việc chỉ ĐỀ XUẤT;
+  // CHỈ ADMIN (CNĐT) duyệt để deadline thật sự đổi. Đọc/ghi qua window.NAF_loadGvState/
+  // NAF_saveGvState (tái dùng đúng pushSync() sẵn có) + window.NAF_renderGV (vẽ lại thẻ).
+  var VIEWER=window.NAFOSTED_VIEWER||{email:null,isAdmin:true};
+  var IS_ADMIN=!!VIEWER.isAdmin;
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function nowD(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate(); }
+
+  window.NAF_giaHanBlock=function(g){
+    if(!window.NAF_loadGvState) return '';
+    var gh=g.giaHanDeXuat;
+    var hist=(g.lichSuGiaHan||[]);
+    var histHtml = hist.length ? ('<details style="margin-top:6px"><summary style="cursor:pointer;font-size:.76rem;color:var(--muted)">Đã gia hạn '+hist.length+' lần</summary>'
+      + hist.map(function(h){ return '<div style="font-size:.75rem;color:var(--muted);margin-top:4px;padding-left:4px">'+esc(h.deadlineCu||'?')+' → <b>'+esc(h.deadlineMoi||'?')+'</b> · '+esc(h.lyDo||'')+' · duyệt '+esc(h.ngayDuyet||'')+'</div>'; }).join('')
+      + '</details>') : '';
+    if(gh){
+      var adminBtns = IS_ADMIN ? ('<div style="margin-top:6px;display:flex;gap:8px">'
+        + '<button type="button" class="btn-print gh-approve" data-ma="'+esc(g.ma)+'" style="font-size:.78rem;padding:5px 12px">✅ Duyệt gia hạn</button>'
+        + '<button type="button" class="btn-print gh-deny" data-ma="'+esc(g.ma)+'" style="font-size:.78rem;padding:5px 12px;background:var(--red)">❌ Từ chối</button>'
+        + '</div>') : '';
+      return '<div class="narrbox" style="border-left-color:var(--amber);margin-top:8px;padding:8px 10px;font-size:.82rem">⏳ Đề xuất gia hạn tới <b>'+esc(gh.deadlineMoi)+'</b> — '+esc(gh.lyDo)+' <span style="color:var(--muted)">('+esc(gh.ngayDeXuat)+')</span>'+adminBtns+'</div>'+histHtml;
+    }
+    return '<div style="margin-top:8px">'
+      + '<button type="button" class="gh-open" data-ma="'+esc(g.ma)+'" style="font-size:.78rem;padding:5px 12px;border:1px dashed var(--line-2);background:var(--bg);color:var(--muted);border-radius:20px;cursor:pointer">⏳ Xin gia hạn</button>'
+      + '<div class="gh-form" id="gh-form-'+esc(g.ma)+'" style="display:none;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--surface)">'
+      +   '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">'
+      +     '<div><div style="font-size:.76rem;color:var(--muted);margin-bottom:3px">Deadline mới</div><input type="date" class="gform-input gh-newdl" id="gh-newdl-'+esc(g.ma)+'" style="width:auto"></div>'
+      +     '<div style="flex:1 1 200px"><div style="font-size:.76rem;color:var(--muted);margin-bottom:3px">Lý do (vấn đề phát sinh)</div><input type="text" class="gform-input gh-reason" id="gh-reason-'+esc(g.ma)+'" placeholder="VD: thiếu hoá chất, chờ kết quả đo…"></div>'
+      +     '<button type="button" class="btn-print gh-submit" data-ma="'+esc(g.ma)+'" data-curdl="'+esc(g.deadline||'')+'" style="padding:9px 16px">Gửi đề xuất</button>'
+      +   '</div>'
+      + '</div>'
+      + histHtml
+      + '</div>';
+  };
+
+  // Event delegation trên #gv2-active (container cha ổn định, không bị thay khi render() vẽ lại nội
+  // dung con) — không cần bind lại listener sau mỗi lần render(), khỏi phải sửa hàm render() gốc.
+  var container=document.getElementById('gv2-active');
+  if(container){
+    container.addEventListener('click', function(e){
+      var openBtn=e.target.closest('.gh-open');
+      if(openBtn){
+        var f=document.getElementById('gh-form-'+openBtn.dataset.ma);
+        if(f) f.style.display = f.style.display==='none' ? 'block' : 'none';
+        return;
+      }
+      var submitBtn=e.target.closest('.gh-submit');
+      if(submitBtn){
+        var ma=submitBtn.dataset.ma;
+        var dlInp=document.getElementById('gh-newdl-'+ma), reasonInp=document.getElementById('gh-reason-'+ma);
+        var dl=dlInp?dlInp.value:'', reason=reasonInp?reasonInp.value.trim():'';
+        if(!dl){ alert('Chọn deadline mới trước khi gửi.'); return; }
+        if(!reason){ alert('Ghi rõ lý do gia hạn trước khi gửi.'); return; }
+        var s=window.NAF_loadGvState();
+        s[ma]=Object.assign(s[ma]||{},{giaHanDeXuat:{deadlineCu:submitBtn.dataset.curdl||'',deadlineMoi:dl,lyDo:reason,ngayDeXuat:nowD()}});
+        window.NAF_saveGvState(s);
+        if(window.NAF_renderGV) window.NAF_renderGV();
+        return;
+      }
+      var apBtn=e.target.closest('.gh-approve');
+      if(apBtn){
+        if(!IS_ADMIN) return;
+        var ma2=apBtn.dataset.ma;
+        var s2=window.NAF_loadGvState();
+        var st=s2[ma2]||{}, gh2=st.giaHanDeXuat;
+        if(!gh2) return;
+        var hist2=(st.lichSuGiaHan||[]).concat([{deadlineCu:gh2.deadlineCu||'',deadlineMoi:gh2.deadlineMoi,lyDo:gh2.lyDo,ngayDuyet:nowD()}]);
+        s2[ma2]=Object.assign(st,{deadline:gh2.deadlineMoi,lichSuGiaHan:hist2,giaHanDeXuat:null});
+        window.NAF_saveGvState(s2);
+        if(window.NAF_renderGV) window.NAF_renderGV();
+        return;
+      }
+      var dnBtn=e.target.closest('.gh-deny');
+      if(dnBtn){
+        if(!IS_ADMIN) return;
+        var ma3=dnBtn.dataset.ma;
+        if(!confirm('Từ chối đề xuất gia hạn này?')) return;
+        var s3=window.NAF_loadGvState();
+        s3[ma3]=Object.assign(s3[ma3]||{},{giaHanDeXuat:null});
+        window.NAF_saveGvState(s3);
+        if(window.NAF_renderGV) window.NAF_renderGV();
+        return;
+      }
+    });
+  }
 })();
 </script>
 
