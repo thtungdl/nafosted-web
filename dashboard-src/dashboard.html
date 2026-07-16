@@ -2427,12 +2427,12 @@
     // Một dòng tiểu mục. canApprove → nút ✓ Duyệt của CNĐT · canEdit → nút ✕ xóa
     function tmRowHTML(g,t,i,canApprove,canEdit){
       var bg=t.duyet?'background:var(--green-bg);':(t.xong?'background:var(--amber-bg);':'');
-      var h='<div style="display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:6px;'+bg+'">';
+      var st=t.duyet?'Đã duyệt':(t.xong?'Đã làm — chờ duyệt':'Chưa làm');
+      var h='<div style="display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:6px;'+bg+'" title="'+st+'">';
       h+='<input type="checkbox" class="gv2-tmck" data-ma="'+esc(g.ma)+'" data-i="'+i+'"'+(t.xong?' checked':'')+(t.duyet?' disabled':'')+'>';
       h+='<span class="gv2-tmnum">'+esc(tmNo(g,i))+'</span>';
       h+='<span style="font-size:.83rem;flex:1'+(t.duyet?';color:var(--green);text-decoration:line-through':(t.xong?';color:var(--amber)':''))+'">'+esc(t.ten)+'</span>';
-      if(t.duyet) h+='<span class="badge s-xong">🟢 Đã duyệt</span>';
-      else if(t.xong) h+='<span class="badge s-dangLam">🟡 Chờ duyệt</span>';
+      if(t.duyet) h+='<span style="color:var(--green);font-size:.8rem" title="Đã duyệt">✓</span>';
       if(canApprove){
         if(t.duyet) h+='<button class="gv2-tmduyet" data-ma="'+esc(g.ma)+'" data-i="'+i+'" data-on="0" title="Bỏ duyệt" style="border:0;background:var(--grey);color:#fff;border-radius:6px;cursor:pointer;font-size:.74rem;padding:2px 7px">↩</button>';
         else h+='<button class="gv2-tmduyet gv2-btn-dat" data-ma="'+esc(g.ma)+'" data-i="'+i+'" data-on="1" title="Duyệt hoàn thành tiểu mục" style="border:0;border-radius:6px;cursor:pointer;font-size:.74rem;padding:2px 8px">✓ Duyệt</button>';
@@ -2485,58 +2485,46 @@
                  : (pct>=100) ? "var(--green)"
                  : "var(--navy)";
       var h='<div class="gv2-card" style="border-left-color:'+accent+'">';
-      h+='<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:5px">';
-      h+='<div><span style="font-size:.75rem;color:var(--muted)">['+esc(g.cvMa||g.nd||g.ma)+'] </span><b>'+esc(g.ten)+'</b>';
-      if(g.cvTen) h+='<br><span style="font-size:.78rem;color:var(--muted)">▶ '+esc(g.cvTen)+'</span>';
-      h+='</div><div style="text-align:right;white-space:nowrap;min-width:90px">'+dlLabel(g)+'</div></div>';
-      h+='<div style="margin:5px 0">'+stageBar(g)+'</div>';
-      h+='<div style="font-size:.8rem;color:var(--muted);margin-bottom:5px">'+esc(g.nguoiGiao||"—")+' → <b>'+esc(g.nguoiNhan||"?")+'</b></div>';
-      if(g.ngayGiao||g.deadline) h+='<div style="font-size:.76rem;color:var(--muted);margin-bottom:5px">🗓 Giao: <b>'+esc(g.ngayGiao||"—")+'</b> · 📅 Hạn: <b>'+esc(g.deadline||"—")+'</b></div>';
-      h+=tempoBar(g);
-      if(g.ketQuaCanDat) h+='<div style="font-size:.82rem;border-left:3px solid var(--orange);padding-left:8px;margin:5px 0;line-height:1.4">🎯 '+esc(g.ketQuaCanDat)+'</div>';
+      // Tiêu đề + hạn + In phiếu (góc phải) — đủ định danh, không lặp trạng thái
+      h+='<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:2px">';
+      h+='<div><span style="font-size:.75rem;color:var(--muted)">['+esc(g.cvMa||g.nd||g.ma)+'] </span><b>'+esc(g.ten)+'</b></div>';
+      h+='<div style="text-align:right;white-space:nowrap;display:flex;align-items:center;gap:8px">'+dlLabel(g)
+        +'<button class="gv2-print-btn btn-print" data-ma="'+esc(g.ma)+'" style="font-size:.74rem;padding:3px 10px;background:var(--grey)">🖨 In phiếu</button></div></div>';
+      // MỘT dòng meta: ai giao → ai nhận · mốc thời gian (bỏ stage bar 4 chip + tempo bar — trùng với dlLabel)
+      h+='<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">'+esc(g.nguoiGiao||"—")+' → <b>'+esc(g.nguoiNhan||"?")+'</b>'+(g.ngayGiao?' · Giao '+esc(g.ngayGiao):'')+(g.deadline?' · Hạn <b>'+esc(g.deadline)+'</b>':'')+'</div>';
+      if(g.ketQuaCanDat) h+='<div style="font-size:.8rem;color:var(--muted);margin:4px 0">🎯 '+esc(g.ketQuaCanDat)+'</div>';
       if(g.duyet==="chuaDat"&&g.gopY) h+='<div style="font-size:.82rem;background:rgba(220,80,60,.12);border-radius:6px;padding:6px 8px;margin:5px 0">↩ <b>CNĐT trả lại:</b> '+esc(g.gopY)+'</div>';
       // Nhận xét tự động (digest từ thư mục Raw)
       h+=digestBadge(g);
-      // Tiểu mục công việc — Tiến độ cá nhân CHỈ tích ✓ (báo đã làm). Sửa cấu trúc ở tab Giao việc.
-      h+='<div class="gv2-tm" style="margin:8px 0;padding:8px 10px;border:1px dashed var(--line);border-radius:8px;background:var(--bg)">';
-      h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px">';
-      h+='<span class="gv2-lbl" style="margin:0">🧩 Tiểu mục công việc</span>';
-      h+='<span style="font-size:.72rem;color:var(--muted)">✏️ sửa ở tab 📋 Giao việc</span>';
-      h+='</div>';
-      if(g.khongTieuMuc){
-        h+='<div style="font-size:.78rem;color:var(--muted)">▶ Việc này không chia tiểu mục — hoàn thành việc là đủ.</div>';
-      } else if(tmList.length){
-        h+='<div style="font-size:.76rem;color:var(--muted);margin-bottom:4px">🟢 Đã duyệt <b>'+stt.duyet+'/'+stt.n+'</b>'+(stt.xong>stt.duyet?' · 🟡 '+(stt.xong-stt.duyet)+' chờ duyệt':'')+(stt.duyet===stt.n?' · <b style="color:var(--green)">hoàn thành ✓</b>':'')+' · tích ✓ ô đã làm xong</div>';
+      // Tiểu mục — checklist trần, không khung; trạng thái đọc qua nền dòng (vàng: đã làm · xanh: đã duyệt)
+      if(!g.khongTieuMuc && tmList.length){
+        h+='<div style="margin:8px 0 3px;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Tiểu mục · duyệt '+stt.duyet+'/'+stt.n+(stt.duyet===stt.n?' <b style="color:var(--green)">✓</b>':'')+'</div>';
         tmList.forEach(function(t,i){ h+=tmRowHTML(g,t,i,false,false); });
-      } else {
-        h+='<div style="font-size:.78rem;color:var(--muted)">Chưa có tiểu mục — thêm ở tab 📋 Giao việc (hoặc đánh dấu "Không cần chia" ở đó).</div>';
       }
-      h+='</div>';
-      // Cập nhật % tiến độ
-      h+='<div style="display:flex;align-items:center;gap:8px;margin:6px 0">';
+      // Tiến độ
+      h+='<div style="display:flex;align-items:center;gap:8px;margin:8px 0 6px">';
       h+='<div class="bar" style="flex:1"><i class="'+(useTM&&pct===100?'fill-xong':'fill-dangLam')+'" style="width:'+pct+'%"></i></div>';
       if(useTM){
-        h+='<span style="width:54px;text-align:center;font-size:.82rem;font-weight:700;color:'+(pct===100?'var(--green)':'var(--navy)')+'" title="Tỷ lệ tiểu mục đã duyệt (xanh)">'+pct+'</span>';
+        h+='<span style="width:54px;text-align:center;font-size:.82rem;font-weight:700;color:'+(pct===100?'var(--green)':'var(--navy)')+'" title="Tỷ lệ tiểu mục đã duyệt">'+pct+'</span>';
       } else {
         h+='<input type="number" min="0" max="100" value="'+pct+'" class="gv2-pct" data-ma="'+esc(g.ma)+'" style="width:54px;padding:3px 5px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);font-size:.82rem">';
       }
       h+='<span class="kh">%</span></div>';
-      // Nộp minh chứng báo cáo — kéo-thả NHIỀU file (tự đổi tên: mã công việc + tên chung + số thứ tự)
+      // Nộp minh chứng — drop zone 1 dòng, hướng dẫn nằm ngay trong ô
       h+='<div style="margin:8px 0">';
-      h+='<label class="gv2-lbl" style="margin-bottom:4px">📤 Nộp minh chứng báo cáo <span style="font-weight:400;color:var(--muted)">(kéo-thả nhiều file — tự đổi tên bắt đầu bằng mã <b>'+esc(cvSo(g)||g.ma)+'</b>)</span></label>';
-      h+='<div class="gv2-drop" data-ma="'+esc(g.ma)+'">📎 Kéo &amp; thả file vào đây, hoặc <b>bấm để chọn</b> (chọn được nhiều file)</div>';
+      h+='<div class="gv2-drop" data-ma="'+esc(g.ma)+'" style="padding:8px;text-align:left" title="Tự đổi tên file bắt đầu bằng mã '+esc(cvSo(g)||g.ma)+'">📎 Nộp minh chứng — thả file hoặc <b>bấm để chọn</b></div>';
       h+='<input type="file" multiple class="gv2-fileinput" data-ma="'+esc(g.ma)+'" style="display:none">';
       h+='<div class="gv2-upstatus" data-ma="'+esc(g.ma)+'" style="font-size:.76rem;color:var(--muted);margin-top:4px"></div>';
       h+=baoCaoHTML(g, true);
       h+='</div>';
-      h+=(window.NAF_giaHanBlock?window.NAF_giaHanBlock(g):'');
-      // Hành động
-      h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
+      // Hành động — In phiếu đã dời lên header; chỉ còn Gửi duyệt (khi áp dụng) + khối gia hạn
       if(g.duyet!=="cho" && !useTM){
+        h+='<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">';
         h+='<button class="gv2-sendduyet-btn btn-print gv2-btn-dat" data-ma="'+esc(g.ma)+'" style="font-size:.82rem;padding:5px 14px" title="Chuyển việc sang hàng chờ CNĐT duyệt">📩 Gửi CNĐT duyệt</button>';
+        h+='</div>';
       }
-      h+='<button class="gv2-print-btn btn-print" data-ma="'+esc(g.ma)+'" style="font-size:.82rem;padding:5px 12px;background:var(--grey)">🖨 In phiếu</button>';
-      h+='</div></div>';
+      h+=(window.NAF_giaHanBlock?window.NAF_giaHanBlock(g):'');
+      h+='</div>';
       return h;
     }
 
@@ -2548,7 +2536,7 @@
       h+='<span style="font-size:.75rem;color:var(--muted)">['+esc(g.cvMa||g.nd||g.ma)+'] </span><b>'+esc(g.ten)+'</b>';
       h+='<br><span style="font-size:.8rem;color:var(--muted)">'+esc(g.nguoiNhan||"?")+' nộp'+(g.ngayNop?' · '+g.ngayNop:'')+'</span>';
       h+='</div>'+dlLabel(g)+'</div>';
-      if(g.ketQuaCanDat) h+='<div style="font-size:.82rem;border-left:3px solid var(--muted);padding-left:8px;margin:6px 0;color:var(--muted)">🎯 Yêu cầu: '+esc(g.ketQuaCanDat)+'</div>';
+      if(g.ketQuaCanDat) h+='<div style="font-size:.8rem;color:var(--muted);margin:6px 0">🎯 Yêu cầu: '+esc(g.ketQuaCanDat)+'</div>';
       if(g.ketQuaNop) h+='<div style="font-size:.84rem;margin:6px 0;line-height:1.45"><b>Kết quả nộp:</b> '+esc(g.ketQuaNop)+'</div>';
       h+=mcHTML(g);
       h+=digestBadge(g);
@@ -4492,7 +4480,7 @@
     if(!window.NAF_loadGvState) return '';
     var gh=g.giaHanDeXuat;
     var hist=(g.lichSuGiaHan||[]);
-    var histHtml = hist.length ? ('<details style="margin-top:6px"><summary style="cursor:pointer;font-size:.76rem;color:var(--muted)">Đã gia hạn '+hist.length+' lần</summary>'
+    var histHtml = hist.length ? ('<details><summary style="cursor:pointer;font-size:.76rem;color:var(--muted)">Đã gia hạn '+hist.length+' lần</summary>'
       + hist.map(function(h){ return '<div style="font-size:.75rem;color:var(--muted);margin-top:4px;padding-left:4px">'+esc(h.deadlineCu||'?')+' → <b>'+esc(h.deadlineMoi||'?')+'</b> · '+esc(h.lyDo||'')+' · duyệt '+esc(h.ngayDuyet||'')+'</div>'; }).join('')
       + '</details>') : '';
     if(gh){
@@ -4500,10 +4488,14 @@
         + '<button type="button" class="btn-print gh-approve" data-ma="'+esc(g.ma)+'" style="font-size:.78rem;padding:5px 12px">✅ Duyệt gia hạn</button>'
         + '<button type="button" class="btn-print gh-deny" data-ma="'+esc(g.ma)+'" style="font-size:.78rem;padding:5px 12px;background:var(--red)">❌ Từ chối</button>'
         + '</div>') : '';
-      return '<div class="narrbox" style="border-left-color:var(--amber);margin-top:8px;padding:8px 10px;font-size:.82rem">⏳ Đề xuất gia hạn tới <b>'+esc(gh.deadlineMoi)+'</b> — '+esc(gh.lyDo)+' <span style="color:var(--muted)">('+esc(gh.ngayDeXuat)+')</span>'+adminBtns+'</div>'+histHtml;
+      return '<div class="narrbox" style="border-left-color:var(--amber);margin-top:8px;padding:8px 10px;font-size:.82rem">⏳ Đề xuất gia hạn tới <b>'+esc(gh.deadlineMoi)+'</b> — '+esc(gh.lyDo)+' <span style="color:var(--muted)">('+esc(gh.ngayDeXuat)+')</span>'+adminBtns+'</div>'
+        + (histHtml?('<div style="margin-top:6px">'+histHtml+'</div>'):'');
     }
     return '<div style="margin-top:8px">'
-      + '<button type="button" class="gh-open" data-ma="'+esc(g.ma)+'" style="font-size:.78rem;padding:5px 12px;border:1px dashed var(--line-2);background:var(--bg);color:var(--muted);border-radius:20px;cursor:pointer">⏳ Xin gia hạn</button>'
+      + '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+      +   '<button type="button" class="gh-open" data-ma="'+esc(g.ma)+'" style="font-size:.78rem;padding:5px 12px;border:1px dashed var(--line-2);background:var(--bg);color:var(--muted);border-radius:20px;cursor:pointer">⏳ Xin gia hạn</button>'
+      +   histHtml
+      + '</div>'
       + '<div class="gh-form" id="gh-form-'+esc(g.ma)+'" style="display:none;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:9px;background:var(--surface)">'
       +   '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">'
       +     '<div><div style="font-size:.76rem;color:var(--muted);margin-bottom:3px">Deadline mới</div><input type="date" class="gform-input gh-newdl" id="gh-newdl-'+esc(g.ma)+'" style="width:auto"></div>'
@@ -4511,7 +4503,6 @@
       +     '<button type="button" class="btn-print gh-submit" data-ma="'+esc(g.ma)+'" data-curdl="'+esc(g.deadline||'')+'" style="padding:9px 16px">Gửi đề xuất</button>'
       +   '</div>'
       + '</div>'
-      + histHtml
       + '</div>';
   };
 
