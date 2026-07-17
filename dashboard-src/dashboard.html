@@ -2127,11 +2127,14 @@
       var deadline=s.deadline!==undefined?s.deadline:gv.deadline;
       var tieuMuc=s.tieuMuc || gv.tieuMuc || [];
       var khongTieuMuc=s.khongTieuMuc!==undefined ? s.khongTieuMuc : !!gv.khongTieuMuc;
-      // duyet: "" | "cho" (chờ duyệt · 🟡) | "dat" (hoàn thành · 🟢) | "chuaDat" (trả lại)
+      // duyet: "" | "cho" (chờ duyệt · 🟡) | "dat" (hoàn thành · 🟢)
+      // (CNĐT trả lại → về thẳng "" kèm gopY; không còn trạng thái trung gian "chuaDat")
       var duyet=s.duyet||(gv.xongData?"dat":"");
       // AUTO → 🟡 chờ duyệt khi: việc có tiểu mục đã đánh dấu xong HẾT, hoặc
       // việc-báo-cáo được hệ thống chấm đủ (digest "dat"). CNĐT vẫn là chốt cuối.
-      if(!duyet){
+      // Bỏ qua auto-promote khi còn gopY (CNĐT vừa trả lại, chưa được tiếp nhận) — tránh
+      // tự nhảy lại "chờ duyệt" trong khi tiểu mục cũ vẫn còn đánh dấu xong.
+      if(!duyet && !s.gopY){
         var hasTM=tieuMuc.length && !khongTieuMuc;
         var dg=digestOf(gv.ma);
         if(hasTM ? tieuMuc.every(function(t){return t.xong;}) : (dg&&dg.ketLuan==="dat")) duyet="cho";
@@ -2476,7 +2479,7 @@
       var pct=pctOf(g);
       // viền trái màu theo độ khẩn / trạng thái → tăng tương phản giữa các việc
       var lft=dleft(g);
-      var accent = g.duyet==="chuaDat" ? "var(--red)"
+      var accent = g.gopY ? "var(--red)"
                  : (lft!==null&&lft<0) ? "var(--red)"
                  : (lft!==null&&lft<=7) ? "var(--amber)"
                  : (pct>=100) ? "var(--green)"
@@ -2490,7 +2493,7 @@
       // MỘT dòng meta: ai giao → ai nhận · mốc thời gian (bỏ stage bar 4 chip + tempo bar — trùng với dlLabel)
       h+='<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">'+esc(g.nguoiGiao||"—")+' → <b>'+esc(g.nguoiNhan||"?")+'</b>'+(g.ngayGiao?' · Giao '+esc(g.ngayGiao):'')+(g.deadline?' · Hạn <b>'+esc(g.deadline)+'</b>':'')+'</div>';
       if(g.ketQuaCanDat) h+='<div style="font-size:.8rem;color:var(--muted);margin:4px 0">🎯 '+esc(g.ketQuaCanDat)+'</div>';
-      if(g.duyet==="chuaDat"&&g.gopY) h+='<div style="font-size:.82rem;background:rgba(220,80,60,.12);border-radius:6px;padding:6px 8px;margin:5px 0">↩ <b>CNĐT trả lại:</b> '+esc(g.gopY)+'</div>';
+      if(g.gopY) h+='<div style="display:flex;align-items:flex-start;gap:6px;font-size:.82rem;background:rgba(220,80,60,.12);border-radius:6px;padding:6px 8px;margin:5px 0"><span style="flex:1">↩ <b>CNĐT trả lại:</b> '+esc(g.gopY)+'</span><button class="gv2-dismiss-reject" data-ma="'+esc(g.ma)+'" title="Đã tiếp nhận góp ý — bỏ trạng thái trả lại (báo động đỏ)" style="border:none;background:transparent;color:var(--red);font-size:1.05rem;line-height:1;cursor:pointer;padding:0 3px;font-weight:800">×</button></div>';
       // Nhận xét tự động (digest từ thư mục Raw)
       h+=digestBadge(g);
       // Tiểu mục — checklist trần, không khung; trạng thái đọc qua nền dòng (vàng: đã làm · xanh: đã duyệt)
@@ -2648,7 +2651,7 @@
           var l=dleft(g);
           if(stt.chip==="week"){var dl=pd(g.deadline);return dl&&dl>=today&&dl<=wEnd;}
           if(stt.chip==="soon") return l!==null&&l>=0&&l<=14;
-          if(stt.chip==="late") return (l!==null&&l<0)||g.duyet==="chuaDat";
+          if(stt.chip==="late") return (l!==null&&l<0)||!!g.gopY;
           return true;
         });
         var byP={};
@@ -2861,14 +2864,21 @@
           saveState(s); render();
         });
       });
-      // CNĐT trả lại
+      // CNĐT trả lại — về thẳng trạng thái "chưa nộp" (không qua hàng chờ chuaDat), giữ ghi chú để người nhận biết lý do
       document.querySelectorAll(".gv2-reject-btn").forEach(function(btn){
         btn.addEventListener("click",function(){
           if(!VIEWER_IS_ADMIN) return;
           var gy=(document.getElementById("gv2gy-"+btn.dataset.ma)||{value:""}).value.trim();
           var s=loadState();
-          s[btn.dataset.ma]=Object.assign(s[btn.dataset.ma]||{},{duyet:"chuaDat",gopY:gy||"Cần bổ sung minh chứng / hoàn thiện kết quả."});
+          s[btn.dataset.ma]=Object.assign(s[btn.dataset.ma]||{},{duyet:"",gopY:gy||"Cần bổ sung minh chứng / hoàn thiện kết quả."});
           saveState(s); render();
+        });
+      });
+      // Người nhận tiếp nhận góp ý → gỡ trạng thái "trả lại" (bỏ báo động đỏ), việc quay về đang thực hiện
+      document.querySelectorAll(".gv2-dismiss-reject").forEach(function(btn){
+        btn.addEventListener("click",function(){
+          var s=loadState(), ma=btn.dataset.ma;
+          s[ma]=Object.assign(s[ma]||{},{duyet:"",gopY:""}); saveState(s); render();
         });
       });
       // xuất hồ sơ chính thức (theo phạm vi)
@@ -2888,7 +2898,7 @@
     function inPhieu(g){
       var w=window.open("","_blank","width=800,height=900"); if(!w) return;
       var mc=(g.minhChung||[]).map(function(m){return "• "+esc(m.ten||m.link);}).join("<br>")||"—";
-      var stt=g.duyet==="dat"?"Đã nghiệm thu (Đạt)":g.duyet==="cho"?"Chờ duyệt":g.duyet==="chuaDat"?"Trả lại bổ sung":"Đang thực hiện";
+      var stt=g.duyet==="dat"?"Đã nghiệm thu (Đạt)":g.duyet==="cho"?"Chờ duyệt":g.gopY?"Trả lại bổ sung — chưa nộp":"Đang thực hiện";
       var doc='<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><title>Phiếu giao việc '+esc(g.ma)+'</title>'
        +'<style>body{font:13pt/1.5 "Times New Roman",serif;color:#000;max-width:720px;margin:24px auto;padding:0 20px}'
        +'h1{text-align:center;font-size:16pt;margin:4px 0}.sub{text-align:center;font-size:11pt;margin-bottom:18px}'
