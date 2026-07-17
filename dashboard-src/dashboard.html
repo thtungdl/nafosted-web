@@ -2147,6 +2147,7 @@
         ngayNop:s.ngayNop||"",
         duyet:duyet,
         gopY:s.gopY||"",
+        traLaiTruoc:s.traLaiTruoc||null,
         ngayDuyet:s.ngayDuyet||"",
         // tiểu mục công việc (anh Tùng tự nhập) — {ten, xong(🟡), duyet(🟢)}
         tieuMuc: tieuMuc,
@@ -2493,7 +2494,9 @@
       // MỘT dòng meta: ai giao → ai nhận · mốc thời gian (bỏ stage bar 4 chip + tempo bar — trùng với dlLabel)
       h+='<div style="font-size:.78rem;color:var(--muted);margin-bottom:6px">'+esc(g.nguoiGiao||"—")+' → <b>'+esc(g.nguoiNhan||"?")+'</b>'+(g.ngayGiao?' · Giao '+esc(g.ngayGiao):'')+(g.deadline?' · Hạn <b>'+esc(g.deadline)+'</b>':'')+'</div>';
       if(g.ketQuaCanDat) h+='<div style="font-size:.8rem;color:var(--muted);margin:4px 0">🎯 '+esc(g.ketQuaCanDat)+'</div>';
-      if(g.gopY) h+='<div style="display:flex;align-items:flex-start;gap:6px;font-size:.82rem;background:rgba(220,80,60,.12);border-radius:6px;padding:6px 8px;margin:5px 0"><span style="flex:1">↩ <b>CNĐT trả lại:</b> '+esc(g.gopY)+'</span><button class="gv2-dismiss-reject" data-ma="'+esc(g.ma)+'" title="Đã tiếp nhận góp ý — bỏ trạng thái trả lại (báo động đỏ)" style="border:none;background:transparent;color:var(--red);font-size:1.05rem;line-height:1;cursor:pointer;padding:0 3px;font-weight:800">×</button></div>';
+      if(g.gopY) h+='<div style="display:flex;align-items:flex-start;gap:6px;font-size:.82rem;background:rgba(220,80,60,.12);border-radius:6px;padding:6px 8px;margin:5px 0"><span style="flex:1">↩ <b>CNĐT trả lại:</b> '+esc(g.gopY)+'</span>'
+        +(VIEWER_IS_ADMIN&&g.traLaiTruoc?'<button class="gv2-undo-reject" data-ma="'+esc(g.ma)+'" title="Bấm nhầm — hoàn tác về trạng thái trước khi trả lại" style="border:none;background:transparent;color:var(--red);font-size:.78rem;font-weight:700;cursor:pointer;padding:0 3px;white-space:nowrap">↩ Hoàn tác</button>':'')
+        +'<button class="gv2-dismiss-reject" data-ma="'+esc(g.ma)+'" title="Đã tiếp nhận góp ý — bỏ trạng thái trả lại (báo động đỏ)" style="border:none;background:transparent;color:var(--red);font-size:1.05rem;line-height:1;cursor:pointer;padding:0 3px;font-weight:800">×</button></div>';
       // Nhận xét tự động (digest từ thư mục Raw)
       h+=digestBadge(g);
       // Tiểu mục — checklist trần, không khung; trạng thái đọc qua nền dòng (vàng: đã làm · xanh: đã duyệt)
@@ -2860,17 +2863,29 @@
           var st0=s[ma]||{}, tm=(st0.tieuMuc||[]);
           // đảm bảo mọi tiểu mục (nếu có) đều xanh khi hoàn thành công việc
           if(tm.length && !st0.khongTieuMuc) tm=tm.map(function(t){return Object.assign({},t,{xong:true,duyet:true});});
-          s[ma]=Object.assign(st0,{duyet:"dat",tienDo:100,ngayDuyet:nowD(),gopY:"",tieuMuc:tm});
+          s[ma]=Object.assign(st0,{duyet:"dat",tienDo:100,ngayDuyet:nowD(),gopY:"",traLaiTruoc:null,tieuMuc:tm});
           saveState(s); render();
         });
       });
-      // CNĐT trả lại — về thẳng trạng thái "chưa nộp" (không qua hàng chờ chuaDat), giữ ghi chú để người nhận biết lý do
+      // CNĐT trả lại — về thẳng trạng thái "chưa nộp" (không qua hàng chờ chuaDat), giữ ghi chú để người nhận biết lý do.
+      // Lưu snapshot trạng thái trước đó để có thể "Hoàn tác" nếu CNĐT bấm nhầm.
       document.querySelectorAll(".gv2-reject-btn").forEach(function(btn){
         btn.addEventListener("click",function(){
           if(!VIEWER_IS_ADMIN) return;
           var gy=(document.getElementById("gv2gy-"+btn.dataset.ma)||{value:""}).value.trim();
-          var s=loadState();
-          s[btn.dataset.ma]=Object.assign(s[btn.dataset.ma]||{},{duyet:"",gopY:gy||"Cần bổ sung minh chứng / hoàn thiện kết quả."});
+          var s=loadState(), ma=btn.dataset.ma, st0=s[ma]||{};
+          var backup={duyet:st0.duyet||"",tienDo:st0.tienDo,ngayDuyet:st0.ngayDuyet||"",tieuMuc:JSON.parse(JSON.stringify(st0.tieuMuc||[]))};
+          s[ma]=Object.assign(st0,{duyet:"",gopY:gy||"Cần bổ sung minh chứng / hoàn thiện kết quả.",traLaiTruoc:backup});
+          saveState(s); render();
+        });
+      });
+      // CNĐT bấm nhầm "trả lại" → hoàn tác, khôi phục đúng trạng thái trước đó
+      document.querySelectorAll(".gv2-undo-reject").forEach(function(btn){
+        btn.addEventListener("click",function(){
+          if(!VIEWER_IS_ADMIN) return;
+          var s=loadState(), ma=btn.dataset.ma, st0=s[ma]||{}, bak=st0.traLaiTruoc;
+          if(!bak) return;
+          s[ma]=Object.assign(st0,{duyet:bak.duyet||"",tienDo:bak.tienDo,ngayDuyet:bak.ngayDuyet||"",tieuMuc:bak.tieuMuc||[],gopY:"",traLaiTruoc:null});
           saveState(s); render();
         });
       });
@@ -2878,7 +2893,7 @@
       document.querySelectorAll(".gv2-dismiss-reject").forEach(function(btn){
         btn.addEventListener("click",function(){
           var s=loadState(), ma=btn.dataset.ma;
-          s[ma]=Object.assign(s[ma]||{},{duyet:"",gopY:""}); saveState(s); render();
+          s[ma]=Object.assign(s[ma]||{},{duyet:"",gopY:"",traLaiTruoc:null}); saveState(s); render();
         });
       });
       // xuất hồ sơ chính thức (theo phạm vi)
