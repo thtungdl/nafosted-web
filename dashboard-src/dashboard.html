@@ -981,6 +981,12 @@
 
       <button class="btn-print" id="bct-submit" type="button">Gửi báo cáo</button>
       <div class="gform-status" id="bct-status"></div>
+
+      <div class="gform-q" id="bct-history-wrap" style="margin-top:20px;border-top:1px solid var(--line);padding-top:16px">
+        <div class="gform-label" id="bct-history-title">Báo cáo đã nộp</div>
+        <div class="gform-hint" id="bct-history-hint"></div>
+        <div id="bct-history"></div>
+      </div>
     </section>
 
   </div><!-- /tab-baocaotuan -->
@@ -4294,12 +4300,17 @@
 
   function renderHistory(){
     var box=$('bct-history'); if(!box) return;
-    var mine=reports.filter(function(r){return r.hoTen===currentWho;}).slice().sort(function(a,b){return b.tuanSo-a.tuanSo;});
+    // Admin (CNĐT) xem TOÀN BỘ báo cáo của mọi người; người thường chỉ xem của mình.
+    var mine=(IS_ADMIN?reports.slice():reports.filter(function(r){return r.hoTen===currentWho;}))
+      .sort(function(a,b){return (b.tuanSo-a.tuanSo) || String(a.hoTen||'').localeCompare(String(b.hoTen||''));});
+    var titleEl=$('bct-history-title'), hintEl=$('bct-history-hint');
+    if(titleEl) titleEl.textContent=(IS_ADMIN?'Tất cả báo cáo đã nộp ('+mine.length+')':'Báo cáo của tôi');
+    if(hintEl) hintEl.textContent=(IS_ADMIN?'Nội dung + phụ lục toàn bộ báo cáo tuần của các thành viên, mới nhất trước.':'');
     if(!mine.length){ box.innerHTML='<div class="gform-hint">Chưa có báo cáo nào.</div>'; return; }
     box.innerHTML = mine.map(function(r){
       var files=(r.phuLuc||[]).map(function(f){ return f.link?('<a href="'+esc(f.link)+'" target="_blank" rel="noopener">'+esc(f.tenChuan)+'</a>'):esc(f.tenChuan); }).join(' · ');
       return '<div class="gform-report" data-id="'+esc(r.id)+'">'
-        + '<h4>Tuần '+r.tuanSo+' ('+esc(r.tuNgay||'?')+' – '+esc(r.denNgay||'?')+')</h4>'
+        + '<h4>Tuần '+r.tuanSo+' ('+esc(r.tuNgay||'?')+' – '+esc(r.denNgay||'?')+')'+(IS_ADMIN?(' — '+esc(r.hoTen||'?')):'')+'</h4>'
         + '<div class="meta">Nộp lúc '+esc(r.ngayNop||'')+(r.vaiTro?(' · '+esc(r.vaiTro)):'')+'</div>'
         + (r.congViecHoanThanh?('<div class="body-txt"><b>Đã hoàn thành:</b> '+esc(r.congViecHoanThanh)+'</div>'):'')
         + (r.khoKhan?('<div class="body-txt"><b>Khó khăn:</b> '+esc(r.khoKhan)+'</div>'):'')
