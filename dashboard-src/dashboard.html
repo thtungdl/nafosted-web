@@ -4192,8 +4192,8 @@
   // nộp xong đánh dấu hoàn thành (upsert theo cặp hoTen+tuanSo, không tạo bản trùng khi nộp lại).
   // Hosted lưu qua /api/store (type "baocaotuan") + /api/upload cho phụ lục; offline chỉ localStorage.
   //
-  // Mốc tuần: KHÔNG dùng ngày bắt đầu đề tài (t0) nữa — tự đặt mốc riêng cho báo cáo tuần, Tuần 103 =
-  // Thứ 7 13/06/2026 → Thứ 6 19/06/2026 (tuần Bảy→Sáu), là tuần ĐẦU TIÊN được theo dõi (trước đó không
+  // Mốc tuần: KHÔNG dùng ngày bắt đầu đề tài (t0) nữa — tự đặt mốc riêng cho báo cáo tuần, Tuần 107 =
+  // Thứ 7 11/07/2026 → Thứ 6 17/07/2026 (tuần Bảy→Sáu), là tuần ĐẦU TIÊN được theo dõi (trước đó không
   // tính, tránh báo "thiếu" giả cho các tuần trước khi có tính năng này). Hạn nộp = trước 9h sáng Thứ 2
   // kế tiếp (Bảy→Sáu, nghỉ cuối tuần, nộp trước giờ làm việc Thứ 2).
   var HOSTED_BCT=/^https?:$/.test(location.protocol);
@@ -4208,7 +4208,7 @@
   var FULLTIME=(D.nhanSu||[]).filter(function(n){return /FULLTIME/i.test(n.vaiTro||'');});
 
   var DAY=86400000;
-  var WEEK_EPOCH=103, WEEK_EPOCH_START=new Date(2026,5,13);
+  var WEEK_EPOCH=107, WEEK_EPOCH_START=new Date(2026,6,11);
   var today=new Date();
   function weekRange(n){ var s=new Date(WEEK_EPOCH_START); s.setDate(s.getDate()+(n-WEEK_EPOCH)*7); var e=new Date(s); e.setDate(s.getDate()+6); return {start:s,end:e}; }
   function weekDeadline(n){ var r=weekRange(n); var d=new Date(r.end); d.setDate(r.end.getDate()+3); d.setHours(9,0,0,0); return d; }
@@ -4319,7 +4319,7 @@
     });
   }
 
-  // Danh sách tuần: từ tuần 103 (mốc bắt đầu theo dõi) đến tuần hiện tại, tối đa 20 tuần gần nhất
+  // Danh sách tuần: từ tuần 107 (mốc bắt đầu theo dõi) đến tuần hiện tại, tối đa 20 tuần gần nhất
   // (mới nhất trước) để dropdown không phình to theo thời gian.
   function weekList(){
     var lo=Math.max(WEEK_EPOCH,curWeek-19), hi=curWeek;
