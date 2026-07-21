@@ -45,5 +45,12 @@ export async function GET() {
     '<script src="nafosted-progress-data.js"></script>',
     "<script>\nwindow.NAFOSTED_VIEWER=" + viewer + ";\nwindow.NAFOSTED_WBS_OVERRIDE=" + wbsOverride + ";\n" + data + "\n</script>"
   );
-  return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  // no-store: trang động theo từng người + phải nhận bản mới ngay sau mỗi lần deploy
+  // (tránh trình duyệt/CDN giữ HTML cũ khiến người dùng không thấy bản vá).
+  return new Response(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store, must-revalidate",
+    },
+  });
 }
