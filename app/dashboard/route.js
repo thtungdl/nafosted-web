@@ -19,18 +19,23 @@ export async function GET() {
   const email = (session?.user?.email || "").toLowerCase();
   const isAdmin = !!session?.user?.isAdmin;
   let perms = null;
-  if (!isAdmin && email) {
+  let ten = null;
+  if (email) {
     try {
       const m = (await getAdminMembers()).find((x) => (x.email || "").toLowerCase() === email);
-      if (m && Array.isArray(m.perms)) perms = m.perms;
+      if (m) {
+        if (!isAdmin && Array.isArray(m.perms)) perms = m.perms;
+        if (m.ten) ten = m.ten;   // tên trong danh mục quản trị → dùng làm "Họ và tên" báo cáo tuần
+      }
     } catch (e) { perms = null; }
   }
-  // Danh tính người xem (email + quyền admin + quyền xem section). Giới hạn PHÍA CLIENT trong nhóm
+  // Danh tính người xem (email + quyền admin + quyền xem section + tên). Giới hạn PHÍA CLIENT trong nhóm
   // đã đăng nhập hợp lệ, không phải cách ly server-side tuyệt đối.
   const viewer = JSON.stringify({
     email: session?.user?.email || null,
     isAdmin: isAdmin,
     perms: perms,
+    ten: ten,
   });
   // Override cây công việc WBS (admin sửa/thêm công việc) — nhúng để áp đồng bộ trước khi derive.
   let wbsOverride = "{}";

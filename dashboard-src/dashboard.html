@@ -4201,9 +4201,13 @@
   var VIEWER=window.NAFOSTED_VIEWER||{email:null,isAdmin:true};
   var IS_ADMIN=!!VIEWER.isAdmin;
   var VIEWER_NAME=(function(){
-    if(!VIEWER.email) return null;
-    var p=(D.nhanSu||[]).find(function(n){return n.email && n.email.toLowerCase()===VIEWER.email.toLowerCase();});
-    return p ? p.ten : null;
+    // Ưu tiên khớp email đăng nhập với hồ sơ nhân sự; nếu không khớp (email Google khác email hồ sơ)
+    // → dùng tên từ danh mục quản trị (VIEWER.ten do server inject). Tránh ô "Họ và tên" rỗng.
+    if(VIEWER.email){
+      var p=(D.nhanSu||[]).find(function(n){return n.email && n.email.toLowerCase()===VIEWER.email.toLowerCase();});
+      if(p && p.ten) return p.ten;
+    }
+    return VIEWER.ten || null;
   })();
   var FULLTIME=(D.nhanSu||[]).filter(function(n){return /FULLTIME/i.test(n.vaiTro||'');});
 
@@ -4269,7 +4273,7 @@
 
   function uploadFiles(fileList){
     if(!HOSTED_BCT){ setStatus('⚠ Đính kèm file chỉ khả dụng trên bản web (đã đăng nhập).'); return; }
-    if(!currentWho) return;
+    if(!currentWho){ setStatus('⚠ Nhập/chọn "Họ và tên" trước khi đính kèm file.'); return; }
     var files=[].slice.call(fileList);
     (function next(k){
       if(k>=files.length){ setStatus(''); return; }
@@ -4346,13 +4350,32 @@
   }
 
   // Nạp form theo tuần đang chọn: có báo cáo cũ → điền lại để xem/sửa; chưa có → để trống
-  // Danh sách công việc đang được giao cho 1 người (đúng dữ liệu tab Giao việc/Tiến độ cá nhân —
-  // localStorage key "nafosted_gv_custom" dùng chung, đọc trực tiếp không cần đụng code gốc).
+  // Danh sách công việc đang được giao cho 1 người (đúng dữ liệu tab Giao việc/Tiến độ cá nhân).
+  // Trên hosted, phiếu giao việc do module Giao việc nạp BẤT ĐỒNG BỘ vào localStorage → BCT tự nạp
+  // thẳng qua /api/store?type=giaoviec (fallback window.NAFOSTED_GIAOVIEC / localStorage) rồi vẽ lại
+  // danh sách vai trò, tránh checklist rỗng do đua điều kiện.
+  var bctAssigned=null;
+  function loadAssignedTasks(cb){
+    function done(list){ if(Array.isArray(list)) bctAssigned=list; if(cb) cb(); }
+    var winCustom=(window.NAFOSTED_GIAOVIEC&&Array.isArray(window.NAFOSTED_GIAOVIEC.custom))?window.NAFOSTED_GIAOVIEC.custom:null;
+    var lsCustom; try{ lsCustom=JSON.parse(localStorage.getItem('nafosted_gv_custom')||'[]'); }catch(e){ lsCustom=[]; }
+    if(HOSTED_BCT){
+      fetch('/api/store?type=giaoviec',{credentials:'same-origin'}).then(function(r){return r.json();})
+        .then(function(d){ done((d&&Array.isArray(d.custom))?d.custom:(winCustom||lsCustom)); })
+        .catch(function(){ done(winCustom||lsCustom); });
+    } else { done(winCustom||lsCustom); }
+  }
   function assignedTasks(who){
-    try{
-      var custom=JSON.parse(localStorage.getItem('nafosted_gv_custom')||'[]');
-      return custom.filter(function(c){ return c && c.nguoiNhan===who; });
-    }catch(e){ return []; }
+    var list=bctAssigned;
+    if(!list){ try{ list=JSON.parse(localStorage.getItem('nafosted_gv_custom')||'[]'); }catch(e){ list=[]; } }
+    return (list||[]).filter(function(c){ return c && c.nguoiNhan===who; });
+  }
+  function currentVaiTroSelected(){
+    var box=$('bct-vaitro-list'); if(!box) return [];
+    var v=[].slice.call(box.querySelectorAll('.bct-vt-ck:checked')).map(function(c){ return c.value; });
+    var oc=$('bct-vt-other-ck'), ot=$('bct-vt-other-txt');
+    if(oc&&oc.checked&&ot&&ot.value.trim()) v.push(ot.value.trim());
+    return v;
   }
   function renderVaiTroList(selected){
     var box=$('bct-vaitro-list'); if(!box) return;
@@ -4404,21 +4427,32 @@
   // dropdown CHÍNH LÀ họ tên, không cần ô readonly riêng nữa); người thường → chỉ hiện tên mình, đọc.
   function renderWho(){
     var wrap=$('bct-who-wrap'), hint=$('bct-who-hint'); if(!wrap) return;
+    // Người có thể chọn (admin): ưu tiên FULLTIME; nếu trống → toàn bộ nhân sự (tránh dropdown rỗng).
+    var pool = FULLTIME.length ? FULLTIME : (D.nhanSu||[]);
     if(IS_ADMIN){
       if(hint) hint.style.display='';
       var sel=wrap.querySelector('select');
       if(!sel){
         wrap.innerHTML='<select class="gform-input" id="bct-who"></select>';
         sel=wrap.querySelector('select');
-        sel.innerHTML = FULLTIME.map(function(m){ return '<option value="'+esc(m.ten)+'">'+esc(m.ten)+'</option>'; }).join('');
+        sel.innerHTML = pool.map(function(m){ return '<option value="'+esc(m.ten)+'">'+esc(m.ten)+'</option>'; }).join('');
         sel.addEventListener('change', function(){ currentWho=sel.value; renderWeekSelect(); loadFormForWeek(); renderHistory(); });
       }
-      currentWho = sel.value || (FULLTIME[0] && FULLTIME[0].ten) || '';
+      currentWho = sel.value || (pool[0] && pool[0].ten) || '';
       sel.value=currentWho;
-    } else {
+    } else if(VIEWER_NAME){
       if(hint) hint.style.display='none';
-      currentWho = VIEWER_NAME || '';
+      currentWho = VIEWER_NAME;
       wrap.innerHTML='<input class="gform-input" type="text" readonly value="'+esc(currentWho)+'">';
+    } else {
+      // Không xác định được tên (email đăng nhập khác hồ sơ, không có trong danh mục) → cho NHẬP TAY,
+      // không để ô readonly rỗng khiến không điền được tên, không nộp và không đính kèm được file.
+      if(hint) hint.style.display='none';
+      wrap.innerHTML='<input class="gform-input" id="bct-who-text" type="text" placeholder="Nhập họ và tên người báo cáo">';
+      var inp=wrap.querySelector('#bct-who-text');
+      currentWho = (inp.value||'').trim();
+      inp.addEventListener('input', function(){ currentWho=inp.value.trim(); });
+      inp.addEventListener('change', function(){ currentWho=inp.value.trim(); renderWeekSelect(); loadFormForWeek(); renderHistory(); });
     }
   }
 
@@ -4427,6 +4461,8 @@
     renderWeekSelect();
     loadFormForWeek();
     renderHistory();
+    // Nạp phiếu giao việc (có thể async trên hosted) rồi vẽ lại danh sách vai trò để có ô tick.
+    loadAssignedTasks(function(){ renderVaiTroList(currentVaiTroSelected()); });
   }
 
   var tuanSel=$('bct-tuan');
