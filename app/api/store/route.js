@@ -4,7 +4,7 @@ import { getStore, saveStore } from "../../../lib/drive";
 
 export const dynamic = "force-dynamic";
 
-const ALLOWED_TYPES = ["cong", "giaoviec", "sop", "tieuchi", "admin", "wbs", "baocaotuan"];
+const ALLOWED_TYPES = ["cong", "giaoviec", "sop", "tieuchi", "admin", "wbs", "baocaotuan", "tonghop"];
 
 /**
  * GET /api/store?type=<type>

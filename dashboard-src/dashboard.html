@@ -729,6 +729,7 @@
     <button class="tabbtn subbtn" data-tab="giaoviec">Giao việc</button>
     <button class="tabbtn subbtn" data-tab="tiendoCN">Tiến độ cá nhân</button>
     <button class="tabbtn subbtn" data-tab="baocaotuan">Báo cáo tuần</button>
+    <button class="tabbtn subbtn" data-tab="tonghopbc">Tổng hợp báo cáo</button>
   </div>
   <div class="tabnav sub-tabnav hide" id="subnav-sop">
     <button class="tabbtn subbtn sopviewbtn active" data-sopview="sop">SOP</button>
@@ -990,6 +991,32 @@
     </section>
 
   </div><!-- /tab-baocaotuan -->
+
+  <div id="tab-tonghopbc" class="tabpane hide">
+    <section class="block">
+      <h2>Tổng hợp báo cáo tuần</h2>
+      <div class="narrbox" style="margin-bottom:12px">Bản tổng kết tiến độ thực hiện, các vấn đề cần tháo gỡ và định hướng triển khai tiếp — tổng hợp tự động từ các báo cáo tuần vào sáng Thứ Ba hằng tuần. Chọn tháng rồi mở từng tuần để xem chi tiết.</div>
+      <div id="thbc-root"></div>
+    </section>
+    <style>
+      #tab-tonghopbc .thbc-month{border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow:hidden}
+      #tab-tonghopbc .thbc-month>summary{cursor:pointer;padding:12px 14px;font-weight:700;font-size:1.02rem;background:rgba(127,127,127,.06);list-style:none}
+      #tab-tonghopbc .thbc-monthbody{padding:10px 12px}
+      #tab-tonghopbc .thbc-week{border:1px solid var(--line);border-radius:8px;margin:8px 0}
+      #tab-tonghopbc .thbc-week>summary{cursor:pointer;padding:10px 12px;list-style:none}
+      #tab-tonghopbc .thbc-badge{display:inline-block;margin-left:6px;font-size:.78rem;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:1px 9px;vertical-align:middle}
+      #tab-tonghopbc .thbc-body{padding:4px 14px 12px}
+      #tab-tonghopbc .thbc-sec{margin:10px 0}
+      #tab-tonghopbc .thbc-sec h4{margin:0 0 4px;font-size:.95rem}
+      #tab-tonghopbc .thbc-sec ul{margin:0;padding-left:1.15em}
+      #tab-tonghopbc .thbc-sec li{margin:.4em 0;line-height:1.5}
+      #tab-tonghopbc .thbc-huong{color:var(--muted);font-size:.9rem}
+      #tab-tonghopbc .thbc-meta{margin-top:8px;font-size:.8rem;color:var(--muted);font-style:italic}
+      #tab-tonghopbc summary::-webkit-details-marker{display:none}
+      #tab-tonghopbc details>summary::before{content:'\25B8';display:inline-block;margin-right:8px;transition:transform .15s}
+      #tab-tonghopbc details[open]>summary::before{transform:rotate(90deg)}
+    </style>
+  </div><!-- /tab-tonghopbc -->
 
 
   <div id="tab-tinhcong" class="tabpane hide">
@@ -1939,7 +1966,7 @@
   }).join("");
 
   /* ---------- Chuyển tab 2 cấp (Nhóm + Sub) ---------- */
-  var ALL_PANES=["tongquan","trienkhai","giaoviec","tiendoCN","baocaotuan","tinhcong","sopdata","giaoviecHC","tiendoCNHC","hosothutu","taichinhtongho","admin"];
+  var ALL_PANES=["tongquan","trienkhai","giaoviec","tiendoCN","baocaotuan","tonghopbc","tinhcong","sopdata","giaoviecHC","tiendoCNHC","hosothutu","taichinhtongho","admin"];
   var activeGroup="chuyenmon";
   var activeSub={chuyenmon:"tongquan",hanhchinh:"giaoviecHC",sop:"sopdata",tinhcong:"tinhcong",admin:"admin"};
   function showPane(id){ALL_PANES.forEach(function(p){var e=document.getElementById("tab-"+p);if(e)e.classList.toggle("hide",p!==id);});}
@@ -4639,6 +4666,54 @@
 
 <script>
 (function(){
+  // Tab "Tổng hợp báo cáo" — CHỈ ĐỌC. Render các bản tổng kết tuần (tiến độ · vấn đề · định hướng)
+  // dạng dropdown 2 cấp: Năm-Tháng → Tuần. Hosted đọc /api/store?type=tonghop; offline đọc sidecar
+  // nafosted-tonghop.js (window.NAFOSTED_TONGHOP). Không đụng render()/nav gốc.
+  var HOSTED=/^https?:$/.test(location.protocol);
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function fmtDM(iso){ if(!iso) return ''; var p=String(iso).split('-'); return p.length>=3?(p[2]+'/'+p[1]):iso; }
+  function render(data){
+    var root=document.getElementById('thbc-root'); if(!root) return;
+    var items=(data&&Array.isArray(data.items))?data.items.slice():[];
+    if(!items.length){ root.innerHTML='<div class="narrbox">Chưa có bản tổng hợp nào. Bản tổng hợp được tạo tự động vào sáng Thứ Ba hằng tuần.</div>'; return; }
+    items.sort(function(a,b){ return (b.tuanSo||0)-(a.tuanSo||0); });
+    var groups={}, order=[];
+    items.forEach(function(it){ var k=it.nam+'-'+it.thang; if(!groups[k]){ groups[k]=[]; order.push(k); } groups[k].push(it); });
+    function block(title,arr,fmt){ if(!arr||!arr.length) return ''; return '<div class="thbc-sec"><h4>'+title+'</h4><ul>'+arr.map(fmt).join('')+'</ul></div>'; }
+    var html=order.map(function(k,gi){
+      var arr=groups[k], nam=arr[0].nam, thang=arr[0].thang;
+      var weeks=arr.map(function(it){
+        var range=fmtDM(it.tuNgay)+'–'+fmtDM(it.denNgay)+'/'+it.nam;
+        var cov=(it.soBaoCao||0)+'/'+(it.soCanNop||0)+' báo cáo';
+        var missing=(it.nguoiThieu&&it.nguoiThieu.length)?(' · thiếu: '+it.nguoiThieu.map(esc).join(', ')):'';
+        var tienDo=block('Tiến độ thực hiện', it.tienDo, function(x){ return '<li>'+esc(x)+'</li>'; });
+        var vanDe=block('Vấn đề & vướng mắc', it.vanDe, function(x){ return '<li><b>'+esc(x.noiDung)+'</b><br><span class="thbc-huong">↳ '+esc(x.huongXuLy)+'</span></li>'; });
+        var dinhHuong=block('Định hướng triển khai tiếp', it.dinhHuong, function(x){ return '<li>'+esc(x)+'</li>'; });
+        return '<details class="thbc-week"><summary><b>'+esc(it.tuanLabel||('Tuần '+it.tuanSo))+'</b> · '+range+' <span class="thbc-badge">'+cov+missing+'</span></summary>'
+          +'<div class="thbc-body">'+tienDo+vanDe+dinhHuong
+          +'<div class="thbc-meta">Tổng hợp ngày '+esc(it.ngayTongHop||'')+'</div></div></details>';
+      }).join('');
+      return '<details class="thbc-month"'+(gi===0?' open':'')+'><summary>Tháng '+thang+'/'+nam+' <span class="thbc-badge">'+arr.length+' tuần</span></summary><div class="thbc-monthbody">'+weeks+'</div></details>';
+    }).join('');
+    root.innerHTML=html;
+    var first=root.querySelector('.thbc-week'); if(first) first.setAttribute('open','');
+  }
+  function load(){
+    if(HOSTED){
+      fetch('/api/store?type=tonghop',{credentials:'same-origin'}).then(function(r){return r.json();}).then(render).catch(function(){ render(null); });
+    } else {
+      if(window.NAFOSTED_TONGHOP){ render(window.NAFOSTED_TONGHOP); return; }
+      var s=document.createElement('script'); s.src='nafosted-tonghop.js?'+Date.now();
+      s.onload=function(){ render(window.NAFOSTED_TONGHOP||null); };
+      s.onerror=function(){ render(null); }; document.head.appendChild(s);
+    }
+  }
+  if(document.readyState!=='loading') load(); else document.addEventListener('DOMContentLoaded', load);
+})();
+</script>
+
+<script>
+(function(){
   var nav=document.querySelector('.group-nav'); if(!nav||document.querySelector('.side-brand')) return;
   var brand=document.createElement('div'); brand.className='side-brand';
   var logoSrc=/^https?:$/.test(location.protocol) ? '/nafostedlogo.png' : 'nafostedlogo.png';
@@ -4700,6 +4775,14 @@
     if(!origBct || origBct.style.display==='none' || !gCM) return;
     var b=document.createElement('button'); b.className='tabbtn side-top'; b.textContent='Báo cáo tuần'; b.dataset.tab='baocaotuan';
     b.addEventListener('click', function(){ suppress=true; gCM.click(); origBct.click(); suppress=false; sync(); });
+    anchorTop.insertAdjacentElement('afterend', b); anchorTop=b; topBtns.push(b);
+  })();
+  // "Tổng hợp báo cáo" — mục cấp 1 riêng, ngay dưới "Báo cáo tuần" (menu chung, ai đăng nhập cũng thấy).
+  (function(){
+    var origThbc=document.querySelector('#subnav-chuyenmon .subbtn[data-tab="tonghopbc"]');
+    if(!origThbc || origThbc.style.display==='none' || !gCM) return;
+    var b=document.createElement('button'); b.className='tabbtn side-top'; b.textContent='Tổng hợp báo cáo'; b.dataset.tab='tonghopbc';
+    b.addEventListener('click', function(){ suppress=true; gCM.click(); origThbc.click(); suppress=false; sync(); });
     anchorTop.insertAdjacentElement('afterend', b); anchorTop=b; topBtns.push(b);
   })();
   var adm=document.getElementById('groupbtn-admin');
